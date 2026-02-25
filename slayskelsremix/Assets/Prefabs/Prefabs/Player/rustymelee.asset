@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 268617b9dca8c0c49bfdbefc34e7d717, type: 3}
+  m_Name: rustymelee
+  m_EditorClassIdentifier: Assembly-CSharp::rustymelee
+  fireRate: 0.2
+  prefab: {fileID: 233725004081931323, guid: 49947f31aaae6ec46b59d342ab70058a, type: 3}
+  icon: {fileID: 0}
+  launchsound: {fileID: 0}
+  customAudioLogic: 0
+  damage: 20
+  spawnOffset: 3
+  rotationOffset: 90
+  swingsPerAttack: 2
+  delayBetweenSwings: 0.15
+  bonusdmg: 0

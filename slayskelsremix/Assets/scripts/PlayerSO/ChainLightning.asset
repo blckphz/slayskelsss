@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7feb8d5ffcab0f74b9d8c2721deaec92, type: 3}
+  m_Name: ChainLightning
+  m_EditorClassIdentifier: Assembly-CSharp::ChainLightning
+  fireRate: 0.32
+  prefab: {fileID: 3077356531282468396, guid: 3cc3600388b14ed4f86032f92aa62f09, type: 3}
+  icon: {fileID: 21300000, guid: fdc43acb496f61c4fa2b156550ec9450, type: 3}
+  launchsound: {fileID: 8300000, guid: b42d842d1e432e64da088318783d4bf2, type: 3}
+  customAudioLogic: 0
+  damage: 5
+  projectileSpeed: 24.7
+  maxBounces: 3
+  bounceRadius: 5
+  stunDuration: 2
+  stuneffect: 2
+  isapplyingtickdmg: 0
+  stundmg: 5
+  stuntick: 5
+  rotationOffset: 90
