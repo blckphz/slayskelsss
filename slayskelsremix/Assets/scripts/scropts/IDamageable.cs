@@ -1,5 +1,6 @@
 public interface IDamageable
 {
     void TakeDamage(float damage);
-    void ApplySlow(float slowPercent, float duration);
+    // Updated to include tick damage parameters
+    void ApplySlow(float slowPercent, float duration, float tickDmg, float tickInterval);
 }

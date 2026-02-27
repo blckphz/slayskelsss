@@ -25,5 +25,5 @@ MonoBehaviour:
   stuneffect: 2
   isapplyingtickdmg: 0
   stundmg: 5
-  stuntick: 5
+  stuntick: 1
   rotationOffset: 90

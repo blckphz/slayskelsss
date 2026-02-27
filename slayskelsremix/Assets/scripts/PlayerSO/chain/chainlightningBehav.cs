@@ -10,39 +10,36 @@ public class chainlightningBehav : MonoBehaviour
     private bool istickdmg;
     private float slowduration, sloweffectivenes;
 
-    // We use this to prevent hitting the same enemy twice in one shot
+    private float stunDmg;
+    private float stunTick;
+
     private List<GameObject> hitEnemies = new List<GameObject>();
     private Rigidbody2D rb;
     private Transform spriteTransform;
-
-    // Timer for auto-deactivation
     private Coroutine deactivationRoutine;
 
     void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
-        // Find the sprite transform safely
         spriteTransform = GetComponentInChildren<SpriteRenderer>().transform;
     }
 
-    public void Setup(float dmg, int bounces, float rad, Vector2 velocity, float rotOffset, float stunDuration, float stuneffect, bool isapplyingtickdmg)
+    public void Setup(float dmg, int bounces, float rad, Vector2 velocity, float rotOffset, float stunDur, float stunEff, bool useTick, float sDmg, float sTick)
     {
-        // 1. Reset state (CRITICAL for pooling)
         hitEnemies.Clear();
         damage = dmg;
         bouncesRemaining = bounces;
         radius = rad;
         rotationOffset = rotOffset;
-        slowduration = stunDuration;
-        sloweffectivenes = stuneffect;
-        istickdmg = isapplyingtickdmg;
+        slowduration = stunDur;
+        sloweffectivenes = stunEff;
+        istickdmg = useTick;
+        stunDmg = sDmg;
+        stunTick = sTick;
 
-
-        // 2. Physics setup
         rb.linearVelocity = velocity;
         RotateSprite(velocity);
 
-        // 3. Instead of Destroy, start a "Return to Pool" timer
         if (deactivationRoutine != null) StopCoroutine(deactivationRoutine);
         deactivationRoutine = StartCoroutine(DeactivateAfterTime(5f));
     }
@@ -56,9 +53,7 @@ public class chainlightningBehav : MonoBehaviour
     void FixedUpdate()
     {
         if (rb.linearVelocity.sqrMagnitude > 0.001f)
-        {
             RotateSprite(rb.linearVelocity);
-        }
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
@@ -68,7 +63,10 @@ public class chainlightningBehav : MonoBehaviour
         if (target != null && !hitEnemies.Contains(collision.gameObject))
         {
             target.TakeDamage(damage);
-            target.ApplySlow(sloweffectivenes, slowduration); // 40% slow for 2 seconds
+
+            // Now passing all 4 parameters required by the interface
+            target.ApplySlow(sloweffectivenes, slowduration, stunDmg, stunTick);
+
             hitEnemies.Add(collision.gameObject);
 
             if (bouncesRemaining > 0)
@@ -81,7 +79,6 @@ public class chainlightningBehav : MonoBehaviour
     void Bounce()
     {
         bouncesRemaining--;
-
         GameObject closest = FindNextTarget();
         if (closest == null)
         {
@@ -103,13 +100,11 @@ public class chainlightningBehav : MonoBehaviour
     GameObject FindNextTarget()
     {
         Collider2D[] candidates = Physics2D.OverlapCircleAll(transform.position, radius);
-
         GameObject bestTarget = null;
         float closestDist = Mathf.Infinity;
 
         foreach (var col in candidates)
         {
-            // Only target things with health that we haven't hit yet
             if (col.GetComponent<IDamageable>() != null && !hitEnemies.Contains(col.gameObject))
             {
                 float dist = Vector2.Distance(transform.position, col.transform.position);
@@ -123,9 +118,5 @@ public class chainlightningBehav : MonoBehaviour
         return bestTarget;
     }
 
-    void Deactivate()
-    {
-        // Return to pool
-        gameObject.SetActive(false);
-    }
+    void Deactivate() => gameObject.SetActive(false);
 }

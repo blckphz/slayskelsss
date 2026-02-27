@@ -8,28 +8,23 @@ public class ChainLightning : offensiveRanged
     public float bounceRadius = 5f;
 
     [Header("Stun Settings")]
-    public float stunDuration;
-    public float stuneffect;
+    public float stunDuration = 2f;
+    public float stuneffect = 2f;
 
-    public bool isapplyingtickdmg;
-
+    [Header("Tick Damage Settings")]
+    public bool isapplyingtickdmg = true;
     public float stundmg = 5f;
-    public float stuntick = 5f;
-
+    public float stuntick = 0.5f;
 
     [Tooltip("Degrees to rotate sprite so it visually faces movement")]
     public float rotationOffset = 0f;
 
     public override void Execute(Transform caster, Transform targetAnchor)
     {
-        // 1. Calculate direction
         Vector2 dir = (targetAnchor.position - caster.position).normalized;
 
-        // 2. Use the Pooler instead of Instantiate
-        // We pass the prefab as the key so the pooler knows which "drawer" to look in
         GameObject bolt = ObjectPooler.Instance.GetPooledObject(prefab, caster.position, Quaternion.identity);
 
-        // 3. Initialize the projectile behavior
         var behav = bolt.GetComponent<chainlightningBehav>();
         if (behav != null)
         {
@@ -41,8 +36,9 @@ public class ChainLightning : offensiveRanged
                 rotationOffset,
                 stunDuration,
                 stuneffect,
-                isapplyingtickdmg
-
+                isapplyingtickdmg,
+                stundmg,
+                stuntick
             );
         }
     }

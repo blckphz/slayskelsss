@@ -21,7 +21,7 @@ public class enemyHealth : MonoBehaviour, IDamageable
     [Header("Effect Intensities")]
     public float peakHitIntensity = 100f;
     public float peakStunIntensity = 100f;
-    public float peakSlowIntensity = 100f; // Adjust based on your shader's look
+    public float peakSlowIntensity = 100f;
 
     [Header("Effect Durations")]
     public float flashDuration = 0.2f;
@@ -34,7 +34,7 @@ public class enemyHealth : MonoBehaviour, IDamageable
 
     private Coroutine _flashCoroutine;
     private Coroutine _slowCoroutine;
-    private Coroutine _stunCoroutine;
+    private Coroutine _stunDamageCoroutine;
 
     void Awake()
     {
@@ -47,13 +47,9 @@ public class enemyHealth : MonoBehaviour, IDamageable
     {
         maxHealth = health;
         if (ai != null) originalSpeed = ai.maxSpeed;
-
         UpdateHealthUI();
     }
 
-    // ======================
-    // DAMAGE & FLASH
-    // ======================
     public void TakeDamage(float damage)
     {
         health -= damage;
@@ -75,53 +71,66 @@ public class enemyHealth : MonoBehaviour, IDamageable
         {
             elapsed += Time.deltaTime;
             float currentIntensity = Mathf.Lerp(peakHitIntensity, 0f, elapsed / flashDuration);
-
             UpdateShaderProperty(hitIntensityName, currentIntensity);
             yield return null;
         }
         UpdateShaderProperty(hitIntensityName, 0f);
     }
 
-
-    // ======================
-    // SLOW LOGIC (Now using Material)
-    // ======================
-    public void ApplySlow(float slowPercent, float duration)
+    // Updated ApplySlow to accept damage-over-time parameters
+    public void ApplySlow(float slowPercent, float duration, float tickDmg, float tickInterval)
     {
         if (_slowCoroutine != null) StopCoroutine(_slowCoroutine);
-        _slowCoroutine = StartCoroutine(SlowRoutine(slowPercent, duration));
+        _slowCoroutine = StartCoroutine(SlowRoutine(slowPercent, duration, tickDmg, tickInterval));
     }
 
-    private IEnumerator SlowRoutine(float slowPercent, float duration)
+    private IEnumerator SlowRoutine(float slowPercent, float duration, float tickDmg, float tickInterval)
     {
-
-        Debug.Log(slowPercent);
-
-        // Apply logic
+        // Apply Movement Slow
         if (ai != null) ai.maxSpeed = originalSpeed - slowPercent;
-        Debug.Log(ai.maxSpeed);
-        // Apply shader visual
+
+        // Apply Shader Visual
         UpdateShaderProperty(stunIntensityName, peakSlowIntensity);
+
+        // Start the Damage Over Time Tick
+        if (_stunDamageCoroutine != null) StopCoroutine(_stunDamageCoroutine);
+        _stunDamageCoroutine = StartCoroutine(StunDamageTick(tickDmg, tickInterval, duration));
 
         yield return new WaitForSeconds(duration);
 
         // Reset logic
         if (ai != null) ai.maxSpeed = originalSpeed;
-
-        // Reset shader visual
         UpdateShaderProperty(stunIntensityName, 0f);
 
         _slowCoroutine = null;
     }
 
-    // ======================
-    // HELPER METHODS
-    // ======================
+    private IEnumerator StunDamageTick(float dmg, float interval, float totalDuration)
+    {
+        float elapsed = 0f;
+        while (elapsed < totalDuration)
+        {
+            yield return new WaitForSeconds(interval);
+            elapsed += interval;
+
+            // Apply the tick damage
+            health -= dmg;
+            health = Mathf.Clamp(health, 0, maxHealth);
+            UpdateHealthUI();
+            ShowDamageText(dmg);
+
+            if (health <= 0)
+            {
+                Die();
+                yield break;
+            }
+        }
+        _stunDamageCoroutine = null;
+    }
+
     private void UpdateShaderProperty(string name, float value)
     {
         if (spriteRenderer == null) return;
-
-        // Get the current block to preserve other active effects (like Stun + Hit at once)
         spriteRenderer.GetPropertyBlock(propertyBlock);
         propertyBlock.SetFloat(name, value);
         spriteRenderer.SetPropertyBlock(propertyBlock);
@@ -135,7 +144,7 @@ public class enemyHealth : MonoBehaviour, IDamageable
 
     void ShowDamageText(float damage)
     {
-        if (damageTextPrefab != null)
+        if (damageTextPrefab != null && damage > 0)
         {
             GameObject textObj = Instantiate(damageTextPrefab, transform.position + Vector3.up, Quaternion.identity);
             if (textObj.TryGetComponent<DamageNumber>(out DamageNumber dn)) dn.Setup(damage);
