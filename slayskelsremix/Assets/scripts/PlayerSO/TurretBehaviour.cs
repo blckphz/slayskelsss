@@ -1,9 +1,9 @@
 ﻿using UnityEngine;
 
-public class TurretBehaviour : MonoBehaviour
+public class TurretBehaviour : healthso
 {
     // Turret stats
-    private float hp;
+    public float hp;
     private float lifetime;
     private Transform owner;
 
@@ -143,4 +143,16 @@ public class TurretBehaviour : MonoBehaviour
 
         Debug.Log($"[Turret] Shot fired at {target.name} with damage {damage}");
     }
+
+    public void TakeDamage(float amount)
+    {
+        hp -= amount;
+        Debug.Log($"[Turret] Hit! Remaining HP: {hp}");
+
+        if (hp <= 0)
+        {
+            Deactivate(); // Or call a specific Die() method
+        }
+    }
+
 }

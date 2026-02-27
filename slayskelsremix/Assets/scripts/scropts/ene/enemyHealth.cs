@@ -36,6 +36,9 @@ public class enemyHealth : MonoBehaviour, IDamageable
     private Coroutine _slowCoroutine;
     private Coroutine _stunDamageCoroutine;
 
+    // Interface Implementation: Returns true if the slow coroutine is active
+    public bool IsSlowed => _slowCoroutine != null;
+
     void Awake()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
@@ -77,7 +80,6 @@ public class enemyHealth : MonoBehaviour, IDamageable
         UpdateShaderProperty(hitIntensityName, 0f);
     }
 
-    // Updated ApplySlow to accept damage-over-time parameters
     public void ApplySlow(float slowPercent, float duration, float tickDmg, float tickInterval)
     {
         if (_slowCoroutine != null) StopCoroutine(_slowCoroutine);
@@ -86,19 +88,15 @@ public class enemyHealth : MonoBehaviour, IDamageable
 
     private IEnumerator SlowRoutine(float slowPercent, float duration, float tickDmg, float tickInterval)
     {
-        // Apply Movement Slow
         if (ai != null) ai.maxSpeed = originalSpeed - slowPercent;
-
-        // Apply Shader Visual
         UpdateShaderProperty(stunIntensityName, peakSlowIntensity);
 
-        // Start the Damage Over Time Tick
+        // Start the repeating damage tick
         if (_stunDamageCoroutine != null) StopCoroutine(_stunDamageCoroutine);
         _stunDamageCoroutine = StartCoroutine(StunDamageTick(tickDmg, tickInterval, duration));
 
         yield return new WaitForSeconds(duration);
 
-        // Reset logic
         if (ai != null) ai.maxSpeed = originalSpeed;
         UpdateShaderProperty(stunIntensityName, 0f);
 
@@ -113,17 +111,12 @@ public class enemyHealth : MonoBehaviour, IDamageable
             yield return new WaitForSeconds(interval);
             elapsed += interval;
 
-            // Apply the tick damage
             health -= dmg;
             health = Mathf.Clamp(health, 0, maxHealth);
             UpdateHealthUI();
             ShowDamageText(dmg);
 
-            if (health <= 0)
-            {
-                Die();
-                yield break;
-            }
+            if (health <= 0) { Die(); yield break; }
         }
         _stunDamageCoroutine = null;
     }

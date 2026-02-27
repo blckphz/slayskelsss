@@ -9,7 +9,6 @@ public class chainlightningBehav : MonoBehaviour
     private float rotationOffset;
     private bool istickdmg;
     private float slowduration, sloweffectivenes;
-
     private float stunDmg;
     private float stunTick;
 
@@ -63,8 +62,6 @@ public class chainlightningBehav : MonoBehaviour
         if (target != null && !hitEnemies.Contains(collision.gameObject))
         {
             target.TakeDamage(damage);
-
-            // Now passing all 4 parameters required by the interface
             target.ApplySlow(sloweffectivenes, slowduration, stunDmg, stunTick);
 
             hitEnemies.Add(collision.gameObject);
@@ -80,11 +77,7 @@ public class chainlightningBehav : MonoBehaviour
     {
         bouncesRemaining--;
         GameObject closest = FindNextTarget();
-        if (closest == null)
-        {
-            Deactivate();
-            return;
-        }
+        if (closest == null) { Deactivate(); return; }
 
         Vector2 direction = ((Vector2)closest.transform.position - (Vector2)transform.position).normalized;
         rb.linearVelocity = direction * rb.linearVelocity.magnitude;

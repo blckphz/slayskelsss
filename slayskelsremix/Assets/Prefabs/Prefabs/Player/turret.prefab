@@ -104,6 +104,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 06681eb0786a508458d5b4f0303a0965, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TurretBehaviour
+  hp: 10
   shootFrequency: 0.4
   projectileSpeed: 10
   detectionRadius: 10

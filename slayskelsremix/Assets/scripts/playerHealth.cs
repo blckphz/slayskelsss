@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI; // Needed for the Slider
 
-public class playerHealth : MonoBehaviour
+public class playerHealth : healthso
 {
     [Header("Health Stats")]
     public float maxHealth = 100f;

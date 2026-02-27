@@ -5,7 +5,10 @@ public class EnemyAI : MonoBehaviour
 {
     private IAstarAI ai;
     private Animator anim;
-    private Transform playerTransform;
+
+    [Header("Targeting Settings")]
+    private Transform currentTarget;
+    public float detectionRefreshRate = 0.5f; // How often to search for the closest target
 
     [Header("Combat Settings")]
     public float attackRange = 1.2f;
@@ -15,37 +18,33 @@ public class EnemyAI : MonoBehaviour
 
     [Header("Trigger Setup")]
     [SerializeField] private CircleCollider2D weaponTrigger;
-    [SerializeField] private LayerMask playerLayer;
+    [SerializeField] private LayerMask targetLayers; // Set this to include both Player and Turret layers
 
     void Start()
     {
         ai = GetComponent<IAstarAI>();
         anim = GetComponent<Animator>();
 
-        GameObject player = GameObject.FindGameObjectWithTag("Player");
-        if (player != null)
-        {
-            playerTransform = player.transform;
-        }
-        else
-        {
-            Debug.LogError("EnemyAI: No object with tag 'Player' found in scene!");
-        }
+        // Start the repeating search for the closest target
+        InvokeRepeating(nameof(FindClosestTarget), 0f, detectionRefreshRate);
 
         if (weaponTrigger == null)
         {
             weaponTrigger = GetComponent<CircleCollider2D>();
-            if (weaponTrigger == null) Debug.LogError("EnemyAI: No CircleCollider2D found on this object!");
         }
     }
 
     void Update()
     {
-        if (playerTransform == null || ai == null) return;
+        if (currentTarget == null || ai == null)
+        {
+            ai.isStopped = true;
+            return;
+        }
 
-        float distanceToPlayer = Vector2.Distance(transform.position, playerTransform.position);
+        float distanceToTarget = Vector2.Distance(transform.position, currentTarget.position);
 
-        if (distanceToPlayer <= attackRange)
+        if (distanceToTarget <= attackRange)
         {
             ai.isStopped = true;
             TryAttack();
@@ -53,18 +52,54 @@ public class EnemyAI : MonoBehaviour
         else
         {
             ai.isStopped = false;
-            ai.destination = playerTransform.position;
+            ai.destination = currentTarget.position;
         }
 
         UpdateAnimator();
+    }
+
+    void FindClosestTarget()
+    {
+        float closestDistance = Mathf.Infinity;
+        Transform bestTarget = null;
+
+        // 1. Check for Player
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        if (player != null)
+        {
+            float dist = Vector2.Distance(transform.position, player.transform.position);
+            closestDistance = dist;
+            bestTarget = player.transform;
+        }
+
+        // 2. Check for Turrets
+        TurretBehaviour[] turrets = FindObjectsOfType<TurretBehaviour>();
+        foreach (TurretBehaviour turret in turrets)
+        {
+            // Only target turrets that are active/enabled
+            if (!turret.gameObject.activeInHierarchy) continue;
+
+            float dist = Vector2.Distance(transform.position, turret.transform.position);
+            if (dist < closestDistance)
+            {
+                closestDistance = dist;
+                bestTarget = turret.transform;
+            }
+        }
+
+        currentTarget = bestTarget;
     }
 
     void TryAttack()
     {
         if (Time.time >= lastAttackTime + attackCooldown)
         {
-            //anim.SetTrigger("isAttacking");
+            // anim.SetTrigger("isAttacking"); 
+            // Note: Ensure your animation calls checkforplayerdmg() via Animation Event
             lastAttackTime = Time.time;
+
+            // If you don't use animations yet, you can call the damage check directly for testing:
+            // checkforplayerdmg(); 
         }
     }
 
@@ -77,38 +112,37 @@ public class EnemyAI : MonoBehaviour
             anim.SetFloat("x", movementVector.x);
             anim.SetFloat("y", movementVector.y);
         }
-        //anim.SetFloat("Speed", ai.isStopped ? 0f : velocity.magnitude);
     }
 
     // CALLED BY ANIMATION EVENT
     public void checkforplayerdmg()
     {
-
-        if (weaponTrigger == null)
-        {
-            Debug.LogError("EnemyAI: WeaponTrigger is null! Damage check aborted.");
-            return;
-        }
+        if (weaponTrigger == null) return;
 
         ContactFilter2D filter = new ContactFilter2D();
-        filter.SetLayerMask(playerLayer);
+        filter.SetLayerMask(targetLayers);
         filter.useLayerMask = true;
         filter.useTriggers = true;
 
-        Collider2D[] results = new Collider2D[5];
+        Collider2D[] results = new Collider2D[10];
         int hitCount = weaponTrigger.Overlap(filter, results);
-
 
         for (int i = 0; i < hitCount; i++)
         {
+            // Attempt to damage Player
             playerHealth pHealth = results[i].GetComponent<playerHealth>();
             if (pHealth != null)
             {
                 pHealth.TakeDamage(damageAmount);
+                continue; // Move to next hit object
             }
-            else
+
+            // Attempt to damage Turret
+            TurretBehaviour tBehav = results[i].GetComponent<TurretBehaviour>();
+            if (tBehav != null)
             {
-                Debug.LogWarning("EnemyAI: Hit " + results[i].name + " but it doesn't have a playerHealth script!");
+                // Note: You need a TakeDamage method in TurretBehaviour
+                tBehav.TakeDamage(damageAmount);
             }
         }
     }
