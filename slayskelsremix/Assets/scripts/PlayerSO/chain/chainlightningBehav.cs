@@ -59,13 +59,20 @@ public class chainlightningBehav : MonoBehaviour
     {
         IDamageable target = collision.GetComponent<IDamageable>();
 
+        // Check if it's a valid target and hasn't been hit by this specific bolt yet
         if (target != null && !hitEnemies.Contains(collision.gameObject))
         {
+            // 1. Increment the global counter in chainController
+            chainController.hitCcunter++;
+
+            // 2. Apply damage and effects
             target.TakeDamage(damage);
             target.ApplySlow(sloweffectivenes, slowduration, stunDmg, stunTick);
 
+            // 3. Track this specific enemy to prevent infinite loops/double hits
             hitEnemies.Add(collision.gameObject);
 
+            // 4. Handle bouncing logic
             if (bouncesRemaining > 0)
                 Bounce();
             else

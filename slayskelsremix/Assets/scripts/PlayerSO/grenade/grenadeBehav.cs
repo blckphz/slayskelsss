@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class grenadeBehav : MonoBehaviour
@@ -7,9 +8,12 @@ public class grenadeBehav : MonoBehaviour
     public float fuseTime = 2.5f;
     public GameObject explosionEffect;
 
+    [Header("Synergy & Physics")]
+    public int chargesPerEnemyHit = 1;
+    public float implosionForce = 30f;
+
     private bool hasExploded = false;
 
-    // Static references
     public static grenadeBehav ActiveGrenade;
     public static grenadeSO ActiveGrenadeSO;
 
@@ -20,80 +24,65 @@ public class grenadeBehav : MonoBehaviour
         fuseTime = fuse;
         hasExploded = false;
 
-        // Register this specific instance as THE active grenade
         ActiveGrenade = this;
-        Debug.Log($"[Grenade] {gameObject.name} Initialized. Static reference set.");
-
         Invoke(nameof(Explode), fuseTime);
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (hasExploded) return;
-
-        // Check if we hit something damageable (Impact Detonation)
         if (collision.GetComponent<IDamageable>() != null)
         {
-            Debug.Log("[Grenade] Impact Detonation via OnTriggerEnter2D.");
             Explode();
         }
     }
 
-    public void ManualExplode()
-    {
-        Debug.Log("[Grenade] ManualExplode signal received.");
-        if (hasExploded)
-        {
-            Debug.LogWarning("[Grenade] ManualExplode failed: Already exploded.");
-            return;
-        }
-        Explode();
-    }
+    public void ManualExplode() => Explode();
 
     void Explode()
     {
         if (hasExploded) return;
         hasExploded = true;
 
-        Debug.Log("[Grenade] Exploding now!");
         CancelInvoke(nameof(Explode));
 
-        // AoE Damage logic
+        HashSet<IDamageable> uniqueEnemiesHit = new HashSet<IDamageable>();
         Collider2D[] objectsInRange = Physics2D.OverlapCircleAll(transform.position, radius);
+
         foreach (Collider2D obj in objectsInRange)
         {
             IDamageable target = obj.GetComponent<IDamageable>();
-            if (target != null)
+            Rigidbody2D rb = obj.GetComponent<Rigidbody2D>();
+
+            if (target != null && !uniqueEnemiesHit.Contains(target))
             {
+                uniqueEnemiesHit.Add(target);
+                chainController.hitCcunter += chargesPerEnemyHit;
                 target.TakeDamage(damage);
             }
 
-            Rigidbody2D rb = obj.GetComponent<Rigidbody2D>();
+            // --- IMPROVED PHYSICS HANDLING ---
             if (rb != null)
             {
-                Vector2 dir = (Vector2)obj.transform.position - (Vector2)transform.position;
-                rb.AddForce(dir.normalized * 5f, ForceMode2D.Impulse);
+                Vector2 pullDir = (Vector2)transform.position - (Vector2)obj.transform.position;
+                Vector2 finalForce = pullDir.normalized * implosionForce;
+
+                // Check if it's an enemy (AI controlled) or just a prop/gold
+                enemyHealth enemy = obj.GetComponent<enemyHealth>();
+                if (enemy != null)
+                {
+                    enemy.ApplyImpulse(finalForce);
+                }
+                else
+                {
+                    // Regular physics for gold, crates, etc.
+                    rb.AddForce(finalForce, ForceMode2D.Impulse);
+                }
             }
         }
 
-        if (explosionEffect)
-        {
-            Instantiate(explosionEffect, transform.position, Quaternion.identity);
-        }
-
-        // IMPORTANT: Clear the static reference so we can throw another one
-        if (ActiveGrenade == this)
-        {
-            Debug.Log("[Grenade] Clearing ActiveGrenade static reference.");
-            ActiveGrenade = null;
-        }
-
+        if (explosionEffect) Instantiate(explosionEffect, transform.position, Quaternion.identity);
+        if (ActiveGrenade == this) ActiveGrenade = null;
         Destroy(gameObject);
-    }
-
-    private void OnDrawGizmosSelected()
-    {
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, radius);
     }
 }

@@ -11,6 +11,10 @@ public class PlayerGrenadeInput : MonoBehaviour
     [Header("Input Action")]
     [SerializeField] private InputActionReference grenadeAction;
 
+    [Header("Cooldown Settings")]
+    public float throwCooldown = 1.5f;
+    private float lastThrowTime;
+
     private void OnEnable()
     {
         if (grenadeAction == null)
@@ -34,31 +38,45 @@ public class PlayerGrenadeInput : MonoBehaviour
 
     private void OnGrenadePressed(InputAction.CallbackContext context)
     {
-        Debug.Log("[Input] Grenade Key Pressed.");
         HandleGrenadeAction();
     }
 
     void HandleGrenadeAction()
     {
-        // 1. Check if a grenade already exists in the world
+        // 1. If a grenade is currently in the air, DETONATE IT
         if (grenadeBehav.ActiveGrenade != null)
         {
-            Debug.Log("[Input] Found Active Grenade. Triggering Manual Detonation.");
+            Debug.Log("[Input] Manual Detonation Triggered!");
             grenadeBehav.ActiveGrenade.ManualExplode();
         }
-        // 2. If no grenade exists, throw a new one
+        // 2. Otherwise, check if we can THROW a new one
         else
         {
+            // Cooldown check: only throw if enough time has passed
+            if (Time.time < lastThrowTime + throwCooldown)
+            {
+                Debug.Log("Grenade is still on cooldown.");
+                return;
+            }
+
             if (grenadeAbility != null)
             {
-                Debug.Log("[Input] No active grenade. Executing throw via SO.");
-                // Ensure the SO knows which prefab to track
+                Debug.Log("[Input] Throwing Grenade.");
+
+                // Track when we threw it for the cooldown
+                lastThrowTime = Time.time;
+
+                // Static reference for the SO tracking
                 grenadeBehav.ActiveGrenadeSO = grenadeAbility;
-                grenadeAbility.Execute(throwPoint, targetAnchor);
+
+                // Use throwPoint as a fallback if targetAnchor is missing
+                Transform finalTarget = targetAnchor != null ? targetAnchor : throwPoint;
+
+                grenadeAbility.Execute(throwPoint, finalTarget);
             }
             else
             {
-                Debug.LogWarning("[Input] No grenadeSO assigned to PlayerGrenadeInput!");
+                Debug.LogWarning("[Input] No grenadeSO assigned!");
             }
         }
     }

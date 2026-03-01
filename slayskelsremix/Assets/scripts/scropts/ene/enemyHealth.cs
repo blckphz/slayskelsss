@@ -9,55 +9,63 @@ public class enemyHealth : MonoBehaviour, IDamageable
     public float health = 100f;
     private float maxHealth;
 
-    [Header("UI References")]
+    [Header("Loot Settings")]
+    public GameObject goldPrefab;
+    public int minGold = 1;
+    public int maxGold = 3;
+
+    [Header("UI & Effects")]
     public GameObject healthBarObject;
     public Image healthBarFill;
     public GameObject damageTextPrefab;
-
-    [Header("Shader Property Names")]
-    public string hitIntensityName = "_Intensity";
-    public string stunIntensityName = "_StunIntensity";
-
-    [Header("Effect Intensities")]
-    public float peakHitIntensity = 100f;
-    public float peakStunIntensity = 100f;
-    public float peakSlowIntensity = 100f;
-
-    [Header("Effect Durations")]
     public float flashDuration = 0.2f;
 
-    // Internal Variables
     private AIPath ai;
-    private float originalSpeed;
+    private Rigidbody2D rb;
     private SpriteRenderer spriteRenderer;
     private MaterialPropertyBlock propertyBlock;
-
     private Coroutine _flashCoroutine;
-    private Coroutine _slowCoroutine;
-    private Coroutine _stunDamageCoroutine;
-
-    // Interface Implementation: Returns true if the slow coroutine is active
-    public bool IsSlowed => _slowCoroutine != null;
 
     void Awake()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
         ai = GetComponent<AIPath>();
+        rb = GetComponent<Rigidbody2D>();
         propertyBlock = new MaterialPropertyBlock();
     }
 
     void Start()
     {
         maxHealth = health;
-        if (ai != null) originalSpeed = ai.maxSpeed;
         UpdateHealthUI();
+    }
+
+    // --- NEW PHYSICS LOGIC ---
+    public void ApplyImpulse(Vector2 force)
+    {
+        if (rb == null) return;
+
+        // 1. Tell A* to stop fighting the physics engine
+        if (ai != null) ai.canMove = false;
+
+        // 2. Apply the "Pull" or "Explosion"
+        rb.AddForce(force, ForceMode2D.Impulse);
+
+        // 3. Wait a moment then give control back to AI
+        StopCoroutine(nameof(ResetAI));
+        StartCoroutine(ResetAI());
+    }
+
+    private IEnumerator ResetAI()
+    {
+        yield return new WaitForSeconds(0.3f); // Duration of the "stun"
+        if (ai != null) ai.canMove = true;
     }
 
     public void TakeDamage(float damage)
     {
         health -= damage;
         health = Mathf.Clamp(health, 0, maxHealth);
-
         UpdateHealthUI();
         ShowDamageText(damage);
 
@@ -67,58 +75,33 @@ public class enemyHealth : MonoBehaviour, IDamageable
         if (health <= 0) Die();
     }
 
+    private void Die()
+    {
+        SpawnLoot();
+        Destroy(gameObject);
+    }
+
+    private void SpawnLoot()
+    {
+        if (goldPrefab == null) return;
+        int amount = Random.Range(minGold, maxGold + 1);
+        for (int i = 0; i < amount; i++)
+        {
+            Instantiate(goldPrefab, transform.position, Quaternion.identity);
+        }
+    }
+
     private IEnumerator FlashEffect()
     {
         float elapsed = 0f;
         while (elapsed < flashDuration)
         {
             elapsed += Time.deltaTime;
-            float currentIntensity = Mathf.Lerp(peakHitIntensity, 0f, elapsed / flashDuration);
-            UpdateShaderProperty(hitIntensityName, currentIntensity);
+            float intensity = Mathf.Lerp(100f, 0f, elapsed / flashDuration);
+            UpdateShaderProperty("_Intensity", intensity);
             yield return null;
         }
-        UpdateShaderProperty(hitIntensityName, 0f);
-    }
-
-    public void ApplySlow(float slowPercent, float duration, float tickDmg, float tickInterval)
-    {
-        if (_slowCoroutine != null) StopCoroutine(_slowCoroutine);
-        _slowCoroutine = StartCoroutine(SlowRoutine(slowPercent, duration, tickDmg, tickInterval));
-    }
-
-    private IEnumerator SlowRoutine(float slowPercent, float duration, float tickDmg, float tickInterval)
-    {
-        if (ai != null) ai.maxSpeed = originalSpeed - slowPercent;
-        UpdateShaderProperty(stunIntensityName, peakSlowIntensity);
-
-        // Start the repeating damage tick
-        if (_stunDamageCoroutine != null) StopCoroutine(_stunDamageCoroutine);
-        _stunDamageCoroutine = StartCoroutine(StunDamageTick(tickDmg, tickInterval, duration));
-
-        yield return new WaitForSeconds(duration);
-
-        if (ai != null) ai.maxSpeed = originalSpeed;
-        UpdateShaderProperty(stunIntensityName, 0f);
-
-        _slowCoroutine = null;
-    }
-
-    private IEnumerator StunDamageTick(float dmg, float interval, float totalDuration)
-    {
-        float elapsed = 0f;
-        while (elapsed < totalDuration)
-        {
-            yield return new WaitForSeconds(interval);
-            elapsed += interval;
-
-            health -= dmg;
-            health = Mathf.Clamp(health, 0, maxHealth);
-            UpdateHealthUI();
-            ShowDamageText(dmg);
-
-            if (health <= 0) { Die(); yield break; }
-        }
-        _stunDamageCoroutine = null;
+        UpdateShaderProperty("_Intensity", 0f);
     }
 
     private void UpdateShaderProperty(string name, float value)
@@ -144,5 +127,6 @@ public class enemyHealth : MonoBehaviour, IDamageable
         }
     }
 
-    void Die() => Destroy(gameObject);
+    public bool IsSlowed => false;
+    public void ApplySlow(float sP, float d, float tD, float tI) { }
 }

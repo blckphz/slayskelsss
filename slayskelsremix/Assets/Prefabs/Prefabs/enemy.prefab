@@ -531,14 +531,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: '::'
   health: 100
+  goldPrefab: {fileID: 2937630582518109097, guid: a755f204c17557043a5d74ed21066738, type: 3}
+  minGold: 1
+  maxGold: 3
   healthBarObject: {fileID: 5581953174699453615}
   healthBarFill: {fileID: 4075190892320438791}
   damageTextPrefab: {fileID: 3247628565010243195, guid: e2da221bf74f11340b439450cb25f81e, type: 3}
-  hitIntensityName: _Intensity
-  stunIntensityName: _StunIntensity
-  peakHitIntensity: 100
-  peakStunIntensity: 100
-  peakSlowIntensity: 0.8
   flashDuration: 0.2
 --- !u!114 &5654009883178532623
 MonoBehaviour:
@@ -636,13 +634,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3a2bbd70c2436c740a9344ee83b1141c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
+  detectionRefreshRate: 0.5
   attackRange: 1.2
   attackCooldown: 1.5
   damageAmount: 10
   weaponTrigger: {fileID: 8089770361370201910}
-  playerLayer:
+  targetLayers:
     serializedVersion: 2
-    m_Bits: 64
+    m_Bits: 0
 --- !u!95 &4465085120264246810
 Animator:
   serializedVersion: 7
@@ -724,8 +723,8 @@ Rigidbody2D:
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
   m_Mass: 1
-  m_LinearDamping: 0
-  m_AngularDamping: 0.05
+  m_LinearDamping: 2
+  m_AngularDamping: 2
   m_GravityScale: 0
   m_Material: {fileID: 0}
   m_IncludeLayers:
@@ -735,6 +734,6 @@ Rigidbody2D:
     serializedVersion: 2
     m_Bits: 0
   m_Interpolate: 0
-  m_SleepingMode: 1
-  m_CollisionDetection: 0
+  m_SleepingMode: 0
+  m_CollisionDetection: 1
   m_Constraints: 4

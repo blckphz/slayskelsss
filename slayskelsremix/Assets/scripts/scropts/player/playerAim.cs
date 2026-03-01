@@ -1,65 +1,88 @@
 ﻿using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Rendering.Universal;
 
 public class PlayerAim : MonoBehaviour
 {
-    [Header("References")]
+    [Header("Core References")]
     public Transform player;
-    public Transform anchor; // This is what the camera should likely follow/track
+    public Transform anchor;      // The Camera/Reticle Target
+    public Light2D spotlight;     // The Visual Light
 
     [Header("Input")]
     public InputActionReference lookAction;
 
-    [Header("Settings")]
-    public float maxDistance = 3f;
-    public float smoothSpeed = 20f; // Higher speed feels better with Cinemachine
+    [Header("Aim Settings (Camera)")]
+    public float anchorMaxDist = 3f;   // How far the camera can "peek"
+    public float anchorSmooth = 15f;
+
+    [Header("Light Settings (Visual)")]
+    public float lightMaxRange = 8f;   // How long the beam can grow
+    public float rotationOffset = -90f;
+    public float lightMinRadius = 0.5f;
+
+    [Header("Light Appearance")]
+    [Range(0, 360)] public float beamAngle = 35f;
 
     private Camera cam;
 
     private void Awake()
     {
         cam = Camera.main;
-        // Optimization: Ensure the anchor is NOT a child of the player 
-        // to prevent "double-flipping" when the player scales.
-        if (anchor.parent == player)
-        {
-            anchor.SetParent(null);
-            Debug.LogWarning("Anchor was a child of Player. Unparented to prevent scaling issues.");
-        }
+        // Ensure anchor is independent
+        if (anchor != null && anchor.parent == player) anchor.SetParent(null);
     }
 
-    void LateUpdate() // Use LateUpdate when working with Cinemachine
+    void LateUpdate()
     {
-        if (player == null || anchor == null || cam == null) return;
+        if (player == null || cam == null) return;
 
+        // 1. GET RAW INPUT POSITION
         Vector2 input = lookAction.action.ReadValue<Vector2>();
-        Vector3 targetWorldPos;
-
-        // Determine if using Mouse or Controller
+        Vector3 mouseWorldPos;
         bool isMouse = lookAction.action.activeControl?.device is Pointer;
 
         if (isMouse)
         {
-            // IMPORTANT: ScreenToWorldPoint needs the distance from the camera to the 2D plane
             float distanceToPlane = Mathf.Abs(cam.transform.position.z);
-            targetWorldPos = cam.ScreenToWorldPoint(new Vector3(input.x, input.y, distanceToPlane));
+            mouseWorldPos = cam.ScreenToWorldPoint(new Vector3(input.x, input.y, distanceToPlane));
         }
         else
         {
-            targetWorldPos = player.position + (Vector3)input * 5f;
+            mouseWorldPos = player.position + (Vector3)input * 5f;
         }
 
-        // Clamp the distance so the 'aim' doesn't go off-screen
-        Vector3 dir = targetWorldPos - player.position;
-        dir.z = 0; // Lock to 2D
+        Vector3 fullDir = mouseWorldPos - player.position;
+        fullDir.z = 0;
 
-        if (dir.magnitude > maxDistance)
-            dir = dir.normalized * maxDistance;
+        // 2. INDEPENDENT ANCHOR LOGIC (Camera/Aim)
+        if (anchor != null)
+        {
+            Vector3 anchorDir = fullDir;
+            if (anchorDir.magnitude > anchorMaxDist)
+                anchorDir = anchorDir.normalized * anchorMaxDist;
 
-        // Smoothly move the anchor
-        anchor.position = Vector3.Lerp(anchor.position, player.position + dir, smoothSpeed * Time.deltaTime);
+            anchor.position = Vector3.Lerp(anchor.position, player.position + anchorDir, anchorSmooth * Time.deltaTime);
+        }
 
-        // Debug Visual
-        Debug.DrawLine(player.position, anchor.position, Color.green);
+        // 3. INDEPENDENT LIGHT LOGIC (Visuals)
+        if (spotlight != null)
+        {
+            // Position: Always glued to player
+            spotlight.transform.position = player.position;
+
+            // Rotation: Always points at raw mouse (ignores anchor clamp)
+            float angle = Mathf.Atan2(fullDir.y, fullDir.x) * Mathf.Rad2Deg;
+            spotlight.transform.rotation = Quaternion.Euler(0, 0, angle + rotationOffset);
+
+            // Length: Its own independent clamp
+            float lightLength = Mathf.Clamp(fullDir.magnitude, lightMinRadius, lightMaxRange);
+            spotlight.pointLightOuterRadius = lightLength;
+            spotlight.pointLightInnerRadius = lightLength * 0.1f;
+
+            // Shape: Hardcoded or adjustable via inspector
+            spotlight.pointLightOuterAngle = beamAngle;
+            spotlight.pointLightInnerAngle = beamAngle * 0.5f;
+        }
     }
 }

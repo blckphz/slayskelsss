@@ -23,6 +23,15 @@ public class meleebehav : MonoBehaviour
         bonusDamage = bDmg;
         hitEnemies.Clear();
 
+        // --- LOSE ONE CHARGE PER SWING ---
+        // We do this here so it costs a charge even if you miss
+        if (chainController.hitCcunter > 0)
+        {
+            chainController.hitCcunter--;
+            Debug.Log($"Swing performed. Charge consumed. Remaining: {chainController.hitCcunter}");
+        }
+
+        // --- VISUAL SETUP ---
         if (deactivationRoutine != null) StopCoroutine(deactivationRoutine);
 
         bool isEven = (swingIndex % 2 == 0);
@@ -49,14 +58,17 @@ public class meleebehav : MonoBehaviour
         IDamageable target = collision.GetComponent<IDamageable>();
         if (target != null && !hitEnemies.Contains(target))
         {
-            float finalDamage = damage;
+            // Calculation: Base Melee Dmg + (Current Charges * Bonus Per Charge)
+            float chargeBonus = chainController.hitCcunter * chainController.staticBonusDmg;
+            float finalDamage = damage + chargeBonus;
 
-            // Apply bonus damage if the target is slowed/stunned
+            // Apply "Slow/Stun" bonus from the melee ability settings
             if (target.IsSlowed)
             {
                 finalDamage += bonusDamage;
-                // Optional: Trigger a "Crit" or "Bonus" visual effect here
             }
+
+            Debug.Log($"Dealt {finalDamage} damage ({chargeBonus} from charges)");
 
             target.TakeDamage(finalDamage);
             hitEnemies.Add(target);
