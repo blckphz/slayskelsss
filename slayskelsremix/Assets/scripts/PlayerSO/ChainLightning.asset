@@ -23,7 +23,7 @@ MonoBehaviour:
   bounceRadius: 5
   stunDuration: 2
   stuneffect: 2
-  isapplyingtickdmg: 0
+  isapplyingtickdmg: 1
   stundmg: 5
   stuntick: 1
   rotationOffset: 90

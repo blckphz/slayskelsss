@@ -20,4 +20,5 @@ MonoBehaviour:
   hp: 0
   lifetime: 10
   turretdmg: 2
-  shootfreq: 0
+  shootfreq: 0.3
+  maxturretcount: 3

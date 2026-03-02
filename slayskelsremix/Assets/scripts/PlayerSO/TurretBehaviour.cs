@@ -1,52 +1,73 @@
 ﻿using UnityEngine;
+using System.Collections.Generic;
 
-public class TurretBehaviour : healthso
+public partial class TurretBehaviour : MonoBehaviour
 {
-    // Turret stats
-    public float hp;
-    private float lifetime;
-    private Transform owner;
+    // Static list that all turrets share to track who is active
+    public static List<TurretBehaviour> ActiveTurrets = new List<TurretBehaviour>();
 
-    private float damage;
-    public float shootFrequency; // seconds between shots
-    public float projectileSpeed = 10f;
-    public float detectionRadius = 10f;
+    [Header("Stats")]
+    [SerializeField] private float health;
+    private float maxHealth;
+    private float turretDamage;
+    private float shootFrequency;
+    [SerializeField] private float detectionRadius = 10f;
+    [SerializeField] private float projectileSpeed = 10f;
+    private Transform creator;
 
+    [Header("References")]
     public GameObject projectilePrefab;
-
-    // Internal timer
+    public Transform firePoint;
+    private Animator animator;
     private float shootTimer = 0f;
     private bool isActive = false;
 
-    // ✅ ADDED
-    private Animator animator;
+    [Header("Effects")]
+    [Tooltip("Prefab with a Particle System that plays on Spawn")]
+    public GameObject placementEffectPrefab;
+    [Tooltip("Optional: Prefab that plays when the turret is destroyed")]
+    public GameObject deathEffectPrefab;
 
     private void Awake()
     {
         animator = GetComponent<Animator>();
     }
 
-    // Setup turret when spawned
-    public void Setup(float health, float life, Transform caster)
+    /// <summary>
+    /// Initializes the turret when it is spawned or pulled from a pool.
+    /// </summary>
+    public void Setup(float hp, float lifetime, Transform caster)
     {
-        hp = health;
-        lifetime = life;
-        owner = caster;
-
-        gameObject.SetActive(true);
+        health = hp;
+        maxHealth = hp;
+        creator = caster;
         isActive = true;
         shootTimer = 0f;
 
-        Debug.Log($"[Turret] Activated with {hp} HP, lifetime {lifetime}s");
+        gameObject.SetActive(true);
 
-        // Start lifetime countdown
+        // --- PARTICLE LOGIC ---
+        if (placementEffectPrefab != null)
+        {
+            // Spawn the particles at the turret's position
+            Instantiate(placementEffectPrefab, transform.position, Quaternion.identity);
+        }
+
+        // Register this turret as active
+        if (!ActiveTurrets.Contains(this))
+        {
+            ActiveTurrets.Add(this);
+        }
+
+        // Auto-deactivate after lifetime ends
+        CancelInvoke(nameof(Deactivate));
         Invoke(nameof(Deactivate), lifetime);
     }
 
     public void SetCombatStats(float dmg, float freq)
     {
-        damage = dmg;
-        Debug.Log($"[Turret] Combat stats set: Damage={damage}, ShootFrequency={shootFrequency}s");
+        turretDamage = dmg;
+        shootFrequency = freq;
     }
 
     private void Update()
@@ -58,45 +79,33 @@ public class TurretBehaviour : healthso
         if (shootTimer >= shootFrequency)
         {
             shootTimer = 0f;
-
             enemyHealth target = FindNearestEnemy();
+
             if (target != null)
             {
-                // ✅ ADDED (face target using animator)
                 FaceTarget(target.transform);
-
                 Shoot(target.transform);
             }
-            else
+            else if (animator != null)
             {
-
-                // Optional: reset direction when no enemy
+                // Reset animator parameters if no enemies are in range
                 animator.SetFloat("x", 0f);
                 animator.SetFloat("y", 0f);
             }
         }
     }
 
-    private void Deactivate()
-    {
-        isActive = false;
-        gameObject.SetActive(false);
-        Debug.Log("[Turret] Lifetime ended, turret deactivated.");
-    }
-
-    // ✅ ADDED METHOD
     void FaceTarget(Transform target)
     {
+        if (animator == null) return;
         Vector2 dir = (target.position - transform.position).normalized;
-
         animator.SetFloat("x", dir.x);
         animator.SetFloat("y", dir.y);
     }
 
-    // Find nearest enemy within detection radius
     enemyHealth FindNearestEnemy()
     {
-        enemyHealth[] enemies = FindObjectsOfType<enemyHealth>();
+        enemyHealth[] enemies = Object.FindObjectsByType<enemyHealth>(FindObjectsSortMode.None);
         enemyHealth nearest = null;
         float minDist = Mathf.Infinity;
 
@@ -109,50 +118,58 @@ public class TurretBehaviour : healthso
                 nearest = enemy;
             }
         }
-
         return nearest;
     }
 
-    // Shoot a projectile at a target
     void Shoot(Transform target)
     {
         if (projectilePrefab == null)
         {
-            Debug.LogError("[Turret] Projectile prefab missing!");
+            Debug.LogWarning("[Turret] No projectile prefab assigned!");
             return;
         }
 
-        Vector2 dir = (target.position - transform.position).normalized;
-
+        Vector3 spawnPos = firePoint != null ? firePoint.position : transform.position;
+        Vector2 dir = (target.position - spawnPos).normalized;
         float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+
         Quaternion rotation = Quaternion.Euler(0f, 0f, angle + 90f);
+        GameObject proj = Instantiate(projectilePrefab, spawnPos, rotation);
 
-        GameObject proj = Instantiate(projectilePrefab, transform.position, rotation);
-
-        Rigidbody2D rb = proj.GetComponent<Rigidbody2D>();
-        if (rb != null)
+        if (proj.TryGetComponent<Rigidbody2D>(out Rigidbody2D rb))
         {
             rb.linearVelocity = dir * projectileSpeed;
         }
 
-        Projectile projScript = proj.GetComponent<Projectile>();
-        if (projScript != null)
+        if (proj.TryGetComponent<Projectile>(out Projectile projScript))
         {
-            projScript.SetDamage(damage);
+            projScript.SetDamage(turretDamage);
         }
-
-        Debug.Log($"[Turret] Shot fired at {target.name} with damage {damage}");
     }
 
     public void TakeDamage(float amount)
     {
-        hp -= amount;
-        Debug.Log($"[Turret] Hit! Remaining HP: {hp}");
-
-        if (hp <= 0)
+        health -= amount;
+        if (health <= 0)
         {
-            Deactivate(); // Or call a specific Die() method
+            Deactivate();
         }
     }
 
+    public void Deactivate()
+    {
+        if (isActive && deathEffectPrefab != null)
+        {
+            Instantiate(deathEffectPrefab, transform.position, Quaternion.identity);
+        }
+
+        isActive = false;
+        gameObject.SetActive(false);
+    }
+
+    private void OnDisable()
+    {
+        ActiveTurrets.Remove(this);
+        CancelInvoke();
+    }
 }

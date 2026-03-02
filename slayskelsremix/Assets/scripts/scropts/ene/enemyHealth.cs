@@ -20,11 +20,23 @@ public class enemyHealth : MonoBehaviour, IDamageable
     public GameObject damageTextPrefab;
     public float flashDuration = 0.2f;
 
+    [Header("Shader Property Names")]
+    public string hitIntensityName = "_Intensity";
+    public string stunIntensityName = "_StunIntensity";
+
     private AIPath ai;
     private Rigidbody2D rb;
     private SpriteRenderer spriteRenderer;
     private MaterialPropertyBlock propertyBlock;
+    private comboScript comboSys;
+
+    private float originalSpeed;
     private Coroutine _flashCoroutine;
+    private Coroutine _slowCoroutine;
+    private Coroutine _tickDamageCoroutine;
+
+    // IMPLEMENTING INTERFACE PROPERTY
+    public bool IsSlowed => _slowCoroutine != null;
 
     void Awake()
     {
@@ -37,30 +49,97 @@ public class enemyHealth : MonoBehaviour, IDamageable
     void Start()
     {
         maxHealth = health;
+        if (ai != null) originalSpeed = ai.maxSpeed;
+
+        // Find the combo script in the scene automatically
+        comboSys = Object.FindAnyObjectByType<comboScript>();
+
         UpdateHealthUI();
     }
 
-    // --- NEW PHYSICS LOGIC ---
+    // --- IDAMAGEABLE METHODS ---
+
+
+    public void ApplySlow(float slowPercent, float duration, float tickDmg, float tickInterval)
+    {
+        if (_slowCoroutine != null) StopCoroutine(_slowCoroutine);
+        _slowCoroutine = StartCoroutine(SlowRoutine(slowPercent, duration));
+
+        if (_tickDamageCoroutine != null) StopCoroutine(_tickDamageCoroutine);
+        _tickDamageCoroutine = StartCoroutine(TickDamageRoutine(tickDmg, tickInterval, duration));
+    }
+
+    // --- PHYSICS & EFFECTS ---
+
     public void ApplyImpulse(Vector2 force)
     {
         if (rb == null) return;
-
-        // 1. Tell A* to stop fighting the physics engine
         if (ai != null) ai.canMove = false;
-
-        // 2. Apply the "Pull" or "Explosion"
         rb.AddForce(force, ForceMode2D.Impulse);
-
-        // 3. Wait a moment then give control back to AI
         StopCoroutine(nameof(ResetAI));
         StartCoroutine(ResetAI());
     }
 
     private IEnumerator ResetAI()
     {
-        yield return new WaitForSeconds(0.3f); // Duration of the "stun"
+        yield return new WaitForSeconds(0.3f);
         if (ai != null) ai.canMove = true;
     }
+
+    private IEnumerator FlashEffect()
+    {
+        float elapsed = 0f;
+        while (elapsed < flashDuration)
+        {
+            elapsed += Time.deltaTime;
+            float intensity = Mathf.Lerp(1f, 0f, elapsed / flashDuration);
+            UpdateShaderFloat(hitIntensityName, intensity);
+            yield return null;
+        }
+        UpdateShaderFloat(hitIntensityName, 0f);
+    }
+
+    private IEnumerator SlowRoutine(float slowAmount, float duration)
+    {
+        if (ai != null)
+        {
+            // Reduce speed
+            ai.maxSpeed = Mathf.Max(0.1f, originalSpeed - slowAmount);
+            float elapsed = 0f;
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float pulse = 0.85f + Mathf.Sin(Time.time * 10f) * 0.35f;
+                UpdateShaderFloat(stunIntensityName, pulse);
+                yield return null;
+            }
+            ai.maxSpeed = originalSpeed;
+            UpdateShaderFloat(stunIntensityName, 0f);
+        }
+        _slowCoroutine = null; // Resetting this makes IsSlowed return false
+    }
+
+    private IEnumerator TickDamageRoutine(float dmg, float interval, float duration)
+    {
+        float elapsed = 0f;
+        while (elapsed < duration)
+        {
+            yield return new WaitForSeconds(interval);
+            elapsed += interval;
+            TakeDamage(dmg);
+        }
+        _tickDamageCoroutine = null;
+    }
+
+    private void UpdateShaderFloat(string name, float value)
+    {
+        if (spriteRenderer == null) return;
+        spriteRenderer.GetPropertyBlock(propertyBlock);
+        propertyBlock.SetFloat(name, value);
+        spriteRenderer.SetPropertyBlock(propertyBlock);
+    }
+
+    // --- DEATH AND UI ---
 
     public void TakeDamage(float damage)
     {
@@ -68,6 +147,8 @@ public class enemyHealth : MonoBehaviour, IDamageable
         health = Mathf.Clamp(health, 0, maxHealth);
         UpdateHealthUI();
         ShowDamageText(damage);
+
+        // REMOVED: comboSys.RegisterHit() - We only want kills now!
 
         if (_flashCoroutine != null) StopCoroutine(_flashCoroutine);
         _flashCoroutine = StartCoroutine(FlashEffect());
@@ -77,6 +158,15 @@ public class enemyHealth : MonoBehaviour, IDamageable
 
     private void Die()
     {
+        UpdateShaderFloat(hitIntensityName, 0f);
+        UpdateShaderFloat(stunIntensityName, 0f);
+
+        // ONLY CALL COMBO SYSTEM HERE
+        if (comboSys != null)
+        {
+            comboSys.RegisterKill();
+        }
+
         SpawnLoot();
         Destroy(gameObject);
     }
@@ -89,27 +179,6 @@ public class enemyHealth : MonoBehaviour, IDamageable
         {
             Instantiate(goldPrefab, transform.position, Quaternion.identity);
         }
-    }
-
-    private IEnumerator FlashEffect()
-    {
-        float elapsed = 0f;
-        while (elapsed < flashDuration)
-        {
-            elapsed += Time.deltaTime;
-            float intensity = Mathf.Lerp(100f, 0f, elapsed / flashDuration);
-            UpdateShaderProperty("_Intensity", intensity);
-            yield return null;
-        }
-        UpdateShaderProperty("_Intensity", 0f);
-    }
-
-    private void UpdateShaderProperty(string name, float value)
-    {
-        if (spriteRenderer == null) return;
-        spriteRenderer.GetPropertyBlock(propertyBlock);
-        propertyBlock.SetFloat(name, value);
-        spriteRenderer.SetPropertyBlock(propertyBlock);
     }
 
     void UpdateHealthUI()
@@ -126,7 +195,4 @@ public class enemyHealth : MonoBehaviour, IDamageable
             if (textObj.TryGetComponent<DamageNumber>(out DamageNumber dn)) dn.Setup(damage);
         }
     }
-
-    public bool IsSlowed => false;
-    public void ApplySlow(float sP, float d, float tD, float tI) { }
 }
