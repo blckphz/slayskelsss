@@ -74,10 +74,6 @@ public class PlayerGrenadeInput : MonoBehaviour
 
                 grenadeAbility.Execute(throwPoint, finalTarget);
             }
-            else
-            {
-                Debug.LogWarning("[Input] No grenadeSO assigned!");
-            }
         }
     }
 }

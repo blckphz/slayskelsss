@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6464020614380587009}
   - component: {fileID: 2082544142033933696}
+  - component: {fileID: 4003022822893802180}
   m_Layer: 6
   m_Name: Circle
   m_TagString: Untagged
@@ -90,6 +91,21 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!114 &4003022822893802180
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3179983684309857748}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bf9dafa18e3d3ab44b9c2c0997610e60, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CircleAnim
+  playerMovement: {fileID: 7437932651018339989}
+  pulseSpeed: 10
+  pulseMagnitude: 0.2
 --- !u!1 &5074179420469325824
 GameObject:
   m_ObjectHideFlags: 0
@@ -143,7 +159,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 62899f850307741f2a39c98a8b639597, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.PlayerInput
-  m_Actions: {fileID: -944628639613478452, guid: 027fa2025b61dc34b81b166cd1a4db70, type: 3}
+  m_Actions: {fileID: 0}
   m_NotificationBehavior: 0
   m_UIInputModule: {fileID: 0}
   m_DeviceLostEvent:
@@ -373,8 +389,8 @@ CapsuleCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: -0.031723104, y: -0.020393461}
-  m_Size: {x: 0.5381274, y: 1.0104839}
+  m_Offset: {x: -0.003252996, y: -0.032830816}
+  m_Size: {x: 0.44584498, y: 0.93718576}
   m_Direction: 0
 --- !u!96 &2328390164450282138
 TrailRenderer:

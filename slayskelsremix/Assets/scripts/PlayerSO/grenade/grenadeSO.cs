@@ -14,7 +14,6 @@ public class grenadeSO : offensiveRanged
             return;
         }
 
-        Debug.Log("[GrenadeSO] Spawning grenade prefab.");
 
         GameObject grenade = Instantiate(prefab, caster.position, Quaternion.identity);
 

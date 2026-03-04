@@ -68,7 +68,6 @@ public class meleebehav : MonoBehaviour
                 finalDamage += bonusDamage;
             }
 
-            Debug.Log($"Dealt {finalDamage} damage ({chargeBonus} from charges)");
 
             target.TakeDamage(finalDamage);
             hitEnemies.Add(target);

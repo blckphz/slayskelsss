@@ -105,8 +105,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fc9112568d2a249478b4f8948cf0ed9b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::grenadeBehav
+  radius: 0
   fuseTime: 2.5
   explosionEffect: {fileID: 8892218354024137094, guid: e9827be408daaca4989facb9c40198bf, type: 3}
+  chargesPerEnemyHit: 1
+  implosionForce: -7
 --- !u!50 &1268023183924874581
 Rigidbody2D:
   serializedVersion: 5

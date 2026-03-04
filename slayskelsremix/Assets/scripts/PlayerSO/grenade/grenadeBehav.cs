@@ -4,13 +4,13 @@ using UnityEngine;
 public class grenadeBehav : MonoBehaviour
 {
     private float damage;
-    private float radius;
+    public float radius;
     public float fuseTime = 2.5f;
     public GameObject explosionEffect;
 
     [Header("Synergy & Physics")]
     public int chargesPerEnemyHit = 1;
-    public float implosionForce = 30f;
+    public float implosionForce = 2f;
 
     private bool hasExploded = false;
 

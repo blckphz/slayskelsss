@@ -27,7 +27,6 @@ public class playerHealth : healthso
             healthSlider.value = currentHealth;
         }
 
-        Debug.Log("playerHealth: Initialized with " + currentHealth + " HP.");
     }
 
     void Update()

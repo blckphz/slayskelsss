@@ -20,4 +20,4 @@ MonoBehaviour:
   damage: 20
   projectileSpeed: 15
   throwForce: 10
-  explosionRadius: 6.8
+  explosionRadius: 2.5

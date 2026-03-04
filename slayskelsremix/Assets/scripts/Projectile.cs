@@ -23,7 +23,6 @@ public class Projectile : MonoBehaviour
         if (collider.TryGetComponent<enemyHealth>(out enemyHealth enemy))
         {
             enemy.TakeDamage(damage);
-            Debug.Log($"[Projectile] Hit {enemy.name} for {damage} damage");
 
             Destroy(gameObject);
         }

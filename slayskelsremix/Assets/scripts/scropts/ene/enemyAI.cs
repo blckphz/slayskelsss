@@ -8,7 +8,7 @@ public class EnemyAI : MonoBehaviour
 
     [Header("Targeting Settings")]
     private Transform currentTarget;
-    public float detectionRefreshRate = 0.5f; // How often to search for the closest target
+    public float detectionRefreshRate = 0.5f;
 
     [Header("Combat Settings")]
     public float attackRange = 1.2f;
@@ -18,39 +18,45 @@ public class EnemyAI : MonoBehaviour
 
     [Header("Trigger Setup")]
     [SerializeField] private CircleCollider2D weaponTrigger;
-    [SerializeField] private LayerMask targetLayers; // Set this to include both Player and Turret layers
+    [SerializeField] private LayerMask targetLayers;
 
     void Start()
     {
         ai = GetComponent<IAstarAI>();
         anim = GetComponent<Animator>();
 
-        // Start the repeating search for the closest target
         InvokeRepeating(nameof(FindClosestTarget), 0f, detectionRefreshRate);
 
         if (weaponTrigger == null)
-        {
             weaponTrigger = GetComponent<CircleCollider2D>();
-        }
     }
 
     void Update()
     {
         if (currentTarget == null || ai == null)
         {
-            ai.isStopped = true;
+            StopMovement();
             return;
         }
 
         float distanceToTarget = Vector2.Distance(transform.position, currentTarget.position);
 
+        // CHECK RANGE
         if (distanceToTarget <= attackRange)
         {
             ai.isStopped = true;
-            TryAttack();
+
+            // If target is inside trigger and cooldown is over, start attacking
+            if (Time.time >= lastAttackTime + attackCooldown && IsTargetInWeaponTrigger())
+            {
+                anim.SetBool("isattacking", true);
+                lastAttackTime = Time.time;
+            }
         }
         else
         {
+            // TARGET OUTSIDE RANGE: Stop attacking and resume movement
+            anim.SetBool("isattacking", false);
             ai.isStopped = false;
             ai.destination = currentTarget.position;
         }
@@ -58,49 +64,25 @@ public class EnemyAI : MonoBehaviour
         UpdateAnimator();
     }
 
-    void FindClosestTarget()
+    void StopMovement()
     {
-        float closestDistance = Mathf.Infinity;
-        Transform bestTarget = null;
-
-        // 1. Check for Player
-        GameObject player = GameObject.FindGameObjectWithTag("Player");
-        if (player != null)
-        {
-            float dist = Vector2.Distance(transform.position, player.transform.position);
-            closestDistance = dist;
-            bestTarget = player.transform;
-        }
-
-        // 2. Check for Turrets
-        TurretBehaviour[] turrets = FindObjectsOfType<TurretBehaviour>();
-        foreach (TurretBehaviour turret in turrets)
-        {
-            // Only target turrets that are active/enabled
-            if (!turret.gameObject.activeInHierarchy) continue;
-
-            float dist = Vector2.Distance(transform.position, turret.transform.position);
-            if (dist < closestDistance)
-            {
-                closestDistance = dist;
-                bestTarget = turret.transform;
-            }
-        }
-
-        currentTarget = bestTarget;
+        ai.isStopped = true;
+        anim.SetBool("isattacking", false);
     }
 
-    void TryAttack()
+    private bool IsTargetInWeaponTrigger()
     {
-        if (Time.time >= lastAttackTime + attackCooldown)
-        {
-            // anim.SetTrigger("isAttacking"); 
-            // Note: Ensure your animation calls checkforplayerdmg() via Animation Event
-            lastAttackTime = Time.time;
+        if (weaponTrigger == null) return false;
 
-            // If you don't use animations yet, you can call the damage check directly for testing:
-            // checkforplayerdmg(); 
-        }
+        ContactFilter2D filter = new ContactFilter2D();
+        filter.SetLayerMask(targetLayers);
+        filter.useLayerMask = true;
+        filter.useTriggers = true;
+
+        Collider2D[] results = new Collider2D[1];
+        int hitCount = weaponTrigger.Overlap(filter, results);
+
+        return hitCount > 0;
     }
 
     void UpdateAnimator()
@@ -127,23 +109,68 @@ public class EnemyAI : MonoBehaviour
         Collider2D[] results = new Collider2D[10];
         int hitCount = weaponTrigger.Overlap(filter, results);
 
+        bool didHitSomething = false;
+
         for (int i = 0; i < hitCount; i++)
         {
-            // Attempt to damage Player
             playerHealth pHealth = results[i].GetComponent<playerHealth>();
             if (pHealth != null)
             {
                 pHealth.TakeDamage(damageAmount);
-                continue; // Move to next hit object
+                didHitSomething = true;
+                continue;
             }
 
-            // Attempt to damage Turret
             TurretBehaviour tBehav = results[i].GetComponent<TurretBehaviour>();
             if (tBehav != null)
             {
-                // Note: You need a TakeDamage method in TurretBehaviour
                 tBehav.TakeDamage(damageAmount);
+                didHitSomething = true;
             }
+        }
+
+        // If the swing finishes, we tell the animator we are done for now
+        // (The cooldown logic in Update will prevent it from turning back on too soon)
+        anim.SetBool("isattacking", false);
+
+        if (!didHitSomething)
+        {
+            slowmoManager.TriggerSlowmo(0.5f, 0.2f);
+        }
+    }
+
+    private void FindClosestTarget()
+    {
+        float closestDistance = Mathf.Infinity;
+        Transform bestTarget = null;
+
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        if (player != null)
+        {
+            closestDistance = Vector2.Distance(transform.position, player.transform.position);
+            bestTarget = player.transform;
+        }
+
+        TurretBehaviour[] turrets = FindObjectsOfType<TurretBehaviour>();
+        foreach (TurretBehaviour turret in turrets)
+        {
+            if (!turret.gameObject.activeInHierarchy) continue;
+            float dist = Vector2.Distance(transform.position, turret.transform.position);
+            if (dist < closestDistance)
+            {
+                closestDistance = dist;
+                bestTarget = turret.transform;
+            }
+        }
+        currentTarget = bestTarget;
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        if (weaponTrigger != null)
+        {
+            Gizmos.color = Color.red;
+            Gizmos.DrawWireSphere(transform.position + (Vector3)weaponTrigger.offset, weaponTrigger.radius);
         }
     }
 }

@@ -516,8 +516,8 @@ CircleCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: -0.016046366, y: 0}
-  m_Radius: 0.56371814
+  m_Offset: {x: -0.016046366, y: -0.057283696}
+  m_Radius: 0.74762833
 --- !u!114 &4836947065617300172
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -538,6 +538,8 @@ MonoBehaviour:
   healthBarFill: {fileID: 4075190892320438791}
   damageTextPrefab: {fileID: 3247628565010243195, guid: e2da221bf74f11340b439450cb25f81e, type: 3}
   flashDuration: 0.2
+  hitIntensityName: _Intensity
+  stunIntensityName: _StunIntensity
 --- !u!114 &5654009883178532623
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -641,7 +643,7 @@ MonoBehaviour:
   weaponTrigger: {fileID: 8089770361370201910}
   targetLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 4294967295
 --- !u!95 &4465085120264246810
 Animator:
   serializedVersion: 7
@@ -694,11 +696,11 @@ BoxCollider2D:
   m_CallbackLayers:
     serializedVersion: 2
     m_Bits: 4294967295
-  m_IsTrigger: 1
+  m_IsTrigger: 0
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0.0039426684, y: -0.53074384}
+  m_Offset: {x: 0.0039426684, y: -0.6452787}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.489, y: 0.5}
@@ -708,7 +710,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 0.6421119, y: 0.34226894}
+  m_Size: {x: 0.6421119, y: 0.11319929}
   m_EdgeRadius: 0
 --- !u!50 &6844965953533414813
 Rigidbody2D:

@@ -33,7 +33,10 @@ public class PlayerMovement : MonoBehaviour
 
     private Vector2 fillOriginalPos;
     private Vector2 bgOriginalPos;
-    private Vector2 moveInput;
+
+    // CHANGED TO PUBLIC SO THE ANIMATION CAN SEE IT
+    [HideInInspector] public Vector2 moveInput;
+
     private bool isDashButtonHeld;
     private float currentStamina;
     private bool isExhausted;
@@ -42,18 +45,13 @@ public class PlayerMovement : MonoBehaviour
     void Awake()
     {
         currentStamina = maxStamina;
-
         if (staminaSlider != null)
         {
             staminaSlider.maxValue = maxStamina;
             staminaSlider.value = maxStamina;
         }
-
-        if (fillImage != null)
-            fillOriginalPos = fillImage.rectTransform.anchoredPosition;
-
-        if (backgroundImage != null)
-            bgOriginalPos = backgroundImage.rectTransform.anchoredPosition;
+        if (fillImage != null) fillOriginalPos = fillImage.rectTransform.anchoredPosition;
+        if (backgroundImage != null) bgOriginalPos = backgroundImage.rectTransform.anchoredPosition;
     }
 
     void OnMove(InputValue value) => moveInput = value.Get<Vector2>();
@@ -61,52 +59,39 @@ public class PlayerMovement : MonoBehaviour
 
     void Update()
     {
-        if (staminaSlider != null)
-            staminaSlider.value = currentStamina;
-
-        if (fillImage != null)
-            fillImage.color = isExhausted ? exhaustedColor : normalColor;
+        if (staminaSlider != null) staminaSlider.value = currentStamina;
+        if (fillImage != null) fillImage.color = isExhausted ? exhaustedColor : normalColor;
     }
 
     void FixedUpdate()
     {
         HandleStamina();
-
         bool isMoving = moveInput != Vector2.zero;
         bool canDash = isDashButtonHeld && isMoving && !isExhausted && currentStamina > 0;
-
         float currentSpeed = canDash ? dashSpeed : moveSpeed;
         rb.MovePosition(rb.position + moveInput * currentSpeed * Time.fixedDeltaTime);
 
-        // Spawn dash clones while dashing
         if (canDash)
         {
             cloneTimer -= Time.fixedDeltaTime;
-
             if (cloneTimer <= 0f)
             {
                 SpawnDashClone();
                 cloneTimer = cloneSpawnRate;
             }
         }
-        else
-        {
-            cloneTimer = 0f;
-        }
+        else { cloneTimer = 0f; }
     }
 
     private void HandleStamina()
     {
         bool isMoving = moveInput != Vector2.zero;
-
         if (isDashButtonHeld && isMoving && !isExhausted)
         {
             currentStamina -= consumptionRate * Time.fixedDeltaTime;
-
             if (currentStamina <= 0)
             {
                 currentStamina = 0;
-
                 if (!isExhausted)
                 {
                     isExhausted = true;
@@ -117,54 +102,31 @@ public class PlayerMovement : MonoBehaviour
         }
         else
         {
-            if (currentStamina < maxStamina)
-                currentStamina += rechargeRate * Time.fixedDeltaTime;
-
+            if (currentStamina < maxStamina) currentStamina += rechargeRate * Time.fixedDeltaTime;
             currentStamina = Mathf.Clamp(currentStamina, 0, maxStamina);
-
-            if (isExhausted && currentStamina >= maxStamina * 0.2f)
-                isExhausted = false;
+            if (isExhausted && currentStamina >= maxStamina * 0.2f) isExhausted = false;
         }
     }
 
-    private void ResetExhaustion()
-    {
-        // Optional penalty logic
-    }
-
+    private void ResetExhaustion() { }
     private void SpawnDashClone()
     {
         if (dashClonePrefab == null) return;
-
-        Instantiate(
-            dashClonePrefab,
-            transform.position,
-            transform.rotation
-        );
+        Instantiate(dashClonePrefab, transform.position, transform.rotation);
     }
 
     private IEnumerator ShakeStaminaUI()
     {
         float timer = 0f;
-
         while (timer < shakeDuration)
         {
             timer += Time.deltaTime;
             Vector2 offset = Random.insideUnitCircle * shakeMagnitude;
-
-            if (fillImage != null)
-                fillImage.rectTransform.anchoredPosition = fillOriginalPos + offset;
-
-            if (backgroundImage != null)
-                backgroundImage.rectTransform.anchoredPosition = bgOriginalPos + offset;
-
+            if (fillImage != null) fillImage.rectTransform.anchoredPosition = fillOriginalPos + offset;
+            if (backgroundImage != null) backgroundImage.rectTransform.anchoredPosition = bgOriginalPos + offset;
             yield return null;
         }
-
-        if (fillImage != null)
-            fillImage.rectTransform.anchoredPosition = fillOriginalPos;
-
-        if (backgroundImage != null)
-            backgroundImage.rectTransform.anchoredPosition = bgOriginalPos;
+        if (fillImage != null) fillImage.rectTransform.anchoredPosition = fillOriginalPos;
+        if (backgroundImage != null) backgroundImage.rectTransform.anchoredPosition = bgOriginalPos;
     }
 }
