@@ -56025,6 +56025,10 @@ PrefabInstance:
       value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 3277555629805189734, guid: 844eb5e1aab31c44389b1d2906f0bb12, type: 3}
+      propertyPath: database
+      value: 
+      objectReference: {fileID: 11400000, guid: 452ed6741386f5a4a89db171411f6916, type: 2}
+    - target: {fileID: 3277555629805189734, guid: 844eb5e1aab31c44389b1d2906f0bb12, type: 3}
       propertyPath: inventory.Array.size
       value: 0
       objectReference: {fileID: 0}
