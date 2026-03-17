@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 6464020614380587009}
   - component: {fileID: 2082544142033933696}
   - component: {fileID: 4003022822893802180}
-  m_Layer: 6
+  m_Layer: 7
   m_Name: Circle
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -103,9 +103,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bf9dafa18e3d3ab44b9c2c0997610e60, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CircleAnim
-  playerMovement: {fileID: 7437932651018339989}
+  playerScript: {fileID: 0}
   pulseSpeed: 10
   pulseMagnitude: 0.2
+  returnSpeed: 10
 --- !u!1 &5074179420469325824
 GameObject:
   m_ObjectHideFlags: 0
@@ -121,9 +122,13 @@ GameObject:
   - component: {fileID: 7079955650351671835}
   - component: {fileID: 4458770008447339637}
   - component: {fileID: 7810479635399899880}
+  - component: {fileID: 8960390962864038146}
   - component: {fileID: 4377039986045184820}
   - component: {fileID: 2328390164450282138}
-  m_Layer: 6
+  - component: {fileID: 7612736591696802203}
+  - component: {fileID: 3277555629805189734}
+  - component: {fileID: 2378147042435376624}
+  m_Layer: 7
   m_Name: Player
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -263,6 +268,7 @@ MonoBehaviour:
   shakeMagnitude: 5
   dashClonePrefab: {fileID: 2088560179939077842, guid: 2f4ec9401856ab043b502d2bcaa0efa8, type: 3}
   cloneSpawnRate: 0.05
+  moveInput: {x: 0, y: 0}
 --- !u!50 &7079955650351671835
 Rigidbody2D:
   serializedVersion: 5
@@ -304,11 +310,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerAttack
   currentChar: {fileID: 0}
   aimScript: {fileID: 0}
-  fire1: {fileID: 0}
-  fire2: {fileID: 0}
-  fire3: {fileID: 0}
-  fire4: {fileID: 0}
-  defaultShakeIntensity: 0.5
+  fireActions: []
 --- !u!61 &7810479635399899880
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -355,6 +357,23 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 0.63596296, y: 0.17078951}
   m_EdgeRadius: 0
+--- !u!114 &8960390962864038146
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5074179420469325824}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 198a9db8b5f251d43beaaf9e218051f4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::playerHealth
+  maxHealth: 100
+  currentHealth: 0
+  healthRegenRate: 5
+  healthRegenDelay: 5
+  healthSlider: {fileID: 0}
 --- !u!70 &4377039986045184820
 CapsuleCollider2D:
   m_ObjectHideFlags: 0
@@ -511,6 +530,53 @@ TrailRenderer:
   m_Autodestruct: 0
   m_Emitting: 1
   m_ApplyActiveColorSpace: 1
+--- !u!114 &7612736591696802203
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5074179420469325824}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c9f5ee89a2f980c499c736d799a20a1b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: '::'
+  currentChar: {fileID: 11400000, guid: f2abf8e868eba4a4d8273f0a3bd6d491, type: 2}
+  aimScript: {fileID: 0}
+  spriteRenderer: {fileID: 571495365541788744}
+--- !u!114 &3277555629805189734
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5074179420469325824}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 388d0d9b33ab11d42aca3cb1461a1bc4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::InventoryManager
+  inventory:
+  - item: {fileID: 0}
+    count: 0
+--- !u!114 &2378147042435376624
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5074179420469325824}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 83d3535e9369a0b4b98df055b9e863a9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerInteraction2D
+  interactRadius: 1.5
+  interactableLayer:
+    serializedVersion: 2
+    m_Bits: 128
+  inventory: {fileID: 3277555629805189734}
 --- !u!1 &5294298298383211905
 GameObject:
   m_ObjectHideFlags: 0
@@ -521,7 +587,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2559432133847972146}
   - component: {fileID: 2071974434331807177}
-  m_Layer: 6
+  m_Layer: 7
   m_Name: "Light\u0111 (1)"
   m_TagString: Untagged
   m_Icon: {fileID: 0}

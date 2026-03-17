@@ -37,7 +37,7 @@
                     "name": "Interact",
                     "type": "Button",
                     "id": "852140f2-7766-474d-8707-702459ba45f3",
-                    "expectedControlType": "Button",
+                    "expectedControlType": "",
                     "processors": "",
                     "interactions": "Hold",
                     "initialStateCheck": false
@@ -118,6 +118,15 @@
                     "name": "LockOnAim",
                     "type": "Button",
                     "id": "939e9b82-bbbf-40ac-9302-d91acb3735c7",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "AddWood",
+                    "type": "Button",
+                    "id": "47079ef0-05ee-4a59-a90b-2491b2d94d6a",
                     "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
@@ -480,10 +489,10 @@
                 {
                     "name": "",
                     "id": "1c04ea5f-b012-41d1-a6f7-02e963b52893",
-                    "path": "<Keyboard>/e",
+                    "path": "<Keyboard>/q",
                     "interactions": "",
                     "processors": "",
-                    "groups": "Keyboard&Mouse",
+                    "groups": "Touch",
                     "action": "Interact",
                     "isComposite": false,
                     "isPartOfComposite": false
@@ -551,6 +560,17 @@
                     "processors": "",
                     "groups": ";Keyboard&Mouse",
                     "action": "LockOnAim",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "c52c92b0-be33-4de0-a16d-619436c02213",
+                    "path": "<Keyboard>/1",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "AddWood",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
