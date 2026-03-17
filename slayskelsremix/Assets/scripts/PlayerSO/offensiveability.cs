@@ -1,12 +1,13 @@
 using UnityEngine;
 
-public class offensiveability : Ability
+public abstract class offensiveability : Ability
 {
+    [Header("Base Offensive Stats")]
+    public float damage;
 
-    public float damage = 20f;
-
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    public override void Execute(Transform caster, Transform targetAnchor)
+    // This must match the new 3-argument signature
+    public override void Execute(Transform caster, Transform targetAnchor, bool isHolding)
     {
+        // This is usually left empty or handles base logic
     }
 }

@@ -18,8 +18,8 @@ MonoBehaviour:
   launchsound: {fileID: 0}
   customAudioLogic: 0
   damage: 20
+  maxSwings: 24
+  swingFreq: 0.4
   spawnOffset: 3
   rotationOffset: 90
-  swingsPerAttack: 2
-  delayBetweenSwings: 0.15
   bonusdmg: 10

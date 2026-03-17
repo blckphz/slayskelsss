@@ -10,6 +10,6 @@ public abstract class Ability : ScriptableObject
     [Tooltip("Check this if the ability handles its own sound timing (like melee combos).")]
     public bool customAudioLogic = false;
 
-    // We pass the "parent" Transform so the SO knows where the player is
-    public abstract void Execute(Transform caster, Transform targetAnchor);
+    // UPDATE: Added 'bool isHolding' so all child classes can see the input state
+    public abstract void Execute(Transform caster, Transform targetAnchor, bool isHolding);
 }

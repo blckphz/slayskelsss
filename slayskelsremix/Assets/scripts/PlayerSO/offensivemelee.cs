@@ -1,63 +1,69 @@
 using UnityEngine;
-using System.Collections;
 
+[CreateAssetMenu(fileName = "NewMeleeAbility", menuName = "Abilities/Melee")]
 public class offensivemelee : offensiveability
 {
-    [Header("Placement Settings")]
+    [Header("Melee Stats")]
+    public int maxSwings = 3;
+    public float swingFreq = 0.2f; // Speed of swings during hold
     public float spawnOffset = 1.5f;
     public float rotationOffset = 0f;
 
-    [Header("Combo Settings")]
-    public int swingsPerAttack = 2;
-    public float delayBetweenSwings = 0.15f;
+    private int currentSwingCount = 0;
+    private float nextSwingReadyTime = 0f;
+    private int toggleIndex = 0;
 
-    // Virtual property: Child classes can "fill this in"
     public virtual float GetBonusDamage() => 0f;
 
-    public override void Execute(Transform caster, Transform targetAnchor)
+    public override void Execute(Transform caster, Transform targetAnchor, bool isHolding)
     {
-        if (caster == null) return;
-        caster.GetComponent<MonoBehaviour>().StartCoroutine(MeleeSequence(caster, targetAnchor));
-    }
-
-    private IEnumerator MeleeSequence(Transform caster, Transform targetAnchor)
-    {
-        for (int i = 0; i < swingsPerAttack; i++)
+        // 1. Reset combo if not holding
+        if (!isHolding)
         {
-            if (caster == null) yield break;
+            currentSwingCount = 0;
+            // Reset internal ready time so the next first click is instant
+            if (Time.time > nextSwingReadyTime) nextSwingReadyTime = 0;
+            return;
+        }
 
-            if (launchsound != null)
-                audiomanager.Instance?.PlaySound(launchsound);
+        // 2. Combo Logic
+        if (Time.time >= nextSwingReadyTime && currentSwingCount < maxSwings)
+        {
+            PerformSwing(caster, targetAnchor);
 
-            PerformSingleSwing(caster, targetAnchor, i + 1);
-
-            if (i < swingsPerAttack - 1)
-                yield return new WaitForSeconds(delayBetweenSwings);
+            currentSwingCount++;
+            nextSwingReadyTime = Time.time + swingFreq;
         }
     }
 
-    private void PerformSingleSwing(Transform caster, Transform targetAnchor, int index)
+    private void PerformSwing(Transform caster, Transform targetAnchor)
     {
         if (prefab == null) return;
+        toggleIndex++;
 
-        Vector2 rawDir = (targetAnchor.position - caster.position).normalized;
-        Vector2 snappedDir = Mathf.Abs(rawDir.x) > Mathf.Abs(rawDir.y)
-            ? new Vector2(Mathf.Sign(rawDir.x), 0)
-            : new Vector2(0, Mathf.Sign(rawDir.y));
+        // Get direction
+        Vector3 targetPos = targetAnchor != null ? targetAnchor.position : caster.position + caster.right;
+        Vector2 dir = ((Vector2)targetPos - (Vector2)caster.position).normalized;
 
-        Vector3 desiredWorldPos = caster.position + (Vector3)(snappedDir * spawnOffset);
+        // Snapping logic for 4-way direction
+        Vector2 snappedDir = Mathf.Abs(dir.x) > Mathf.Abs(dir.y)
+            ? new Vector2(Mathf.Sign(dir.x), 0)
+            : new Vector2(0, Mathf.Sign(dir.y));
+
+        Vector3 spawnPos = caster.position + (Vector3)(snappedDir * spawnOffset);
         float angle = (Mathf.Atan2(snappedDir.y, snappedDir.x) * Mathf.Rad2Deg) + rotationOffset;
 
-        GameObject woosh = ObjectPooler.Instance.GetPooledObject(prefab, desiredWorldPos, Quaternion.Euler(0, 0, angle));
+        // Spawn
+        GameObject woosh = ObjectPooler.Instance.GetPooledObject(prefab, spawnPos, Quaternion.Euler(0, 0, angle));
+        if (woosh == null) return;
+
         woosh.transform.SetParent(caster);
-        woosh.transform.localPosition = caster.InverseTransformPoint(desiredWorldPos);
+        woosh.transform.localPosition = caster.InverseTransformPoint(spawnPos);
+
+        if (launchsound != null) audiomanager.Instance?.PlaySound(launchsound);
 
         var behav = woosh.GetComponent<meleebehav>();
-        if (behav != null)
-        {
-            // We call GetBonusDamage() which will use the value from rustymelee
-            behav.Setup(damage, GetBonusDamage(), index);
-        }
+        if (behav != null) behav.Setup(damage, GetBonusDamage(), toggleIndex);
 
         CameraShaker.Shake(0.4f, 0.12f);
     }

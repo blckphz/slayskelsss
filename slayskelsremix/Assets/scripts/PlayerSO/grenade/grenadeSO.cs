@@ -6,14 +6,18 @@ public class grenadeSO : offensiveRanged
     public float throwForce = 10f;
     public float explosionRadius = 3f;
 
-    public override void Execute(Transform caster, Transform targetAnchor)
+    // Added 'bool isHolding' to match the updated Ability base class
+    public override void Execute(Transform caster, Transform targetAnchor, bool isHolding)
     {
+        // For grenades, we typically only want to throw one per click.
+        // The PlayerAttack script handles the fireRate cooldown, 
+        // so we don't need to check 'isHolding' here unless you want to add a charging mechanic.
+
         if (prefab == null)
         {
             Debug.LogError("[GrenadeSO] Prefab is missing on the ScriptableObject!");
             return;
         }
-
 
         GameObject grenade = Instantiate(prefab, caster.position, Quaternion.identity);
 

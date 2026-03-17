@@ -52,7 +52,7 @@ public class PlayerGrenadeInput : MonoBehaviour
         // 2. Otherwise, check if we can THROW a new one
         else
         {
-            // Cooldown check: only throw if enough time has passed
+            // Cooldown check
             if (Time.time < lastThrowTime + throwCooldown)
             {
                 Debug.Log("Grenade is still on cooldown.");
@@ -63,16 +63,13 @@ public class PlayerGrenadeInput : MonoBehaviour
             {
                 Debug.Log("[Input] Throwing Grenade.");
 
-                // Track when we threw it for the cooldown
                 lastThrowTime = Time.time;
-
-                // Static reference for the SO tracking
                 grenadeBehav.ActiveGrenadeSO = grenadeAbility;
 
-                // Use throwPoint as a fallback if targetAnchor is missing
                 Transform finalTarget = targetAnchor != null ? targetAnchor : throwPoint;
 
-                grenadeAbility.Execute(throwPoint, finalTarget);
+                // FIXED: Added 'true' as the third argument to match the new Ability signature
+                grenadeAbility.Execute(throwPoint, finalTarget, true);
             }
         }
     }

@@ -1,93 +1,69 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.InputSystem; // 1. Added namespace
+using UnityEngine.InputSystem;
 
 public class PlayerAttack : MonoBehaviour
 {
-    [Header("References")]
     public charSO currentChar;
-    public PlayerAim aimScript; // 2. Direct reference is much faster than FindObjectOfType
-
-    [Header("Input Actions")]
-    // 3. Define your actions here
-    public InputActionReference fire1;
-    public InputActionReference fire2;
-    public InputActionReference fire3;
-    public InputActionReference fire4;
-
-    [Header("Settings")]
-    [SerializeField] private float defaultShakeIntensity = 0.5f;
-
+    public PlayerAim aimScript;
+    public InputActionReference[] fireActions;
     public Dictionary<Ability, float> abilityCooldowns = new Dictionary<Ability, float>();
-
-    // Optimization: Get the anchor once or via direct reference
-    public Transform CurrentAnchor => (aimScript != null) ? aimScript.anchor : null;
-
-    private void OnEnable()
-    {
-        // 4. Must enable actions to use them
-        fire1.action.Enable();
-        fire2.action.Enable();
-        if (fire3 != null) fire3.action.Enable();
-        if (fire4 != null) fire4.action.Enable();
-    }
 
     void Update()
     {
-        if (currentChar == null || currentChar.abilities == null || currentChar.abilities.Length == 0)
-            return;
+        if (currentChar == null || currentChar.abilities == null) return;
 
-        // 5. Use .IsPressed() or .WasPressedThisFrame() instead of GetButton
-        if (fire1.action.IsPressed()) TryUseAbility(0);
-
-        if (currentChar.abilities.Length > 1 && fire2.action.IsPressed())
-            TryUseAbility(1);
-
-        if (currentChar.abilities.Length > 2 && fire3 != null && fire3.action.IsPressed())
-            TryUseAbility(2);
-
-        if (currentChar.abilities.Length > 3 && fire4 != null && fire4.action.IsPressed())
-            TryUseAbility(3);
+        for (int i = 0; i < fireActions.Length; i++)
+        {
+            if (i >= currentChar.abilities.Length) break;
+            HandleInput(fireActions[i], i);
+        }
     }
 
-    private void TryUseAbility(int index)
+    private void HandleInput(InputActionReference actionRef, int index)
     {
-        if (index >= currentChar.abilities.Length) return;
+        if (actionRef == null || actionRef.action == null) return;
 
         Ability ability = currentChar.abilities[index];
-        if (ability != null && CanUseAbility(ability))
+        bool isHeld = actionRef.action.IsPressed();
+
+        float cdTimestamp = GetCooldown(ability);
+        bool isWeaponReady = Time.time >= cdTimestamp;
+
+        // --- MELEE PATH ---
+        if (ability is offensivemelee melee)
         {
-            PerformAttack(ability);
+            // Only try to swing if the global weapon cooldown is finished
+            melee.Execute(transform, aimScript.anchor, isHeld && isWeaponReady);
+
+            // Only apply recovery cooldown on release IF the weapon was ready to be used
+            if (actionRef.action.WasReleasedThisFrame() && isWeaponReady)
+            {
+                ApplyCooldown(ability);
+            }
+        }
+        // --- RANGED/OTHER PATH ---
+        else
+        {
+            // Logic: Only fire if ready. This prevents the "reset cooldown" bug 
+            // because the code inside never runs if isWeaponReady is false.
+            if (isHeld && isWeaponReady)
+            {
+                ability.Execute(transform, aimScript.anchor, true);
+                ApplyCooldown(ability);
+            }
         }
     }
 
-    private bool CanUseAbility(Ability ability)
+    private float GetCooldown(Ability ability)
     {
-        if (!abilityCooldowns.ContainsKey(ability))
-            abilityCooldowns[ability] = 0f;
-
-        return Time.time >= abilityCooldowns[ability];
+        if (!abilityCooldowns.ContainsKey(ability)) abilityCooldowns[ability] = 0f;
+        return abilityCooldowns[ability];
     }
 
-    private void PerformAttack(Ability ability)
+    private void ApplyCooldown(Ability ability)
     {
-        Transform activeAnchor = CurrentAnchor;
-
-        if (activeAnchor == null)
-        {
-            Debug.LogError($"[PlayerAttack] No Anchor found!");
-            return;
-        }
-
-        // Logic
-        audiomanager.Instance.PlaySound(ability.launchsound);
-        ability.Execute(transform, activeAnchor);
-
-        // Cooldown
         abilityCooldowns[ability] = Time.time + ability.fireRate;
-
-        // UI
-        if (charsetter.Instance != null)
-            charsetter.Instance.TriggerAbilityUsed(ability);
+        if (charsetter.Instance != null) charsetter.Instance.TriggerAbilityUsed(ability);
     }
 }
