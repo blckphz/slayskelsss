@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8821fb81523bac74a81c17e939739a8c, type: 3}
   m_Name: WoodItem
   m_EditorClassIdentifier: Assembly-CSharp::ItemData
+  itemID: 0
   itemName: Wood
   icon: {fileID: 0}
-  description: 
-  itemID: 0
+  placeablePrefab: {fileID: 497834360038440889, guid: bad192946420eed429bdac73b87e0476, type: 3}
