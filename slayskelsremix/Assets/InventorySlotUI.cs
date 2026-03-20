@@ -119,21 +119,52 @@ IBeginDragHandler, IDragHandler, IEndDragHandler, IDropHandler, IPointerClickHan
         ui?.SyncToInventory();
     }
 
-    // ---------------- CLICK ----------------
+    // ---------------- CLICK (TRANSFER LOGIC) ----------------
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        IItemUseHandler handler = GetComponentInParent<IItemUseHandler>();
-        if (handler == null) return;
+        if (currentItem == null) return;
+
+        // Check if a chest is currently open in the UI
+        ChestInventory openChest = (ChestUI.Instance != null) ? ChestUI.Instance.GetCurrentChest() : null;
 
         if (eventData.button == PointerEventData.InputButton.Left)
         {
-            handler.UseItem(currentItem);
+            if (openChest != null)
+            {
+                // CASE A: Chest is open -> Transfer 1 item to the chest
+                TransferToChest(openChest);
+            }
+            else
+            {
+                // CASE B: No chest open -> Use the item (Consume/Place)
+                IItemUseHandler handler = GetComponentInParent<IItemUseHandler>();
+                handler?.UseItem(currentItem);
+            }
         }
         else if (eventData.button == PointerEventData.InputButton.Right)
         {
+            // Right click: Always try to start building/placing
             InvUI ui = GetComponentInParent<InvUI>();
             ui?.StartPlacingFromSlot(this);
+        }
+    }
+
+    private void TransferToChest(ChestInventory chest)
+    {
+        Debug.Log($"[InventorySlotUI] Transferring {currentItem.itemName} to Chest");
+
+        // 1. Add item to chest data
+        bool addedToChest = chest.AddItem(currentItem, 1);
+
+        if (addedToChest)
+        {
+            // 2. Remove item from player inventory data
+            // This also triggers InvUI.Instance.RefreshUI() automatically based on our previous logic
+            InventoryManager.Instance.RemoveItem(currentItem, 1);
+
+            // 3. Manually refresh the Chest UI so the item appears there immediately
+            ChestUI.Instance.Refresh();
         }
     }
 }

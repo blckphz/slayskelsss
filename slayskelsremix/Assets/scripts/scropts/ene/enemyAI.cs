@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using Pathfinding;
 
 public class EnemyAI : MonoBehaviour
@@ -113,6 +113,9 @@ public class EnemyAI : MonoBehaviour
 
         for (int i = 0; i < hitCount; i++)
         {
+            // 🔥 UNIVERSAL DAMAGE SYSTEM
+
+            // Player
             playerHealth pHealth = results[i].GetComponent<playerHealth>();
             if (pHealth != null)
             {
@@ -121,16 +124,24 @@ public class EnemyAI : MonoBehaviour
                 continue;
             }
 
+            // Turret
             TurretBehaviour tBehav = results[i].GetComponent<TurretBehaviour>();
             if (tBehav != null)
             {
                 tBehav.TakeDamage(damageAmount);
                 didHitSomething = true;
+                continue;
+            }
+
+            // 🔥 ANY BUILDABLE OBJECT
+            objectHealth objHealth = results[i].GetComponent<objectHealth>();
+            if (objHealth != null)
+            {
+                objHealth.TakeDamage(damageAmount);
+                didHitSomething = true;
             }
         }
 
-        // If the swing finishes, we tell the animator we are done for now
-        // (The cooldown logic in Update will prevent it from turning back on too soon)
         anim.SetBool("isattacking", false);
 
         if (!didHitSomething)
@@ -144,17 +155,24 @@ public class EnemyAI : MonoBehaviour
         float closestDistance = Mathf.Infinity;
         Transform bestTarget = null;
 
+        // ---------------- PLAYER ----------------
         GameObject player = GameObject.FindGameObjectWithTag("Player");
         if (player != null)
         {
-            closestDistance = Vector2.Distance(transform.position, player.transform.position);
-            bestTarget = player.transform;
+            float dist = Vector2.Distance(transform.position, player.transform.position);
+            if (dist < closestDistance)
+            {
+                closestDistance = dist;
+                bestTarget = player.transform;
+            }
         }
 
+        // ---------------- TURRETS ----------------
         TurretBehaviour[] turrets = FindObjectsOfType<TurretBehaviour>();
         foreach (TurretBehaviour turret in turrets)
         {
             if (!turret.gameObject.activeInHierarchy) continue;
+
             float dist = Vector2.Distance(transform.position, turret.transform.position);
             if (dist < closestDistance)
             {
@@ -162,6 +180,21 @@ public class EnemyAI : MonoBehaviour
                 bestTarget = turret.transform;
             }
         }
+
+        // ---------------- BUILDINGS (🔥 NEW) ----------------
+        objectHealth[] objects = FindObjectsOfType<objectHealth>();
+        foreach (objectHealth obj in objects)
+        {
+            if (!obj.gameObject.activeInHierarchy) continue;
+
+            float dist = Vector2.Distance(transform.position, obj.transform.position);
+            if (dist < closestDistance)
+            {
+                closestDistance = dist;
+                bestTarget = obj.transform;
+            }
+        }
+
         currentTarget = bestTarget;
     }
 

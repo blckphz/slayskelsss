@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class BuildManager : MonoBehaviour
@@ -11,114 +11,111 @@ public class BuildManager : MonoBehaviour
     public float gridSize = 1f;
 
     private GameObject previewObject;
-    private ItemData currentItem;
+    private buildSO currentItem;
 
     private SpriteRenderer[] renderers;
     private bool isPlacing = false;
-
-    // ---------------- UPDATE ----------------
 
     void Update()
     {
         if (!isPlacing)
             return;
 
-        // 1. Check if Input Handler is actually there
         if (PlayerInputHandler.Instance == null)
+            return;
+
+        // 🔥 HIDE PREVIEW IF NO ITEMS LEFT
+        if (!HasItemInInventory())
         {
-            Debug.LogError("[Build] PlayerInputHandler.Instance is MISSING from the scene!");
+            Cancel();
             return;
         }
 
         MovePreview();
         UpdateColor();
 
-        // 2. Handle Clicks
         if (PlayerInputHandler.Instance.LeftClickPressed())
         {
-            Debug.Log("[Build] Click detected at: " + PlayerInputHandler.Instance.GetMousePosition());
             TryPlace();
         }
 
-        // 3. Handle Cancel
         if (PlayerInputHandler.Instance.RightClickPressed() || Keyboard.current.escapeKey.wasPressedThisFrame)
         {
-            Debug.Log("[Build] Cancel detected");
             Cancel();
+        }
+
+        // 🔥 UNDO
+        if (Keyboard.current.zKey.wasPressedThisFrame)
+        {
+            if (BuildingSaveManager.Instance != null)
+                BuildingSaveManager.Instance.UndoLastBuilding();
         }
     }
 
-    // ---------------- START PLACING ----------------
-
-    public void StartPlacing(ItemData item)
+    public void StartPlacing(buildSO item)
     {
-        if (item == null)
+        if (item == null || item.placeablePrefab == null)
+            return;
+
+        // 🔥 CHECK INVENTORY BEFORE STARTING PREVIEW
+        if (!HasItemInInventory(item))
         {
-            Debug.LogError("[Build] StartPlacing called with NULL item");
+            Debug.LogWarning("[Build] No items available, preview not shown.");
             return;
         }
 
-        if (item.placeablePrefab == null)
-        {
-            Debug.LogError("[Build] Item has no prefab assigned: " + item.itemName);
-            return;
-        }
+        Cancel();
 
         currentItem = item;
         isPlacing = true;
 
         previewObject = Instantiate(item.placeablePrefab);
 
-        if (previewObject == null)
-        {
-            Debug.LogError("[Build] Failed to instantiate preview object");
-            return;
-        }
-
-        // Disable colliders on preview so it doesn't block its own CanPlace check
         Collider2D c = previewObject.GetComponent<Collider2D>();
         if (c != null) c.enabled = false;
 
         renderers = previewObject.GetComponentsInChildren<SpriteRenderer>();
 
         SetTint(new Color(1, 1, 1, 0.5f));
-
-        Debug.Log("[Build] Started placing: " + item.itemName);
     }
 
-    // ---------------- MOVE PREVIEW ----------------
+    // ---------------- INVENTORY CHECK ----------------
+
+    private bool HasItemInInventory()
+    {
+        return HasItemInInventory(currentItem);
+    }
+
+    private bool HasItemInInventory(buildSO item)
+    {
+        if (InvUI.Instance == null || InvUI.Instance.inventoryManager == null)
+            return false;
+
+        foreach (var slot in InvUI.Instance.inventoryManager.inventory)
+        {
+            if (slot.item == item && slot.count > 0)
+                return true;
+        }
+
+        return false;
+    }
+
+    // ---------------- PREVIEW MOVEMENT ----------------
 
     private void MovePreview()
     {
-        if (previewObject == null || playerCamera == null)
-            return;
+        if (previewObject == null) return;
 
-        // Get mouse screen position (e.g., 1920x1080 coords)
         Vector2 mousePos = PlayerInputHandler.Instance.GetMousePosition();
+        float distance = Mathf.Abs(playerCamera.transform.position.z);
 
-        // Cinemachine/2D Fix: We need a reliable distance from the camera.
-        // ScreenToWorldPoint needs the Z to be the distance from the camera plane to the world plane.
-        float cameraZ = playerCamera.transform.position.z;
-        float targetZ = 0f; // We want the object at Z = 0
-        float distance = Mathf.Abs(cameraZ - targetZ);
-
-        // Convert Screen space to World space
         Vector3 worldPos = playerCamera.ScreenToWorldPoint(new Vector3(mousePos.x, mousePos.y, distance));
-
-        // Safety: Force worldPos Z to exactly 0 for 2D
         worldPos.z = 0f;
 
-        // Apply Grid Snapping
         float snapX = Mathf.Round(worldPos.x / gridSize) * gridSize;
         float snapY = Mathf.Round(worldPos.y / gridSize) * gridSize;
 
         previewObject.transform.position = new Vector3(snapX, snapY, 0f);
-
-        // DEBUG: If it's still in the corner, check if mousePos is (0,0)
-        if (worldPos == Vector3.zero || mousePos == Vector2.zero)
-        {
-            Debug.LogWarning($"[Build] Potential Zero Error - Mouse: {mousePos} | World: {worldPos}");
-        }
     }
 
     // ---------------- VALIDATION ----------------
@@ -127,8 +124,6 @@ public class BuildManager : MonoBehaviour
     {
         if (previewObject == null) return false;
 
-        // Check if anything in 'placementMask' is inside a box at this position
-        // We use 0.95f to avoid pixel-perfect edges blocking placement
         Collider2D hit = Physics2D.OverlapBox(
             previewObject.transform.position,
             new Vector2(gridSize * 0.95f, gridSize * 0.95f),
@@ -143,7 +138,7 @@ public class BuildManager : MonoBehaviour
 
     private void UpdateColor()
     {
-        bool valid = CanPlace();
+        bool valid = CanPlace() && HasItemInInventory();
         Color c = valid ? new Color(0, 1, 0, 0.5f) : new Color(1, 0, 0, 0.5f);
         SetTint(c);
     }
@@ -151,9 +146,11 @@ public class BuildManager : MonoBehaviour
     private void SetTint(Color c)
     {
         if (renderers == null) return;
+
         foreach (var r in renderers)
         {
-            if (r != null) r.color = c;
+            if (r != null)
+                r.color = c;
         }
     }
 
@@ -162,32 +159,54 @@ public class BuildManager : MonoBehaviour
     private void TryPlace()
     {
         if (!CanPlace())
+            return;
+
+        if (!HasItemInInventory())
         {
-            Debug.LogWarning("[Build] Placement blocked!");
+            Debug.LogWarning("[Build] No item left!");
+            Cancel();
             return;
         }
 
-        Instantiate(
+        // 1. Spawn the object
+        GameObject obj = Instantiate(
             currentItem.placeablePrefab,
             previewObject.transform.position,
             Quaternion.identity
         );
 
-        Debug.Log("[Build] Placed: " + currentItem.itemName);
+        // 2. Setup identity for saving
+        BuildIdentity identity = obj.GetComponent<BuildIdentity>();
+        if (identity == null) identity = obj.AddComponent<BuildIdentity>();
+        identity.item = currentItem;
 
-        // Clean up
-        Destroy(previewObject);
-        previewObject = null;
-        currentItem = null;
-        isPlacing = false;
+        // 3. Register and Save
+        if (BuildingSaveManager.Instance != null)
+        {
+            BuildingSaveManager.Instance.RegisterBuilding(obj);
+            BuildingSaveManager.Instance.SaveNow();
+        }
+
+        // 4. 🔥 THE FIX: Remove from data AND update the visual UI
+        if (InvUI.Instance != null && InvUI.Instance.inventoryManager != null)
+        {
+            // This changes the number in your Inventory list
+            InvUI.Instance.inventoryManager.RemoveItem(currentItem, 1);
+
+            // This forces every InventorySlotUI to run SetSlot() again with new numbers
+            InvUI.Instance.RefreshUI();
+        }
+
+        Debug.Log("[Build] Placed and UI Refreshed");
     }
 
     // ---------------- CANCEL ----------------
 
     private void Cancel()
     {
-        Debug.Log("[Build] Cancelled");
-        if (previewObject != null) Destroy(previewObject);
+        if (previewObject != null)
+            Destroy(previewObject);
+
         previewObject = null;
         currentItem = null;
         isPlacing = false;

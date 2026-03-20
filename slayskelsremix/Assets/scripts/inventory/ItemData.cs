@@ -10,8 +10,7 @@ public class ItemData : ScriptableObject
     [Header("Type")]
     public ItemType itemType;
 
-    [Header("Building")]
-    public GameObject placeablePrefab;
+
 
     [Header("Consumable")]
     public int healAmount;

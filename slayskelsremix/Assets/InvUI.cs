@@ -2,10 +2,17 @@
 
 public class InvUI : MonoBehaviour, IItemUseHandler
 {
+    public static InvUI Instance;
+
     [Header("References")]
     public InventoryManager inventoryManager;
     public InventorySlotUI[] slots;
     public BuildManager buildManager;
+
+    private void Awake()
+    {
+        Instance = this;
+    }
 
     private void Start()
     {
@@ -16,6 +23,8 @@ public class InvUI : MonoBehaviour, IItemUseHandler
 
     public void RefreshUI()
     {
+        if (inventoryManager == null) return;
+
         var inv = inventoryManager.inventory;
 
         for (int i = 0; i < slots.Length; i++)
@@ -51,9 +60,12 @@ public class InvUI : MonoBehaviour, IItemUseHandler
         }
 
         inventoryManager.SaveInventory();
+
+        // 🔥 Force UI refresh after sync
+        RefreshUI();
     }
 
-    // ---------------- INTERFACE IMPLEMENTATION ----------------
+    // ---------------- USE ITEM ----------------
 
     public void UseItem(ItemData item)
     {
@@ -74,7 +86,15 @@ public class InvUI : MonoBehaviour, IItemUseHandler
             case ItemType.Placeable:
                 if (buildManager != null)
                 {
-                    buildManager.StartPlacing(item);
+                    buildSO buildItem = item as buildSO;
+
+                    if (buildItem == null)
+                    {
+                        Debug.LogError("[InvUI] Item is not a buildSO: " + item.itemName);
+                        return;
+                    }
+
+                    buildManager.StartPlacing(buildItem);
                 }
                 else
                 {
@@ -88,11 +108,10 @@ public class InvUI : MonoBehaviour, IItemUseHandler
     {
         Debug.Log($"[InvUI] Consumed {item.itemName} (+{item.healAmount})");
 
-        // Example hook:
-        // playerHealth.Heal(item.healAmount);
+        // TODO: reduce count here later if needed
     }
 
-    // ---------------- BUILDING FROM SLOT ----------------
+    // ---------------- BUILD FROM SLOT ----------------
 
     public void StartPlacingFromSlot(InventorySlotUI slot)
     {
@@ -110,17 +129,23 @@ public class InvUI : MonoBehaviour, IItemUseHandler
             return;
         }
 
-        if (item.placeablePrefab == null)
+        buildSO buildItem = item as buildSO;
+
+        if (buildItem == null)
         {
             Debug.LogWarning("[InvUI] Item is not placeable: " + item.itemName);
             return;
         }
 
-        Debug.Log("[InvUI] Starting placement from slot: " + item.itemName);
+        if (buildItem.placeablePrefab == null)
+        {
+            Debug.LogWarning("[InvUI] No prefab assigned: " + item.itemName);
+            return;
+        }
 
         if (buildManager != null)
         {
-            buildManager.StartPlacing(item);
+            buildManager.StartPlacing(buildItem);
         }
         else
         {
