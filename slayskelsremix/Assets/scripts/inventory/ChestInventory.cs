@@ -125,6 +125,5 @@ public class ChestInventory : MonoBehaviour
                 chestItems.Add(new ChestSlot(item, s.count));
             }
         }
-        Debug.Log($"[Chest] {chestID} loaded {chestItems.Count} items.");
     }
 }

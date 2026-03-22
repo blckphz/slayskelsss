@@ -11,9 +11,6 @@ public class PlayerGrenadeInput : MonoBehaviour
     [Header("Input Action")]
     [SerializeField] private InputActionReference grenadeAction;
 
-    [Header("Cooldown Settings")]
-    public float throwCooldown = 1.5f;
-    private float lastThrowTime;
 
     private void OnEnable()
     {
@@ -48,29 +45,6 @@ public class PlayerGrenadeInput : MonoBehaviour
         {
             Debug.Log("[Input] Manual Detonation Triggered!");
             grenadeBehav.ActiveGrenade.ManualExplode();
-        }
-        // 2. Otherwise, check if we can THROW a new one
-        else
-        {
-            // Cooldown check
-            if (Time.time < lastThrowTime + throwCooldown)
-            {
-                Debug.Log("Grenade is still on cooldown.");
-                return;
-            }
-
-            if (grenadeAbility != null)
-            {
-                Debug.Log("[Input] Throwing Grenade.");
-
-                lastThrowTime = Time.time;
-                grenadeBehav.ActiveGrenadeSO = grenadeAbility;
-
-                Transform finalTarget = targetAnchor != null ? targetAnchor : throwPoint;
-
-                // FIXED: Added 'true' as the third argument to match the new Ability signature
-                grenadeAbility.Execute(throwPoint, finalTarget, true);
-            }
         }
     }
 }

@@ -23,7 +23,6 @@ public class meleebehav : MonoBehaviour
         bonusDamage = bDmg;
         hitEnemies.Clear();
 
-        // Charge consumption logic
         if (chainController.hitCcunter > 0)
         {
             chainController.hitCcunter--;
@@ -31,7 +30,6 @@ public class meleebehav : MonoBehaviour
 
         if (deactivationRoutine != null) StopCoroutine(deactivationRoutine);
 
-        // Flip Scale based on swing index (Odd = Right, Even = Left)
         bool isEven = (swingIndex % 2 == 0);
         transform.localScale = new Vector3(
             isEven ? -prefabScale.x : prefabScale.x,
@@ -41,7 +39,6 @@ public class meleebehav : MonoBehaviour
 
         if (anim != null)
         {
-            // Send 1 or 2 to the animator
             anim.SetInteger("SwingIndex", isEven ? 2 : 1);
             anim.SetTrigger("Attack");
             deactivationRoutine = StartCoroutine(DeactivateAfterAnimation());

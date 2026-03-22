@@ -8,19 +8,21 @@ public class turretSO : defensiveAbilities
     public float shootfreq;
     public int maxturretcount = 3;
 
-    public override void Execute(Transform caster, Transform targetAnchor, bool isHolding)
+    // Updated return type to bool and added the return handshake
+    public override bool Execute(Transform caster, Transform targetAnchor, bool isHolding)
     {
-        // We only care about the initial click for turrets
-        if (!isHolding) return;
+        // 1. Initial Logic
+        // We only care about the initial click. If we aren't holding/pressing, don't execute.
+        if (!isHolding) return false;
 
-        // 1. Safety Checks
+        // 2. Safety Checks
         if (caster == null || targetAnchor == null || prefab == null || ObjectPooler.Instance == null)
         {
             Debug.LogError("[TurretSO] Missing references!");
-            return;
+            return false;
         }
 
-        // 2. MAX COUNT LOGIC: Remove oldest if at limit
+        // 3. MAX COUNT LOGIC: Remove oldest if at limit
         if (TurretBehaviour.ActiveTurrets.Count >= maxturretcount)
         {
             TurretBehaviour oldestTurret = TurretBehaviour.ActiveTurrets[0];
@@ -30,18 +32,21 @@ public class turretSO : defensiveAbilities
             }
         }
 
-        // 3. SPAWN NEW TURRET
+        // 4. SPAWN NEW TURRET
         Vector3 spawnPos = targetAnchor.position;
         GameObject turretObj = ObjectPooler.Instance.GetPooledObject(prefab, spawnPos, Quaternion.identity);
 
-        if (turretObj == null) return;
+        if (turretObj == null) return false;
 
-        // 4. SETUP
+        // 5. SETUP
         var turret = turretObj.GetComponent<TurretBehaviour>();
         if (turret != null)
         {
             turret.Setup(hp, lifetime, caster);
             turret.SetCombatStats(turretdmg, shootfreq);
         }
+
+        // Return true to trigger the cooldown in PlayerAttack immediately
+        return true;
     }
 }

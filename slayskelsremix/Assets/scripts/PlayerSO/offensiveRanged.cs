@@ -3,6 +3,7 @@ using UnityEngine;
 public class offensiveRanged : offensiveability
 {
     public float projectileSpeed = 15f;
+    public int pierceCount;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()

@@ -5,12 +5,14 @@ public class defensiveAbilities : Ability
 {
     public float hp;
 
-    // Added 'bool isHolding' to match the updated Ability base class
-    public override void Execute(Transform caster, Transform targetAnchor, bool isHolding)
+    public override bool Execute(Transform caster, Transform targetAnchor, bool isHolding)
     {
-        // For most defensive abilities, you only want it to fire once per press
-        // You can check 'if(isHolding)' or just leave it as is if 
-        // the PlayerAttack cooldown handles the timing.
-        Debug.Log("Executing Defensive Ability");
+        // Example: Spawn a shield or heal the player
+        Debug.Log("Executing Defensive Ability: " + this.name);
+
+        // Add your specific defensive logic here (instantiating shields, etc.)
+
+        // Return true to trigger the cooldown immediately
+        return true;
     }
 }

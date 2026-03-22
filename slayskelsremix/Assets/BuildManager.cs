@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.EventSystems; // Required for UI detection
 
 public class BuildManager : MonoBehaviour
 {
@@ -31,9 +32,20 @@ public class BuildManager : MonoBehaviour
             return;
         }
 
+        // 1. ALWAYS MOVE PREVIEW TO FOLLOW MOUSE
         MovePreview();
-        UpdateColor();
 
+        // 2. CHECK IF MOUSE IS OVER UI
+        bool isOverUI = EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
+
+        // 3. UPDATE VISUALS & VISIBILITY
+        // Passing isOverUI allows us to hide the sprite renderers
+        UpdatePreviewVisuals(isOverUI);
+
+        if (isOverUI)
+            return; // 🛑 BLOCK PLACEMENT/INPUT LOGIC BELOW THIS LINE
+
+        // 4. PLACEMENT INPUTS
         if (PlayerInputHandler.Instance.LeftClickPressed())
         {
             TryPlace();
@@ -44,7 +56,7 @@ public class BuildManager : MonoBehaviour
             Cancel();
         }
 
-        // 🔥 UNDO
+        // 5. UNDO
         if (Keyboard.current.zKey.wasPressedThisFrame)
         {
             if (BuildingSaveManager.Instance != null)
@@ -57,7 +69,6 @@ public class BuildManager : MonoBehaviour
         if (item == null || item.placeablePrefab == null)
             return;
 
-        // 🔥 CHECK INVENTORY BEFORE STARTING PREVIEW
         if (!HasItemInInventory(item))
         {
             Debug.LogWarning("[Build] No items available, preview not shown.");
@@ -71,6 +82,7 @@ public class BuildManager : MonoBehaviour
 
         previewObject = Instantiate(item.placeablePrefab);
 
+        // Disable collider so it doesn't block raycasts or physics
         Collider2D c = previewObject.GetComponent<Collider2D>();
         if (c != null) c.enabled = false;
 
@@ -134,13 +146,27 @@ public class BuildManager : MonoBehaviour
         return hit == null;
     }
 
-    // ---------------- COLOR ----------------
+    // ---------------- VISUALS ----------------
 
-    private void UpdateColor()
+    private void UpdatePreviewVisuals(bool blockedByUI)
     {
-        bool valid = CanPlace() && HasItemInInventory();
-        Color c = valid ? new Color(0, 1, 0, 0.5f) : new Color(1, 0, 0, 0.5f);
-        SetTint(c);
+        if (renderers == null) return;
+
+        // If mouse is over UI, we just turn off the renderers entirely
+        bool shouldBeVisible = !blockedByUI;
+
+        foreach (var r in renderers)
+        {
+            if (r != null) r.enabled = shouldBeVisible;
+        }
+
+        // If visible, still check for valid placement colors (Red/Green)
+        if (shouldBeVisible)
+        {
+            bool valid = CanPlace() && HasItemInInventory();
+            Color c = valid ? new Color(0, 1, 0, 0.5f) : new Color(1, 0, 0, 0.5f);
+            SetTint(c);
+        }
     }
 
     private void SetTint(Color c)
@@ -168,32 +194,25 @@ public class BuildManager : MonoBehaviour
             return;
         }
 
-        // 1. Spawn the object
         GameObject obj = Instantiate(
             currentItem.placeablePrefab,
             previewObject.transform.position,
             Quaternion.identity
         );
 
-        // 2. Setup identity for saving
         BuildIdentity identity = obj.GetComponent<BuildIdentity>();
         if (identity == null) identity = obj.AddComponent<BuildIdentity>();
         identity.item = currentItem;
 
-        // 3. Register and Save
         if (BuildingSaveManager.Instance != null)
         {
             BuildingSaveManager.Instance.RegisterBuilding(obj);
             BuildingSaveManager.Instance.SaveNow();
         }
 
-        // 4. 🔥 THE FIX: Remove from data AND update the visual UI
         if (InvUI.Instance != null && InvUI.Instance.inventoryManager != null)
         {
-            // This changes the number in your Inventory list
             InvUI.Instance.inventoryManager.RemoveItem(currentItem, 1);
-
-            // This forces every InventorySlotUI to run SetSlot() again with new numbers
             InvUI.Instance.RefreshUI();
         }
 

@@ -19,12 +19,11 @@ public class ChainLightning : offensiveRanged
     [Tooltip("Degrees to rotate sprite so it visually faces movement")]
     public float rotationOffset = 0f;
 
-    // Added 'bool isHolding' to satisfy the new Ability base class contract
-    public override void Execute(Transform caster, Transform targetAnchor, bool isHolding)
+    public override bool Execute(Transform caster, Transform targetAnchor, bool isHolding)
     {
-        // For Chain Lightning, we usually fire on the initial press (handled by PlayerAttack cooldown)
-        Vector2 dir = (targetAnchor.position - caster.position).normalized;
+        if (prefab == null) return false;
 
+        Vector2 dir = (targetAnchor.position - caster.position).normalized;
         GameObject bolt = ObjectPooler.Instance.GetPooledObject(prefab, caster.position, Quaternion.identity);
 
         var behav = bolt.GetComponent<chainlightningBehav>();
@@ -43,5 +42,8 @@ public class ChainLightning : offensiveRanged
                 stuntick
             );
         }
+
+        // Return true to start cooldown immediately in PlayerAttack
+        return true;
     }
 }

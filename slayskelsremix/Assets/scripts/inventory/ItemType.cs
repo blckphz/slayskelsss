@@ -1,5 +1,6 @@
 public enum ItemType
 {
     Consumable,
-    Placeable
+    Placeable,
+    Resource
 }

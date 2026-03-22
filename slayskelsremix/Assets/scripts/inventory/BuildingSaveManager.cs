@@ -101,7 +101,6 @@ public class BuildingSaveManager : MonoBehaviour
             placedBuildings.Add(obj);
         }
 
-        Debug.Log("[Save] Buildings loaded.");
     }
 
     // ---------------- UNDO ----------------

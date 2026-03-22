@@ -30,23 +30,22 @@ public class PlayerAttack : MonoBehaviour
         float cdTimestamp = GetCooldown(ability);
         bool isWeaponReady = Time.time >= cdTimestamp;
 
-        // --- MELEE PATH ---
         if (ability is offensivemelee melee)
         {
-            // Only try to swing if the global weapon cooldown is finished
-            melee.Execute(transform, aimScript.anchor, isHeld && isWeaponReady);
+            // Execute now returns TRUE if the maxSwings limit is reached
+            bool comboFinished = melee.Execute(transform, aimScript.anchor, isHeld && isWeaponReady);
 
-            // Only apply recovery cooldown on release IF the weapon was ready to be used
-            if (actionRef.action.WasReleasedThisFrame() && isWeaponReady)
+            // Apply cooldown if:
+            // 1. The combo is naturally finished (even if button is still held)
+            // 2. OR the user released the button
+            if (isWeaponReady && (comboFinished || actionRef.action.WasReleasedThisFrame()))
             {
                 ApplyCooldown(ability);
             }
         }
-        // --- RANGED/OTHER PATH ---
         else
         {
-            // Logic: Only fire if ready. This prevents the "reset cooldown" bug 
-            // because the code inside never runs if isWeaponReady is false.
+            // Ranged path
             if (isHeld && isWeaponReady)
             {
                 ability.Execute(transform, aimScript.anchor, true);

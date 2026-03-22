@@ -32,7 +32,6 @@ public class ChestUI : MonoBehaviour
         if (uiVisualRoot != null)
         {
             uiVisualRoot.SetActive(false);
-            Debug.Log("[ChestUI] UI Visuals hidden on Awake.");
         }
         else
         {

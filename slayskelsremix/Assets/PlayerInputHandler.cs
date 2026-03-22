@@ -38,7 +38,6 @@ public class PlayerInputHandler : MonoBehaviour
 
     private void OnLeftClick(InputAction.CallbackContext ctx)
     {
-        Debug.Log("[Input] Left Click");
 
         // You can route this globally if needed
     }
