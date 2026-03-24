@@ -6,11 +6,12 @@ using Pathfinding;
 [RequireComponent(typeof(NpcAttack))]
 public class NPCBrain : MonoBehaviour
 {
-    [Header("Detection (Finding Target)")]
-    public float detectionRange = 20f;
+    [Header("Settings")]
+    public float detectionRange = 15f;
     public float searchInterval = 0.5f;
+    public float attackStopDistance = 1.5f;
 
-    [Header("State")]
+    [Header("Status")]
     [SerializeField] private bool targetInAttackTrigger = false;
 
     private AIDestinationSetter destinationSetter;
@@ -23,24 +24,50 @@ public class NPCBrain : MonoBehaviour
         destinationSetter = GetComponent<AIDestinationSetter>();
         aiPath = GetComponent<AIPath>();
         attackModule = GetComponent<NpcAttack>();
-
-        // Set A* stopping distance to be very close so they stay in trigger
-        if (aiPath != null) aiPath.endReachedDistance = 0.5f;
     }
 
     void Update()
     {
         searchTimer += Time.deltaTime;
-
-        // 1. Find the target from a distance
         if (searchTimer >= searchInterval)
         {
-            FindClosestEnemy();
+            FindBestTarget();
             searchTimer = 0f;
         }
 
-        // 2. Attack logic based strictly on the Trigger status
-        if (targetInAttackTrigger && destinationSetter.target != null)
+        HandleAction();
+    }
+
+    private void FindBestTarget()
+    {
+        // Priority 1: Enemies
+        Transform enemy = GetClosest<enemyHealth>();
+        if (enemy) { SetTarget(enemy, attackStopDistance); return; }
+
+        // Priority 2: Ground Loot
+        Transform loot = GetClosest<PickupItem>();
+        if (loot) { SetTarget(loot, 0.1f); return; }
+
+        // Priority 3: Resources
+        Transform resource = GetClosest<ItemHealth>();
+        if (resource) { SetTarget(resource, attackStopDistance); return; }
+
+        destinationSetter.target = null;
+    }
+
+    private void SetTarget(Transform target, float dist)
+    {
+        destinationSetter.target = target;
+        if (aiPath != null) aiPath.endReachedDistance = dist;
+    }
+
+    private void HandleAction()
+    {
+        if (destinationSetter.target == null) return;
+
+        bool isAttackable = destinationSetter.target.GetComponent<IDamageable>() != null;
+
+        if (isAttackable && targetInAttackTrigger)
         {
             attackModule.TryAttack(destinationSetter.target);
         }
@@ -50,43 +77,34 @@ public class NPCBrain : MonoBehaviour
         }
     }
 
-    private void FindClosestEnemy()
+    private Transform GetClosest<T>() where T : MonoBehaviour
     {
-        enemyHealth[] allEnemies = Object.FindObjectsByType<enemyHealth>(FindObjectsSortMode.None);
-        float closestDistance = Mathf.Infinity;
-        Transform closestEnemy = null;
+        T[] targets = Object.FindObjectsByType<T>(FindObjectsSortMode.None);
+        float closestDist = Mathf.Infinity;
+        Transform best = null;
 
-        foreach (enemyHealth enemy in allEnemies)
+        foreach (T t in targets)
         {
-            if (enemy == null || !enemy.gameObject.activeInHierarchy) continue;
-
-            float distance = Vector2.Distance(transform.position, enemy.transform.position);
-            if (distance < closestDistance && distance <= detectionRange)
+            if (t == null || !t.gameObject.activeInHierarchy) continue;
+            float d = Vector2.Distance(transform.position, t.transform.position);
+            if (d < closestDist && d <= detectionRange)
             {
-                closestDistance = distance;
-                closestEnemy = enemy.transform;
+                closestDist = d;
+                best = t.transform;
             }
         }
-
-        if (destinationSetter.target != closestEnemy)
-            destinationSetter.target = closestEnemy;
+        return best;
     }
 
-    // --- TRIGGER LOGIC ---
-    // This is what actually allows the NPC to swing
-    private void OnTriggerStay2D(Collider2D collision)
+    private void OnTriggerStay2D(Collider2D other)
     {
-        if (destinationSetter.target != null && collision.transform == destinationSetter.target)
-        {
+        if (destinationSetter.target != null && other.transform == destinationSetter.target)
             targetInAttackTrigger = true;
-        }
     }
 
-    private void OnTriggerExit2D(Collider2D collision)
+    private void OnTriggerExit2D(Collider2D other)
     {
-        if (destinationSetter.target != null && collision.transform == destinationSetter.target)
-        {
+        if (destinationSetter.target != null && other.transform == destinationSetter.target)
             targetInAttackTrigger = false;
-        }
     }
 }

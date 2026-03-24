@@ -9,51 +9,37 @@ public class PickupItem : MonoBehaviour, IInteractable
     [Header("Pickup Mode")]
     [SerializeField] private bool autoPickupOnCollision = true;
 
-    // The prompt shown to the player if they use manual interaction
     public string InteractionPrompt => woodData != null ? $"[E] Pick up {amount} {woodData.itemName}" : "Empty Item";
 
-    // --- OPTION 1: Manual Interaction ---
+    // --- Manual Interaction (Player) ---
     public void Interact(InventoryManager playerInventory)
     {
-        Pickup(playerInventory);
+        if (woodData == null) return;
+
+        playerInventory.AddItem(woodData, amount);
+        Destroy(gameObject);
     }
 
-    // --- OPTION 2: Auto Pickup on Collision ---
+    // --- Auto Pickup (Player or NPC) ---
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (autoPickupOnCollision)
+        if (!autoPickupOnCollision) return;
+
+        // 1. Check if it's the Player
+        InventoryManager playerInv = collision.GetComponent<InventoryManager>();
+        if (playerInv != null)
         {
-            // We check for the InventoryManager on the object that hit us (the Player)
-            InventoryManager playerInventory = collision.GetComponent<InventoryManager>();
-
-            if (playerInventory != null)
-            {
-                Debug.Log($"<color=orange>[Auto-Pickup]</color> Collided with {collision.name}");
-                Pickup(playerInventory);
-            }
-        }
-    }
-
-    private void Pickup(InventoryManager playerInventory)
-    {
-        if (woodData != null)
-        {
-            // ⚡ HOW STACKING WORKS:
-            // This calls AddItem in your InventoryManager. 
-            // Because your InventoryManager has a loop that checks: 
-            // 'if (slot.item == data) { slot.count += amount; }'
-            // the item will automatically stack in the existing slot.
-
-            playerInventory.AddItem(woodData, amount);
-
-            Debug.Log($"<color=green>[Success]</color> Added {amount} {woodData.itemName}. Stack updated via InventoryManager.");
-
-            // Destroy the world object after it has been added to the data
+            playerInv.AddItem(woodData, amount);
             Destroy(gameObject);
+            return;
         }
-        else
+
+        // 2. Check if it's an NPC
+        NpcInvBrain npcInv = collision.GetComponent<NpcInvBrain>();
+        if (npcInv != null)
         {
-            Debug.LogError($"No ItemData assigned to the PickupItem script on {gameObject.name}!");
+            npcInv.AddItem(woodData, amount);
+            Destroy(gameObject);
         }
     }
 }
