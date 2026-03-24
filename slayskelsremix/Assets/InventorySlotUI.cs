@@ -18,7 +18,7 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
     {
         currentItem = item;
         currentAbility = ability;
-        currentCount = count; // 🔥 Crucial: Set the internal count
+        currentCount = count;
 
         if (item == null && ability == null) { ClearSlot(); return; }
 
@@ -28,8 +28,34 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
             icon.enabled = true;
         }
 
+        RefreshUI();
+    }
+
+    /// <summary>
+    /// 🔥 NEW: Updates the stack count and refreshes the text.
+    /// Used by BuildManager via PlayerHotbarManager.
+    /// </summary>
+    public void UpdateCount(int amount)
+    {
+        currentCount += amount;
+
+        if (currentCount <= 0)
+        {
+            ClearSlot();
+        }
+        else
+        {
+            RefreshUI();
+        }
+    }
+
+    private void RefreshUI()
+    {
         if (amountText != null)
-            amountText.text = (count > 1 && item != null) ? count.ToString() : "";
+        {
+            // Only show count if it's an item (not an ability) and stack is > 1
+            amountText.text = (currentCount > 1 && currentItem != null) ? currentCount.ToString() : "";
+        }
     }
 
     public void ClearSlot()
@@ -43,7 +69,9 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
 
     public ItemData GetItem() => currentItem;
     public Ability GetAbility() => currentAbility;
-    public int GetCount() => currentCount; // 🔥 Used by Sync
+    public int GetCount() => currentCount;
+
+    // ---------------- DRAG & DROP LOGIC ----------------
 
     public void OnBeginDrag(PointerEventData eventData)
     {
@@ -57,7 +85,10 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
         if (icon != null) icon.color = new Color(1, 1, 1, 0.5f);
     }
 
-    public void OnDrag(PointerEventData eventData) { if (dragPreviewIcon != null) dragPreviewIcon.transform.position = eventData.position; }
+    public void OnDrag(PointerEventData eventData)
+    {
+        if (dragPreviewIcon != null) dragPreviewIcon.transform.position = eventData.position;
+    }
 
     public void OnEndDrag(PointerEventData eventData)
     {
@@ -70,7 +101,7 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
         InventorySlotUI dragged = eventData.pointerDrag?.GetComponent<InventorySlotUI>();
         if (dragged == null || dragged == this) return;
 
-        // Check for stacking
+        // Check for stacking (Items only)
         if (dragged.currentItem != null && dragged.currentItem == this.currentItem)
         {
             int newCount = this.currentCount + dragged.currentCount;
@@ -79,7 +110,7 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
         }
         else
         {
-            // SWAP EVERYTHING INCLUDING COUNT
+            // SWAP EVERYTHING
             ItemData tempItem = dragged.currentItem;
             Ability tempAbility = dragged.currentAbility;
             int tempCount = dragged.currentCount;
@@ -88,7 +119,7 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
             this.SetSlot(tempItem, tempAbility, tempCount);
         }
 
-        // Tell the systems to save the new counts
+        // Sync changes to persistent data
         InvUI.Instance?.SyncToInventory();
         PlayerHotbarManager.Instance?.SyncHotbarToData();
     }

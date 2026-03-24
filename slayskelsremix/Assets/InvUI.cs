@@ -108,7 +108,7 @@ public class InvUI : MonoBehaviour
         }
     }
 
-    private void UseConsumable(ItemData item)
+    public void UseConsumable(ItemData item)
     {
         Debug.Log($"[InvUI] Consumed {item.itemName}");
 

@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.EventSystems; // Required for UI detection
+using UnityEngine.EventSystems;
 
 public class BuildManager : MonoBehaviour
 {
@@ -13,50 +13,34 @@ public class BuildManager : MonoBehaviour
 
     private GameObject previewObject;
     private buildSO currentItem;
-
     private SpriteRenderer[] renderers;
     private bool isPlacing = false;
 
     void Update()
     {
-        if (!isPlacing)
+        // 1. Monitor the hotbar selection
+        CheckHotbarSelection();
+
+        if (!isPlacing || currentItem == null)
             return;
 
         if (PlayerInputHandler.Instance == null)
             return;
 
-        // 🔥 HIDE PREVIEW IF NO ITEMS LEFT
-        if (!HasItemInInventory())
-        {
-            Cancel();
-            return;
-        }
-
-        // 1. ALWAYS MOVE PREVIEW TO FOLLOW MOUSE
+        // 2. Continuous Logic
         MovePreview();
 
-        // 2. CHECK IF MOUSE IS OVER UI
         bool isOverUI = EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
-
-        // 3. UPDATE VISUALS & VISIBILITY
-        // Passing isOverUI allows us to hide the sprite renderers
         UpdatePreviewVisuals(isOverUI);
 
-        if (isOverUI)
-            return; // 🛑 BLOCK PLACEMENT/INPUT LOGIC BELOW THIS LINE
+        if (isOverUI) return;
 
-        // 4. PLACEMENT INPUTS
+        // 3. Input Handling
         if (PlayerInputHandler.Instance.LeftClickPressed())
         {
             TryPlace();
         }
 
-        if (PlayerInputHandler.Instance.RightClickPressed() || Keyboard.current.escapeKey.wasPressedThisFrame)
-        {
-            Cancel();
-        }
-
-        // 5. UNDO
         if (Keyboard.current.zKey.wasPressedThisFrame)
         {
             if (BuildingSaveManager.Instance != null)
@@ -64,55 +48,46 @@ public class BuildManager : MonoBehaviour
         }
     }
 
+    private void CheckHotbarSelection()
+    {
+        if (PlayerHotbarManager.Instance == null) return;
+
+        // Get what is currently highlighted in the hotbar
+        ItemData selectedItem = PlayerHotbarManager.Instance.GetSelectedItem();
+
+        if (selectedItem is buildSO buildItem)
+        {
+            // If we switched to a NEW buildable item, or just started selecting one
+            if (currentItem != buildItem)
+            {
+                StartPlacing(buildItem);
+            }
+        }
+        else
+        {
+            // If the selected item is NOT buildable, clear the preview
+            if (isPlacing) Cancel();
+        }
+    }
+
     public void StartPlacing(buildSO item)
     {
-        if (item == null || item.placeablePrefab == null)
-            return;
+        Cancel(); // Clean up any existing preview
 
-        if (!HasItemInInventory(item))
-        {
-            Debug.LogWarning("[Build] No items available, preview not shown.");
-            return;
-        }
-
-        Cancel();
+        if (item == null || item.placeablePrefab == null) return;
 
         currentItem = item;
         isPlacing = true;
 
         previewObject = Instantiate(item.placeablePrefab);
 
-        // Disable collider so it doesn't block raycasts or physics
+        // Disable preview collision so it doesn't block the placement raycast
         Collider2D c = previewObject.GetComponent<Collider2D>();
         if (c != null) c.enabled = false;
 
         renderers = previewObject.GetComponentsInChildren<SpriteRenderer>();
-
         SetTint(new Color(1, 1, 1, 0.5f));
     }
-
-    // ---------------- INVENTORY CHECK ----------------
-
-    private bool HasItemInInventory()
-    {
-        return HasItemInInventory(currentItem);
-    }
-
-    private bool HasItemInInventory(buildSO item)
-    {
-        if (InvUI.Instance == null || InvUI.Instance.inventoryManager == null)
-            return false;
-
-        foreach (var slot in InvUI.Instance.inventoryManager.inventory)
-        {
-            if (slot.item == item && slot.count > 0)
-                return true;
-        }
-
-        return false;
-    }
-
-    // ---------------- PREVIEW MOVEMENT ----------------
 
     private void MovePreview()
     {
@@ -130,8 +105,6 @@ public class BuildManager : MonoBehaviour
         previewObject.transform.position = new Vector3(snapX, snapY, 0f);
     }
 
-    // ---------------- VALIDATION ----------------
-
     private bool CanPlace()
     {
         if (previewObject == null) return false;
@@ -146,13 +119,10 @@ public class BuildManager : MonoBehaviour
         return hit == null;
     }
 
-    // ---------------- VISUALS ----------------
-
     private void UpdatePreviewVisuals(bool blockedByUI)
     {
         if (renderers == null) return;
 
-        // If mouse is over UI, we just turn off the renderers entirely
         bool shouldBeVisible = !blockedByUI;
 
         foreach (var r in renderers)
@@ -160,10 +130,9 @@ public class BuildManager : MonoBehaviour
             if (r != null) r.enabled = shouldBeVisible;
         }
 
-        // If visible, still check for valid placement colors (Red/Green)
         if (shouldBeVisible)
         {
-            bool valid = CanPlace() && HasItemInInventory();
+            bool valid = CanPlace();
             Color c = valid ? new Color(0, 1, 0, 0.5f) : new Color(1, 0, 0, 0.5f);
             SetTint(c);
         }
@@ -172,36 +141,22 @@ public class BuildManager : MonoBehaviour
     private void SetTint(Color c)
     {
         if (renderers == null) return;
-
         foreach (var r in renderers)
         {
-            if (r != null)
-                r.color = c;
+            if (r != null) r.color = c;
         }
     }
 
-    // ---------------- PLACE ----------------
-
-    private void TryPlace()
+    public void TryPlace()
     {
-        if (!CanPlace())
-            return;
+        if (!CanPlace()) return;
 
-        if (!HasItemInInventory())
-        {
-            Debug.LogWarning("[Build] No item left!");
-            Cancel();
-            return;
-        }
+        // Double check we still have items in the hotbar
+        if (PlayerHotbarManager.Instance.GetSelectedCount() <= 0) return;
 
-        GameObject obj = Instantiate(
-            currentItem.placeablePrefab,
-            previewObject.transform.position,
-            Quaternion.identity
-        );
+        GameObject obj = Instantiate(currentItem.placeablePrefab, previewObject.transform.position, Quaternion.identity);
 
-        BuildIdentity identity = obj.GetComponent<BuildIdentity>();
-        if (identity == null) identity = obj.AddComponent<BuildIdentity>();
+        BuildIdentity identity = obj.GetComponent<BuildIdentity>() ?? obj.AddComponent<BuildIdentity>();
         identity.item = currentItem;
 
         if (BuildingSaveManager.Instance != null)
@@ -210,22 +165,13 @@ public class BuildManager : MonoBehaviour
             BuildingSaveManager.Instance.SaveNow();
         }
 
-        if (InvUI.Instance != null && InvUI.Instance.inventoryManager != null)
-        {
-            InvUI.Instance.inventoryManager.RemoveItem(currentItem, 1);
-            InvUI.Instance.RefreshUI();
-        }
-
-        Debug.Log("[Build] Placed and UI Refreshed");
+        // 🔥 Remove 1 from the active hotbar slot
+        PlayerHotbarManager.Instance.UseSelectedStack(1);
     }
-
-    // ---------------- CANCEL ----------------
 
     private void Cancel()
     {
-        if (previewObject != null)
-            Destroy(previewObject);
-
+        if (previewObject != null) Destroy(previewObject);
         previewObject = null;
         currentItem = null;
         isPlacing = false;

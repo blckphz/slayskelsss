@@ -9,17 +9,16 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 268617b9dca8c0c49bfdbefc34e7d717, type: 3}
-  m_Name: rustymelee
-  m_EditorClassIdentifier: Assembly-CSharp::rustymelee
-  fireRate: 1
+  m_Script: {fileID: 11500000, guid: ebadf298dcf6ed8419841dad5424fe89, type: 3}
+  m_Name: NPCMelee
+  m_EditorClassIdentifier: Assembly-CSharp::offensivemelee
+  fireRate: 0.42
   prefab: {fileID: 233725004081931323, guid: 49947f31aaae6ec46b59d342ab70058a, type: 3}
-  icon: {fileID: 21300000, guid: d046d1f4463bda64fbbe0455001d0b39, type: 3}
+  icon: {fileID: 0}
   launchsound: {fileID: 0}
   customAudioLogic: 0
   damage: 10
-  maxSwings: 2
-  swingFreq: 0.3
-  spawnOffset: 1.5
+  maxSwings: 1
+  swingFreq: 0
+  spawnOffset: 1
   rotationOffset: 90
-  bonusdmg: 10
