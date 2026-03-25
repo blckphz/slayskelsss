@@ -98,7 +98,6 @@ public class ChestInventory : MonoBehaviour
 
         string json = JsonUtility.ToJson(data, true);
         File.WriteAllText(savePath, json);
-        Debug.Log($"[Chest] {chestID} saved.");
     }
 
     public void LoadChest()

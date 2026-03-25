@@ -41,7 +41,6 @@ public class ChestUI : MonoBehaviour
 
     public void Open(ChestInventory chest)
     {
-        Debug.Log($"[ChestUI] Opening UI for: {chest.name}");
 
         currentChest = chest;
 
@@ -55,7 +54,6 @@ public class ChestUI : MonoBehaviour
 
     public void Close()
     {
-        Debug.Log("[ChestUI] Closing UI");
 
         currentChest = null;
         ClearUI();
@@ -79,7 +77,6 @@ public class ChestUI : MonoBehaviour
             return;
         }
 
-        Debug.Log("[ChestUI] Refreshing Slots...");
 
         var items = currentChest.chestItems;
 

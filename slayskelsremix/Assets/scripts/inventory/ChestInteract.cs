@@ -13,7 +13,6 @@ public class ChestInteract : MonoBehaviour
     {
         if (!other.CompareTag("Player")) return;
 
-        Debug.Log("[ChestInteract] Player ENTERED chest");
 
         if (ChestUI.Instance == null) return;
 
@@ -31,7 +30,6 @@ public class ChestInteract : MonoBehaviour
     {
         if (!other.CompareTag("Player")) return;
 
-        Debug.Log("[ChestInteract] Player EXITED chest");
 
         if (ChestUI.Instance != null && ChestUI.Instance.GetCurrentChest() == chest)
         {
