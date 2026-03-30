@@ -98,10 +98,37 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
 
     public void OnDrop(PointerEventData eventData)
     {
-        InventorySlotUI dragged = eventData.pointerDrag?.GetComponent<InventorySlotUI>();
-        if (dragged == null || dragged == this) return;
+        // 1. Check if dropped from another Player Inventory Slot
+        InventorySlotUI draggedPlayerSlot = eventData.pointerDrag?.GetComponent<InventorySlotUI>();
+        if (draggedPlayerSlot != null && draggedPlayerSlot != this)
+        {
+            HandlePlayerToPlayerSwap(draggedPlayerSlot);
+            return;
+        }
 
-        // Check for stacking (Items only)
+        // 2. 🔥 NEW: Check if dropped from a CHEST Slot
+        ChestSlotUI draggedChestSlot = eventData.pointerDrag?.GetComponent<ChestSlotUI>();
+        if (draggedChestSlot != null)
+        {
+            ItemData item = draggedChestSlot.GetItem();
+            int count = draggedChestSlot.GetCount();
+
+            ChestInventory chest = ChestUI.Instance.GetCurrentChest();
+            if (chest != null && item != null)
+            {
+                // Remove from chest
+                chest.RemoveItem(item, count);
+                // Add to player (InventoryManager handles finding a stack or new slot)
+                InventoryManager.Instance.AddItem(item, count);
+
+                ChestUI.Instance.Refresh();
+                InvUI.Instance.RefreshUI();
+            }
+        }
+    }
+
+    private void HandlePlayerToPlayerSwap(InventorySlotUI dragged)
+    {
         if (dragged.currentItem != null && dragged.currentItem == this.currentItem)
         {
             int newCount = this.currentCount + dragged.currentCount;
@@ -110,7 +137,6 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
         }
         else
         {
-            // SWAP EVERYTHING
             ItemData tempItem = dragged.currentItem;
             Ability tempAbility = dragged.currentAbility;
             int tempCount = dragged.currentCount;
@@ -119,7 +145,6 @@ public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, I
             this.SetSlot(tempItem, tempAbility, tempCount);
         }
 
-        // Sync changes to persistent data
         InvUI.Instance?.SyncToInventory();
         PlayerHotbarManager.Instance?.SyncHotbarToData();
     }

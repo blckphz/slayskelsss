@@ -13,23 +13,30 @@ public class UseableItem : ItemData
 
         if (currentCount <= 0)
         {
-            Debug.Log($"<color=red>[Item System]</color> Cannot use {itemName} (ID: {itemID}). Count is 0 in both Inventory and Hotbar!");
+            Debug.Log($"<color=red>[Item System]</color> Cannot use {itemName} (ID: {itemID}). Count is 0!");
             return;
         }
 
         if (abilityToExecute != null)
         {
-            Debug.Log($"<color=cyan>[Item System]</color> Executing Ability: {abilityToExecute.name} for item {itemName}");
+            Debug.Log($"<color=cyan>[Item System]</color> Attempting Ability: {abilityToExecute.name}");
 
-            // Trigger the execution (the throw/spawn logic)
-            abilityToExecute.Execute(caster, targetAnchor, true);
+            // Trigger the execution and capture if it actually fired
+            // We pass 'true' for isHolding as per your existing logic
+            bool hasExecuted = abilityToExecute.Execute(caster, targetAnchor, true);
 
-            // 2. SMART REMOVAL: Remove from wherever it is currently sitting
-            InventoryManager.Instance.RemoveItem(this, 1);
+            if (hasExecuted)
+            {
+                // 2. SMART REMOVAL: Only remove if the stone was actually thrown
+                InventoryManager.Instance.RemoveItem(this, 1);
 
-            // Final check for the console
-            int remaining = GetCurrentCount();
-            Debug.Log($"<color=green>[Item System]</color> Successfully used {itemName}. <color=yellow>Total Remaining (Global): {remaining}</color>");
+                int remaining = GetCurrentCount();
+                Debug.Log($"<color=green>[Item System]</color> Successfully used {itemName}. Remaining: {remaining}");
+            }
+            else
+            {
+                Debug.Log("<color=orange>[Item System]</color> Ability failed to execute. Item not consumed.");
+            }
         }
         else
         {
@@ -44,11 +51,17 @@ public class UseableItem : ItemData
 
         // Check Inventory
         foreach (var slot in InventoryManager.Instance.inventory)
-            if (slot.item != null && slot.item.itemID == this.itemID) totalFound += slot.count;
+        {
+            if (slot.item != null && slot.item.itemID == this.itemID)
+                totalFound += slot.count;
+        }
 
-        // Check Hotbar (Now using the .count field we just added)
+        // Check Hotbar
         foreach (var hSlot in InventoryManager.Instance.hotbarData)
-            if (hSlot.item != null && hSlot.item.itemID == this.itemID) totalFound += hSlot.count;
+        {
+            if (hSlot.item != null && hSlot.item.itemID == this.itemID)
+                totalFound += hSlot.count;
+        }
 
         return totalFound;
     }

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using System.Collections;
 
 public class PlayerHotbarManager : MonoBehaviour
 {
@@ -14,6 +15,9 @@ public class PlayerHotbarManager : MonoBehaviour
     public Transform caster;
     public Transform targetAnchor;
 
+    [Header("Cooldown State")]
+    private float nextFireTime = 0f;
+
     private int selectedIndex = 0;
     private PlayerControls controls;
 
@@ -25,23 +29,44 @@ public class PlayerHotbarManager : MonoBehaviour
         controls = new PlayerControls();
     }
 
+    private IEnumerator Start()
+    {
+        selectedIndex = 0;
+        // Wait for Unity UI to fully layout slots
+        yield return null;
+
+        RefreshHotbar();
+        UpdateSelector();
+    }
+
     private void OnEnable()
     {
         controls.Enable();
-        // Standard "Use" input (e.g., Left Click or E)
-        controls.Player.Use.performed += ctx => ExecuteActiveSlot();
-        // Mouse Scroll for slot switching
+
+        // MOUSE CLICK REMOVED: 
+        // We no longer bind controls.Player.Use.performed here.
+
         controls.Player.Scroll.performed += ctx => HandleScroll(ctx.ReadValue<Vector2>());
     }
 
-    private void OnDisable() => controls.Disable();
+    private void OnDisable()
+    {
+        controls.Disable();
+    }
 
     private void Update()
     {
-        // Numerical Hotkeys (1-9)
-        for (int i = 0; i < 9; i++)
+        // 1. Numeric hotkeys (1-9) for selecting slots
+        for (int i = 0; i < hotbarSlots.Count && i < 9; i++)
         {
-            if (Keyboard.current[Key.Digit1 + i].wasPressedThisFrame) SelectSlot(i);
+            if (Keyboard.current[Key.Digit1 + i].wasPressedThisFrame)
+                SelectSlot(i);
+        }
+
+        // 2. USE ITEM: Only triggered by 'E' key
+        if (Keyboard.current.eKey.wasPressedThisFrame)
+        {
+            ExecuteActiveSlot();
         }
     }
 
@@ -50,87 +75,112 @@ public class PlayerHotbarManager : MonoBehaviour
     private void SelectSlot(int index)
     {
         if (index < 0 || index >= hotbarSlots.Count) return;
+
         selectedIndex = index;
         UpdateSelector();
     }
 
     private void HandleScroll(Vector2 scrollVector)
     {
-        if (scrollVector.y > 0) selectedIndex = (selectedIndex - 1 + 9) % 9;
-        else if (scrollVector.y < 0) selectedIndex = (selectedIndex + 1) % 9;
+        int count = hotbarSlots.Count;
+        if (count == 0) return;
+
+        if (scrollVector.y > 0)
+            selectedIndex = (selectedIndex - 1 + count) % count;
+        else if (scrollVector.y < 0)
+            selectedIndex = (selectedIndex + 1) % count;
+
         UpdateSelector();
     }
 
     public void UpdateSelector()
     {
         if (selector == null || hotbarSlots.Count <= selectedIndex) return;
+
         selector.position = hotbarSlots[selectedIndex].transform.position;
     }
 
-    // ---------------- DATA ACCESS (For BuildManager) ----------------
+    // ---------------- DATA ACCESS ----------------
 
-    /// <summary>
-    /// Returns the ItemData currently highlighted by the selector.
-    /// </summary>
     public ItemData GetSelectedItem()
     {
         if (hotbarSlots.Count <= selectedIndex) return null;
         return hotbarSlots[selectedIndex].GetItem();
     }
 
-    /// <summary>
-    /// Returns the stack count of the currently selected slot.
-    /// </summary>
     public int GetSelectedCount()
     {
         if (hotbarSlots.Count <= selectedIndex) return 0;
         return hotbarSlots[selectedIndex].GetCount();
     }
 
-    // ---------------- EXECUTION & CONSUMPTION ----------------
+    // ---------------- EXECUTION & COOLDOWN ----------------
 
     public void ExecuteActiveSlot()
     {
+        // 1. Basic Validation
         if (hotbarSlots.Count <= selectedIndex) return;
+
+        // 2. Cooldown Check: Respects the fireRate of the item/ability
+        if (Time.time < nextFireTime)
+        {
+            Debug.Log("<color=orange>Ability on Cooldown!</color>");
+            return;
+        }
+
         InventorySlotUI slot = hotbarSlots[selectedIndex];
 
-        // 1. Check for Ability (Class skills)
+        // 3. Execution Logic
         if (slot.GetAbility() != null)
         {
-            slot.GetAbility().Execute(caster, targetAnchor, true);
+            // Direct Ability Slot
+            Ability ability = slot.GetAbility();
+            bool success = ability.Execute(caster, targetAnchor, true);
+
+            if (success)
+            {
+                SetCooldown(ability.fireRate);
+            }
         }
-        // 2. Check for Item (Consumables/Tools)
-        // Note: BuildItems are handled by BuildManager, but we check here for generic 'Use'
         else if (slot.GetItem() != null)
         {
-            // If it's a build item, we don't 'Use' it like a potion, 
-            // the BuildManager handles the Left Click logic.
-            if (!(slot.GetItem() is buildSO))
+            ItemData item = slot.GetItem();
+
+            if (!(item is buildSO))
             {
-                slot.GetItem().Use(caster, targetAnchor);
+                // Pull cooldown from the item's ability
+                float cooldownToApply = 0.2f;
+                if (item is UseableItem useable && useable.abilityToExecute != null)
+                {
+                    cooldownToApply = useable.abilityToExecute.fireRate;
+                }
+
+                // Use() triggers the ability and item consumption
+                item.Use(caster, targetAnchor);
+
+                // Start cooldown
+                SetCooldown(cooldownToApply);
             }
         }
     }
 
-    /// <summary>
-    /// Reduces the item count in the active slot (used by BuildManager after placement).
-    /// </summary>
+    private void SetCooldown(float duration)
+    {
+        nextFireTime = Time.time + duration;
+    }
+
     public void UseSelectedStack(int amount)
     {
         if (hotbarSlots.Count <= selectedIndex) return;
 
         InventorySlotUI slot = hotbarSlots[selectedIndex];
-
-        // Update the UI visual count
         slot.UpdateCount(-amount);
 
-        // If count hits zero, clear the visual slot
         if (slot.GetCount() <= 0)
         {
             slot.ClearSlot();
         }
 
-        // Save the change back to the main inventory data
         SyncHotbarToData();
     }
 
@@ -150,22 +200,26 @@ public class PlayerHotbarManager : MonoBehaviour
     public void SyncHotbarToData()
     {
         if (InventoryManager.Instance == null) return;
+
         var dataList = InventoryManager.Instance.hotbarData;
 
         for (int i = 0; i < hotbarSlots.Count; i++)
         {
-            while (dataList.Count <= i) dataList.Add(new HotbarSlotData());
+            while (dataList.Count <= i)
+                dataList.Add(new HotbarSlotData());
 
             dataList[i].item = hotbarSlots[i].GetItem();
             dataList[i].ability = hotbarSlots[i].GetAbility();
             dataList[i].count = hotbarSlots[i].GetCount();
         }
+
         InventoryManager.Instance.SaveInventory();
     }
 
     public void RefreshHotbar()
     {
         if (InventoryManager.Instance == null) return;
+
         var data = InventoryManager.Instance.hotbarData;
 
         for (int i = 0; i < hotbarSlots.Count; i++)

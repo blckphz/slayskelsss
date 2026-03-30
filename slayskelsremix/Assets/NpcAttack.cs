@@ -4,31 +4,49 @@ public class NpcAttack : MonoBehaviour
 {
     [Header("Ability Configuration")]
     public Ability currentAbility;
-    public Transform attackAnchor; // A child object or offset where the attack originates
+    public Transform attackAnchor; // Where the attack originates
 
     private float nextAttackTime;
-    private bool isExecutingCombo = false;
 
-    public void TryAttack(Transform target)
+    // Use a Trigger to find the enemy instead of manual range math!
+    private void OnTriggerStay(Collider other)
     {
-        if (currentAbility == null || target == null) return;
+        if (currentAbility == null) return;
 
-        // Check if global cooldown/fireRate has passed
-        if (Time.time >= nextAttackTime)
+        // Check if the object we collided with is an Enemy or Resource
+        if (other.CompareTag("Enemy") || other.CompareTag("Resource"))
         {
-            // Execute returns true when a full combo/attack cycle is finished
-            // We pass 'true' for isHolding to simulate the NPC "pressing the button"
-            bool attackFinished = currentAbility.Execute(transform, target, true);
-
-            if (attackFinished)
-            {
-                // Set the cooldown based on the ability's fireRate
-                nextAttackTime = Time.time + currentAbility.fireRate;
-            }
+            TryAttack(other.transform);
         }
     }
 
-    // Helper to stop attacking (resets combos)
+    private void OnTriggerExit(Collider other)
+    {
+        if (other.CompareTag("Enemy") || other.CompareTag("Resource"))
+        {
+            StopAttacking();
+        }
+    }
+
+    public void TryAttack(Transform target)
+    {
+        if (Time.time < nextAttackTime) return;
+
+        // Execute attack/combo step
+        bool attackFinished = currentAbility.Execute(transform, target, true);
+
+        // FIX: Force a failsafe cooldown so the NPC doesn't get jammed!
+        if (attackFinished)
+        {
+            nextAttackTime = Time.time + currentAbility.fireRate;
+        }
+        else
+        {
+            // Failsafe: If it's a combo, we still want a tiny gap so it doesn't spam frame-by-frame
+            nextAttackTime = Time.time + 0.1f;
+        }
+    }
+
     public void StopAttacking()
     {
         if (currentAbility != null)
