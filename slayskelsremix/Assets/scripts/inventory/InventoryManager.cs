@@ -42,7 +42,7 @@ public class InventoryManager : MonoBehaviour
         LoadInventory();
     }
 
-    // --- UPDATED ADD ITEM LOGIC ---
+    // --- ADD ITEM LOGIC ---
     public void AddItem(ItemData data, int amount)
     {
         if (data == null) return;
@@ -55,7 +55,7 @@ public class InventoryManager : MonoBehaviour
                 hSlot.count += amount;
                 Debug.Log($"<color=cyan>[Pickup]</color> Added {amount} to Hotbar stack of {data.itemName}.");
                 RefreshAll();
-                return; // Stop here, we found it!
+                return;
             }
         }
 
@@ -67,13 +67,12 @@ public class InventoryManager : MonoBehaviour
                 slot.count += amount;
                 Debug.Log($"<color=green>[Pickup]</color> Added {amount} to Inventory stack of {data.itemName}.");
                 RefreshAll();
-                return; // Stop here, we found it!
+                return;
             }
         }
 
         // 3. THIRD: If it doesn't exist anywhere, add as a new stack in the inventory
         inventory.Add(new InventorySlot(data, amount));
-        Debug.Log($"<color=yellow>[Pickup]</color> Added NEW stack of {data.itemName} to Inventory.");
         RefreshAll();
     }
 
@@ -116,6 +115,74 @@ public class InventoryManager : MonoBehaviour
         }
         return false;
     }
+
+    // --- CRAFTING HELPERS ---
+
+    /// <summary>
+    /// Checks the combined total of an item in both Inventory and Hotbar.
+    /// Used by RecipeSO to see if crafting is possible.
+    /// </summary>
+    public int GetTotalCount(ItemData data)
+    {
+        int total = 0;
+        foreach (var slot in inventory)
+        {
+            if (slot.item != null && slot.item.itemID == data.itemID)
+                total += slot.count;
+        }
+
+        foreach (var hSlot in hotbarData)
+        {
+            if (hSlot.item != null && hSlot.item.itemID == data.itemID)
+                total += hSlot.count;
+        }
+
+        return total;
+    }
+
+    /// <summary>
+    /// Removes a specific amount of resources globally (Inv first, then Hotbar).
+    /// Used when a craft is successful.
+    /// </summary>
+    public void ConsumeResources(ItemData data, int amount)
+    {
+        int remainingToRemove = amount;
+
+        // 1. Take from Main Inventory first
+        for (int i = inventory.Count - 1; i >= 0; i--)
+        {
+            if (inventory[i].item != null && inventory[i].item.itemID == data.itemID)
+            {
+                int take = Mathf.Min(inventory[i].count, remainingToRemove);
+                inventory[i].count -= take;
+                remainingToRemove -= take;
+
+                if (inventory[i].count <= 0) inventory.RemoveAt(i);
+            }
+            if (remainingToRemove <= 0) break;
+        }
+
+        // 2. Take from Hotbar if still needed
+        if (remainingToRemove > 0)
+        {
+            foreach (var hSlot in hotbarData)
+            {
+                if (hSlot.item != null && hSlot.item.itemID == data.itemID)
+                {
+                    int take = Mathf.Min(hSlot.count, remainingToRemove);
+                    hSlot.count -= take;
+                    remainingToRemove -= take;
+
+                    if (hSlot.count <= 0) hSlot.Clear();
+                }
+                if (remainingToRemove <= 0) break;
+            }
+        }
+
+        RefreshAll();
+    }
+
+    // --- REFRESH AND UI ---
 
     public void RefreshAll()
     {
@@ -188,7 +255,7 @@ public class InventoryManager : MonoBehaviour
     }
 }
 
-// --- GLOBAL DATA CLASSES ---
+// --- DATA PERSISTENCE CLASSES ---
 
 [System.Serializable]
 public class SaveSlot { public int itemId; public int count; }

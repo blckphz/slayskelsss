@@ -18,7 +18,6 @@ public class BuildManager : MonoBehaviour
 
     void Update()
     {
-        // 1. Monitor the hotbar selection
         CheckHotbarSelection();
 
         if (!isPlacing || currentItem == null)
@@ -27,7 +26,6 @@ public class BuildManager : MonoBehaviour
         if (PlayerInputHandler.Instance == null)
             return;
 
-        // 2. Continuous Logic
         MovePreview();
 
         bool isOverUI = EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
@@ -35,7 +33,6 @@ public class BuildManager : MonoBehaviour
 
         if (isOverUI) return;
 
-        // 3. Input Handling
         if (PlayerInputHandler.Instance.LeftClickPressed())
         {
             TryPlace();
@@ -52,12 +49,10 @@ public class BuildManager : MonoBehaviour
     {
         if (PlayerHotbarManager.Instance == null) return;
 
-        // Get what is currently highlighted in the hotbar
         ItemData selectedItem = PlayerHotbarManager.Instance.GetSelectedItem();
 
         if (selectedItem is buildSO buildItem)
         {
-            // If we switched to a NEW buildable item, or just started selecting one
             if (currentItem != buildItem)
             {
                 StartPlacing(buildItem);
@@ -65,14 +60,13 @@ public class BuildManager : MonoBehaviour
         }
         else
         {
-            // If the selected item is NOT buildable, clear the preview
             if (isPlacing) Cancel();
         }
     }
 
     public void StartPlacing(buildSO item)
     {
-        Cancel(); // Clean up any existing preview
+        Cancel();
 
         if (item == null || item.placeablePrefab == null) return;
 
@@ -81,12 +75,13 @@ public class BuildManager : MonoBehaviour
 
         previewObject = Instantiate(item.placeablePrefab);
 
-        // Disable preview collision so it doesn't block the placement raycast
         Collider2D c = previewObject.GetComponent<Collider2D>();
         if (c != null) c.enabled = false;
 
         renderers = previewObject.GetComponentsInChildren<SpriteRenderer>();
         SetTint(new Color(1, 1, 1, 0.5f));
+
+        Debug.Log($"<color=cyan>[BUILD]</color> Started placing: {item.name}");
     }
 
     private void MovePreview()
@@ -109,14 +104,37 @@ public class BuildManager : MonoBehaviour
     {
         if (previewObject == null) return false;
 
-        Collider2D hit = Physics2D.OverlapBox(
-            previewObject.transform.position,
-            new Vector2(gridSize * 0.95f, gridSize * 0.95f),
+        Collider2D col = previewObject.GetComponent<Collider2D>();
+
+        if (col == null)
+        {
+            Debug.LogWarning("[BUILD] No collider found on preview!");
+            return true;
+        }
+
+        Bounds bounds = col.bounds;
+
+        // 🔥 Shrink slightly to prevent false positives
+        Vector2 checkSize = bounds.size * 0.85f;
+
+        Collider2D[] hits = Physics2D.OverlapBoxAll(
+            bounds.center,
+            checkSize,
             0f,
             placementMask
         );
 
-        return hit == null;
+        if (hits.Length > 0)
+        {
+            foreach (var h in hits)
+            {
+                Debug.Log($"<color=red>[BLOCKED]</color> Hit: {h.name} (Layer: {LayerMask.LayerToName(h.gameObject.layer)})");
+            }
+            return false;
+        }
+
+        Debug.Log($"<color=green>[CLEAR]</color> Can place at {bounds.center}");
+        return true;
     }
 
     private void UpdatePreviewVisuals(bool blockedByUI)
@@ -141,6 +159,7 @@ public class BuildManager : MonoBehaviour
     private void SetTint(Color c)
     {
         if (renderers == null) return;
+
         foreach (var r in renderers)
         {
             if (r != null) r.color = c;
@@ -151,8 +170,11 @@ public class BuildManager : MonoBehaviour
     {
         if (!CanPlace()) return;
 
-        // Double check we still have items in the hotbar
-        if (PlayerHotbarManager.Instance.GetSelectedCount() <= 0) return;
+        if (PlayerHotbarManager.Instance.GetSelectedCount() <= 0)
+        {
+            Debug.Log("<color=red>[BUILD]</color> No items left in hotbar!");
+            return;
+        }
 
         GameObject obj = Instantiate(currentItem.placeablePrefab, previewObject.transform.position, Quaternion.identity);
 
@@ -165,8 +187,9 @@ public class BuildManager : MonoBehaviour
             BuildingSaveManager.Instance.SaveNow();
         }
 
-        // 🔥 Remove 1 from the active hotbar slot
         PlayerHotbarManager.Instance.UseSelectedStack(1);
+
+        Debug.Log($"<color=yellow>[BUILD]</color> Placed: {currentItem.name} at {previewObject.transform.position}");
     }
 
     private void Cancel()
@@ -175,5 +198,19 @@ public class BuildManager : MonoBehaviour
         previewObject = null;
         currentItem = null;
         isPlacing = false;
+    }
+
+    // 🔥 DRAW DEBUG BOX IN SCENE VIEW
+    private void OnDrawGizmos()
+    {
+        if (previewObject == null) return;
+
+        Collider2D col = previewObject.GetComponent<Collider2D>();
+        if (col == null) return;
+
+        Bounds bounds = col.bounds;
+
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireCube(bounds.center, bounds.size * 0.85f);
     }
 }

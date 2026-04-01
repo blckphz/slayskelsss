@@ -12,8 +12,36 @@ public class PlayerInteraction2D : MonoBehaviour
     [Tooltip("Drag your Wood ItemData ScriptableObject here")]
     public ItemData woodItemData;
 
-    // --- NEW METHOD: This is called when you press '1' ---
-    // (Ensure your Input Action is named "AddWood")
+    // --- NEW: DECONSTRUCT ACTION ---
+    // Triggered by the "Deconstruct" action in your Input Action Asset
+    public void OnDeconstruct(InputValue value)
+    {
+        if (!value.isPressed) return;
+
+        // 1. Get Mouse Position and convert to World Space
+        Vector2 mousePos = Mouse.current.position.ReadValue();
+        Vector3 worldPos = Camera.main.ScreenToWorldPoint(new Vector3(mousePos.x, mousePos.y, 10f));
+        worldPos.z = 0;
+
+        // 2. Detect if there is a building at that exact point
+        Collider2D hit = Physics2D.OverlapPoint(worldPos, interactableLayer);
+
+        if (hit != null)
+        {
+            // 3. Try to find the health script to trigger pickup
+            if (hit.TryGetComponent(out objectHealth health))
+            {
+                Debug.Log($"<color=orange>[Deconstruct]</color> Picking up: {hit.name}");
+                health.Deconstruct();
+            }
+            else
+            {
+                Debug.LogWarning("<color=yellow>[Deconstruct]</color> Object found, but it has no objectHealth script!");
+            }
+        }
+    }
+
+    // --- QUICK ADD WOOD (Press 1) ---
     public void OnAddWood(InputValue value)
     {
         if (!value.isPressed) return;
@@ -25,37 +53,23 @@ public class PlayerInteraction2D : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("<color=red>[Error]</color> Cannot add wood. Check if WoodItemData and Inventory are assigned in the Inspector!");
+            Debug.LogWarning("<color=red>[Error]</color> Cannot add wood. Check assignments in Inspector!");
         }
     }
 
-    // This is called by the PlayerInput component (SendMessage) for [E]
+    // --- INTERACT (Press E) ---
     public void OnInteract(InputValue value)
     {
         if (!value.isPressed) return;
 
-        Debug.Log("<color=white>[Step 1]</color> Interact Key Pressed (Input System works!)");
-
-        // Check what's in range
         Collider2D hit = Physics2D.OverlapCircle(transform.position, interactRadius, interactableLayer);
 
         if (hit != null)
         {
-            Debug.Log($"<color=cyan>[Step 2]</color> Found object: {hit.name} on Layer: {LayerMask.LayerToName(hit.gameObject.layer)}");
-
             if (hit.TryGetComponent(out IInteractable interactable))
             {
-                Debug.Log("<color=green>[Step 3]</color> IInteractable found! Calling Interact()...");
                 interactable.Interact(inventory);
             }
-            else
-            {
-                Debug.LogWarning("<color=orange>[Error]</color> Hit object has no IInteractable script attached!");
-            }
-        }
-        else
-        {
-            Debug.Log("<color=red>[Error]</color> Nothing in range. Check: 1. Radius, 2. Layer assigned to Wood, 3. LayerMask in Inspector.");
         }
     }
 
