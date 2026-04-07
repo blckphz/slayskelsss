@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 68fb8d7b457e8594d9ae103d5d6e629f
+guid: 84efbc01c63a7b0478d758c2246aebc5
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -8458080807401773639
-    second: rustymancer_0
+      213: 2210531666083140874
+    second: antelrute_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -49,8 +49,8 @@ TextureImporter:
   spriteMode: 1
   spriteExtrude: 1
   spriteMeshType: 1
-  alignment: 9
-  spritePivot: {x: 0.47, y: 0.11}
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
   spritePixelsToUnits: 33
   spriteBorder: {x: 0, y: 0, z: 0, w: 0}
   spriteGenerateFallbackPhysicsShape: 1
@@ -113,23 +113,23 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: rustymancer_0
+      name: antelrute_0
       rect:
         serializedVersion: 2
-        x: 7
+        x: 0
         y: 0
-        width: 16
-        height: 31
+        width: 15
+        height: 15
       alignment: 0
-      pivot: {x: 0.5, y: 0.5}
+      pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 9b5a449815cde9a80800000000000000
-      internalID: -8458080807401773639
+      spriteID: a0553a1a6d26dae10800000000000000
+      internalID: 2210531666083140874
       vertices: []
       indices: 
       edges: []
@@ -139,7 +139,7 @@ TextureImporter:
     physicsShape: []
     bones: []
     spriteID: 5e97eb03825dee720800000000000000
-    internalID: 1537655665
+    internalID: 0
     vertices: []
     indices: 
     edges: []
@@ -148,7 +148,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      rustymancer_0: -8458080807401773639
+      antelrute_0: 2210531666083140874
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

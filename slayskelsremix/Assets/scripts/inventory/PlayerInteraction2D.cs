@@ -9,67 +9,88 @@ public class PlayerInteraction2D : MonoBehaviour
     public InventoryManager inventory;
 
     [Header("Quick Add (Press 1)")]
-    [Tooltip("Drag your Wood ItemData ScriptableObject here")]
     public ItemData woodItemData;
 
-    // --- NEW: DECONSTRUCT ACTION ---
-    // Triggered by the "Deconstruct" action in your Input Action Asset
+    // --- DECONSTRUCT (RIGHT CLICK) ---
     public void OnDeconstruct(InputValue value)
     {
-        if (!value.isPressed) return;
+        if (!value.isPressed)
+        {
+            Debug.Log("<color=grey>[INPUT]</color> Deconstruct released");
+            return;
+        }
 
-        // 1. Get Mouse Position and convert to World Space
+        Debug.Log("<color=cyan>[INPUT]</color> Deconstruct pressed");
+
+        // 1. Get mouse position
         Vector2 mousePos = Mouse.current.position.ReadValue();
-        Vector3 worldPos = Camera.main.ScreenToWorldPoint(new Vector3(mousePos.x, mousePos.y, 10f));
-        worldPos.z = 0;
+        Debug.Log($"<color=cyan>[MOUSE]</color> Screen Pos: {mousePos}");
 
-        // 2. Detect if there is a building at that exact point
+        // 2. Convert to world
+        Vector3 worldPos = Camera.main.ScreenToWorldPoint(mousePos);
+        worldPos.z = 0f;
+
+        Debug.Log($"<color=cyan>[MOUSE]</color> World Pos: {worldPos}");
+
+        // 3. Check for collider at that exact point
         Collider2D hit = Physics2D.OverlapPoint(worldPos, interactableLayer);
 
-        if (hit != null)
+        if (hit == null)
         {
-            // 3. Try to find the health script to trigger pickup
-            if (hit.TryGetComponent(out objectHealth health))
-            {
-                Debug.Log($"<color=orange>[Deconstruct]</color> Picking up: {hit.name}");
-                health.Deconstruct();
-            }
-            else
-            {
-                Debug.LogWarning("<color=yellow>[Deconstruct]</color> Object found, but it has no objectHealth script!");
-            }
+            Debug.Log("<color=red>[DECONSTRUCT]</color> No object under mouse");
+            return;
+        }
+
+        Debug.Log($"<color=green>[DECONSTRUCT]</color> Hit: {hit.name}");
+
+        // 4. Check for objectHealth
+        if (hit.TryGetComponent(out objectHealth health))
+        {
+            Debug.Log($"<color=orange>[DECONSTRUCT]</color> Deconstructing {hit.name}");
+            health.Deconstruct();
         }
     }
 
-    // --- QUICK ADD WOOD (Press 1) ---
+    // --- QUICK ADD WOOD ---
     public void OnAddWood(InputValue value)
     {
         if (!value.isPressed) return;
 
         if (inventory != null && woodItemData != null)
         {
-            Debug.Log("<color=cyan>[Hotbar]</color> Pressed 1: Adding 1 Wood manually.");
+            Debug.Log("<color=cyan>[HOTBAR]</color> Adding 1 Wood");
             inventory.AddItem(woodItemData, 1);
         }
         else
         {
-            Debug.LogWarning("<color=red>[Error]</color> Cannot add wood. Check assignments in Inspector!");
+            Debug.LogWarning("<color=red>[ERROR]</color> Inventory or WoodItem missing!");
         }
     }
 
-    // --- INTERACT (Press E) ---
+    // --- INTERACT (E) ---
     public void OnInteract(InputValue value)
     {
         if (!value.isPressed) return;
 
+        Debug.Log("<color=cyan>[INPUT]</color> Interact pressed");
+
         Collider2D hit = Physics2D.OverlapCircle(transform.position, interactRadius, interactableLayer);
 
-        if (hit != null)
+        if (hit == null)
         {
-            if (hit.TryGetComponent(out IInteractable interactable))
-            {
-                interactable.Interact(inventory);
-            }
+            Debug.Log("<color=red>[INTERACT]</color> Nothing nearby");
+            return;
+        }
+
+        Debug.Log($"<color=green>[INTERACT]</color> Found: {hit.name}");
+
+        if (hit.TryGetComponent(out IInteractable interactable))
+        {
+            interactable.Interact(inventory);
+        }
+        else
+        {
+            Debug.LogWarning("<color=yellow>[INTERACT]</color> No IInteractable on object");
         }
     }
 

@@ -81,7 +81,6 @@ public class BuildManager : MonoBehaviour
         renderers = previewObject.GetComponentsInChildren<SpriteRenderer>();
         SetTint(new Color(1, 1, 1, 0.5f));
 
-        Debug.Log($"<color=cyan>[BUILD]</color> Started placing: {item.name}");
     }
 
     private void MovePreview()
@@ -128,12 +127,11 @@ public class BuildManager : MonoBehaviour
         {
             foreach (var h in hits)
             {
-                Debug.Log($"<color=red>[BLOCKED]</color> Hit: {h.name} (Layer: {LayerMask.LayerToName(h.gameObject.layer)})");
+               // Debug.Log($"<color=red>[BLOCKED]</color> Hit: {h.name} (Layer: {LayerMask.LayerToName(h.gameObject.layer)})");
             }
             return false;
         }
 
-        Debug.Log($"<color=green>[CLEAR]</color> Can place at {bounds.center}");
         return true;
     }
 

@@ -131,13 +131,15 @@ public class ItemHealth : MonoBehaviour, IDamageable
 
     private void Die()
     {
+        // Notify NPCs before destroying
+        NPCGlobalEvents.NotifyDestroyed(gameObject.GetInstanceID());
+
         UpdateShaderFloat(hitIntensityName, 0f);
         SpawnLoot();
-
         Destroy(gameObject);
     }
 
-    private void SpawnLoot()
+    public void SpawnLoot()
     {
         if (lootPrefab == null) return;
 

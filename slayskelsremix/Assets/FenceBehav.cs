@@ -1,65 +1,52 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 public class FenceBehav : MonoBehaviour
 {
-    [Header("Sprites (0-15)")]
-    [Tooltip("Order: 0=None, 1=R, 2=L, 3=RL, 4=U, 5=UR, 6=UL, 7=URL, 8=D, 9=DR, 10=DL, 11=DRL, 12=UD, 13=UDR, 14=UDL, 15=UDRL")]
     public Sprite[] fenceSprites;
 
-    public LayerMask fenceLayer;
-    private SpriteRenderer spriteRenderer;
-    private float checkRadius = 0.2f;
+    private SpriteRenderer sr;
+    private BoxCollider2D col;
 
-    void Awake()
+    public Vector2 defaultSize = new Vector2(1f, 1f);
+    public Vector2 elongatedSize = new Vector2(1f, 1.5f);
+
+    private Vector2Int gridPos;
+
+    private void Awake()
     {
-        spriteRenderer = GetComponent<SpriteRenderer>();
+        sr = GetComponent<SpriteRenderer>();
+        col = GetComponent<BoxCollider2D>();
     }
 
-    void Start()
+    private void Start()
     {
-        UpdateShape();
-        NotifyNeighbors();
+        gridPos = Vector2Int.RoundToInt(transform.position);
+
+        FenceManager.Instance.Register(gridPos, this);
     }
 
     public void UpdateShape()
     {
         int mask = 0;
 
-        if (CheckDir(Vector2.right)) mask += 1;
-        if (CheckDir(Vector2.left)) mask += 2;
-        if (CheckDir(Vector2.up)) mask += 4;
-        if (CheckDir(Vector2.down)) mask += 8;
+        if (FenceManager.Instance.HasFence(gridPos + Vector2Int.right)) mask |= 1;
+        if (FenceManager.Instance.HasFence(gridPos + Vector2Int.left)) mask |= 2;
+        if (FenceManager.Instance.HasFence(gridPos + Vector2Int.up)) mask |= 4;
+        if (FenceManager.Instance.HasFence(gridPos + Vector2Int.down)) mask |= 8;
 
-        if (mask < fenceSprites.Length && fenceSprites[mask] != null)
+        if (fenceSprites != null && mask < fenceSprites.Length && fenceSprites[mask] != null)
         {
-            spriteRenderer.sprite = fenceSprites[mask];
-        }
-    }
+            sr.sprite = fenceSprites[mask];
 
-    bool CheckDir(Vector2 dir)
-    {
-        // Check 1 unit away (your grid size)
-        Collider2D hit = Physics2D.OverlapCircle((Vector2)transform.position + dir, checkRadius, fenceLayer);
-        return hit != null && hit.gameObject != this.gameObject;
-    }
-
-    void NotifyNeighbors()
-    {
-        Vector2[] dirs = { Vector2.up, Vector2.down, Vector2.left, Vector2.right };
-        foreach (Vector2 d in dirs)
-        {
-            Collider2D hit = Physics2D.OverlapCircle((Vector2)transform.position + d, checkRadius, fenceLayer);
-            if (hit != null)
-            {
-                var neighbor = hit.GetComponent<FenceBehav>();
-                if (neighbor != null) neighbor.UpdateShape();
-            }
+            col.size = (mask == 12 || mask == 3) ? elongatedSize : defaultSize;
         }
     }
 
     private void OnDestroy()
     {
-        // When deleted, tell neighbors to "disconnect" from this spot
-        NotifyNeighbors();
+        if (FenceManager.Instance != null)
+        {
+            FenceManager.Instance.Remove(gridPos);
+        }
     }
 }

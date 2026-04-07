@@ -16,7 +16,6 @@ public class PlayerGrenadeInput : MonoBehaviour
     {
         if (grenadeAction == null)
         {
-            Debug.LogError($"[Input] Action Reference is missing on {gameObject.name}!");
             return;
         }
 
@@ -43,7 +42,6 @@ public class PlayerGrenadeInput : MonoBehaviour
         // 1. If a grenade is currently in the air, DETONATE IT
         if (grenadeBehav.ActiveGrenade != null)
         {
-            Debug.Log("[Input] Manual Detonation Triggered!");
             grenadeBehav.ActiveGrenade.ManualExplode();
         }
     }

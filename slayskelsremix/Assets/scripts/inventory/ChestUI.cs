@@ -28,7 +28,7 @@ public class ChestUI : MonoBehaviour
             return;
         }
 
-        // Ensure the UI starts hidden without disabling this script
+        // Ensure the UI starts hidden
         if (uiVisualRoot != null)
         {
             uiVisualRoot.SetActive(false);
@@ -41,7 +41,6 @@ public class ChestUI : MonoBehaviour
 
     public void Open(ChestInventory chest)
     {
-
         currentChest = chest;
 
         if (uiVisualRoot != null)
@@ -54,7 +53,6 @@ public class ChestUI : MonoBehaviour
 
     public void Close()
     {
-
         currentChest = null;
         ClearUI();
 
@@ -69,23 +67,29 @@ public class ChestUI : MonoBehaviour
         return currentChest;
     }
 
+    /// <summary>
+    /// Updates the UI slots to match the currentChest's inventory data.
+    /// Called when the chest opens, and whenever an NPC or Player adds/removes items.
+    /// </summary>
     public void Refresh()
     {
         if (currentChest == null)
         {
-            Debug.LogWarning("[ChestUI] Refresh called but no chest is assigned!");
+            // This warning is fine to ignore if we just closed the chest, 
+            // but helpful for debugging NPC interactions.
             return;
         }
-
 
         var items = currentChest.chestItems;
 
         for (int i = 0; i < chestSlots.Length; i++)
         {
+            // If the chest has an item for this slot index, show it.
             if (i < items.Count)
             {
                 chestSlots[i].SetSlot(items[i].item, items[i].count);
             }
+            // Otherwise, make sure the slot looks empty.
             else
             {
                 chestSlots[i].ClearSlot();
@@ -97,7 +101,7 @@ public class ChestUI : MonoBehaviour
     {
         foreach (var slot in chestSlots)
         {
-            slot.ClearSlot();
+            if (slot != null) slot.ClearSlot();
         }
     }
 }

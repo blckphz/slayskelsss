@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 public class objectHealth : MonoBehaviour
 {
@@ -6,43 +6,26 @@ public class objectHealth : MonoBehaviour
     public float maxHealth = 50f;
     private float currentHealth;
 
+    [Header("Interaction")]
+    public float interactionRange = 3f;
+
+    private Transform player;
+
     private void Awake()
     {
         currentHealth = maxHealth;
+
+        GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+        if (playerObj != null)
+            player = playerObj.transform;
     }
 
-    // --- DECONSTRUCT: REVERT TO ITEM ---
-    public void Deconstruct()
-    {
-        // 1. Find the Identity to see what item this object "is"
-        BuildIdentity identity = GetComponent<BuildIdentity>();
-
-        if (identity != null && identity.item != null)
-        {
-            Debug.Log($"<color=green>[Inventory]</color> Returning {identity.item.itemName} to bag.");
-
-            // 2. Add the item back to the inventory/hotbar
-            InventoryManager.Instance.AddItem(identity.item, 1);
-
-            // 3. Optional: Trigger a save update
-            if (BuildingSaveManager.Instance != null)
-            {
-                // Simple destruction is usually enough as the SaveManager 
-                // will skip this object next time it iterates to save.
-                BuildingSaveManager.Instance.SaveNow();
-            }
-
-            Die();
-        }
-        else
-        {
-            Debug.LogError($"[Deconstruct Error] {gameObject.name} is missing a BuildIdentity or Item reference!");
-        }
-    }
-
+    // ✅ DAMAGE SYSTEM (KEPT)
     public void TakeDamage(float amount)
     {
         currentHealth -= amount;
+
+        Debug.Log($"{gameObject.name} took {amount} damage. HP: {currentHealth}");
 
         if (currentHealth <= 0f)
         {
@@ -50,9 +33,36 @@ public class objectHealth : MonoBehaviour
         }
     }
 
+    public bool IsPlayerInRange()
+    {
+        if (player == null) return true;
+
+        return Vector2.Distance(transform.position, player.position) <= interactionRange;
+    }
+
+    // ✅ RIGHT CLICK ACTION (PICKUP)
+    public void Deconstruct()
+    {
+        BuildIdentity identity = GetComponent<BuildIdentity>();
+
+        if (identity == null || identity.item == null)
+        {
+            Debug.LogError($"{gameObject.name} missing BuildIdentity or item!");
+            return;
+        }
+
+        if (InventoryManager.Instance != null)
+        {
+            InventoryManager.Instance.AddItem(identity.item, 1);
+            Debug.Log($"Picked up {identity.item.itemName}");
+        }
+
+        Destroy(gameObject);
+    }
+
     private void Die()
     {
-        // Add "Poof" particles or sound effects here
+        Debug.Log($"{gameObject.name} destroyed");
         Destroy(gameObject);
     }
 }

@@ -39,6 +39,8 @@ public class PickupItem : MonoBehaviour, IInteractable
         if (npcInv != null)
         {
             npcInv.AddItem(woodData, amount);
+            // Notify NPCs that this loot is gone
+            NPCGlobalEvents.NotifyDestroyed(gameObject.GetInstanceID());
             Destroy(gameObject);
         }
     }

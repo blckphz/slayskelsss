@@ -1,18 +1,14 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class treeItemBehav : MonoBehaviour, IDamageable
+public class treeItemBehav : ItemHealth, IDamageable
 {
     [Header("Health")]
-    public float health = 50f;
     private float maxHealth;
 
     [Header("Loot")]
     public GameObject woodPrefab;
-    public int dropAmount = 3;
 
-    [Header("Damage UI")]
-    public GameObject damageTextPrefab;
 
     [Header("Tree Parts")]
     public GameObject topPrefab;
@@ -48,35 +44,11 @@ public class treeItemBehav : MonoBehaviour, IDamageable
 
     // ---------------- DAMAGE ----------------
 
-    public void TakeDamage(float damage)
-    {
-        if (isDead) return;
-
-        health -= damage;
-        health = Mathf.Clamp(health, 0, maxHealth);
-
-        ShowDamageText(damage);
-
-        if (health <= 0)
-        {
-            Die();
-        }
-    }
-
-    public void ApplySlow(float slowPercent, float duration, float tickDmg, float tickInterval) { }
-    public bool IsSlowed => false;
-
+ 
     // ---------------- DEATH ----------------
 
     private void Die()
     {
-        if (isDead) return;
-        isDead = true;
-
-        // 🔥 POP LOOT IMMEDIATELY
-        SpawnLoot();
-
-        // Start the visual falling sequence
         StartCoroutine(FallSequence());
     }
 
@@ -178,40 +150,5 @@ public class treeItemBehav : MonoBehaviour, IDamageable
         sr.color = new Color(originalColor.r, originalColor.g, originalColor.b, 0f);
     }
 
-    // ---------------- LOOT ----------------
 
-    private void SpawnLoot()
-    {
-        if (woodPrefab == null) return;
-
-        for (int i = 0; i < dropAmount; i++)
-        {
-            GameObject loot = Instantiate(woodPrefab, transform.position, Quaternion.identity);
-
-            // Trigger the arc movement
-            if (loot.TryGetComponent<LootArc>(out LootArc arc))
-            {
-                arc.Initialize(transform.position);
-            }
-        }
-    }
-
-    // ---------------- UI ----------------
-
-    private void ShowDamageText(float damage)
-    {
-        if (damageTextPrefab != null && damage > 0)
-        {
-            GameObject textObj = Instantiate(
-                damageTextPrefab,
-                transform.position + Vector3.up,
-                Quaternion.identity
-            );
-
-            if (textObj.TryGetComponent<DamageNumber>(out DamageNumber dn))
-            {
-                dn.Setup(damage);
-            }
-        }
-    }
 }
