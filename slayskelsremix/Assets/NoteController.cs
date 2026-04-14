@@ -15,7 +15,7 @@ public class NoteController : MonoBehaviour
         if (rb != null)
         {
             rb.gravityScale = 0;
-            rb.linearVelocity = Vector2.up * speed;
+            rb.linearVelocity = Vector2.right * speed;
         }
     }
 

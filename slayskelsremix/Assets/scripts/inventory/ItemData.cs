@@ -19,6 +19,5 @@ public class ItemData : ScriptableObject
     public virtual void Use(Transform caster, Transform targetAnchor)
     {
         // Default behavior: Maybe just a log or a generic sound
-        Debug.Log($"Using {itemName}. No specific effect assigned.");
     }
 }

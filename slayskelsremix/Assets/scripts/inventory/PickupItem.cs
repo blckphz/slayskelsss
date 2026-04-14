@@ -9,9 +9,20 @@ public class PickupItem : MonoBehaviour, IInteractable
     [Header("Pickup Mode")]
     [SerializeField] private bool autoPickupOnCollision = true;
 
-    public string InteractionPrompt => woodData != null ? $"[E] Pick up {amount} {woodData.itemName}" : "Empty Item";
+    private Highlightable highlight;
 
-    // --- Manual Interaction (Player) ---
+    private void Awake()
+    {
+        highlight = GetComponent<Highlightable>();
+    }
+
+    public string GetPrompt()
+    {
+        return woodData != null
+            ? $"[E] Pick up {amount} {woodData.itemName}"
+            : "Empty Item";
+    }
+
     public void Interact(InventoryManager playerInventory)
     {
         if (woodData == null) return;
@@ -20,26 +31,31 @@ public class PickupItem : MonoBehaviour, IInteractable
         Destroy(gameObject);
     }
 
-    // --- Auto Pickup (Player or NPC) ---
+    // 🔥 REQUIRED BY INTERFACE
+    public void OnFocus()
+    {
+        highlight?.SetHighlighted(true);
+    }
+
+    public void OnLoseFocus()
+    {
+        highlight?.SetHighlighted(false);
+    }
+
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (!autoPickupOnCollision) return;
 
-        // 1. Check if it's the Player
-        InventoryManager playerInv = collision.GetComponent<InventoryManager>();
-        if (playerInv != null)
+        if (collision.TryGetComponent(out InventoryManager playerInv))
         {
             playerInv.AddItem(woodData, amount);
             Destroy(gameObject);
             return;
         }
 
-        // 2. Check if it's an NPC
-        NpcInvBrain npcInv = collision.GetComponent<NpcInvBrain>();
-        if (npcInv != null)
+        if (collision.TryGetComponent(out NpcInvBrain npcInv))
         {
             npcInv.AddItem(woodData, amount);
-            // Notify NPCs that this loot is gone
             NPCGlobalEvents.NotifyDestroyed(gameObject.GetInstanceID());
             Destroy(gameObject);
         }

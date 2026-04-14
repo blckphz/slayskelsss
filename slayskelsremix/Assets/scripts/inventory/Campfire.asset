@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2e0351e2672834f42bfde66072954537, type: 3}
+  m_Name: Campfire
+  m_EditorClassIdentifier: Assembly-CSharp::buildSO
+  itemID: 1234
+  itemName: Campfire
+  icon: {fileID: 21300000, guid: 45f0f074f93e39a4f87057f409867c96, type: 3}
+  itemType: 1
+  maxStackSize: 99
+  healAmount: 0
+  placeablePrefab: {fileID: 7554350650681072654, guid: 3930914dcb859aa468d831cfae01edfb, type: 3}

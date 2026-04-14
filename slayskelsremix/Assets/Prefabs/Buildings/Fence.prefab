@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 1058140804578759783}
   - component: {fileID: 7443075487368853059}
   - component: {fileID: 8186763485698527207}
+  - component: {fileID: 443925362424535151}
   m_Layer: 8
   m_Name: Fence
   m_TagString: Untagged
@@ -129,7 +130,7 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: -0.010728359, y: -0.17121382}
+  m_Offset: {x: -0.014687613, y: -0.18309167}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
@@ -139,7 +140,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 0.34204715, y: 0.2959195}
+  m_Size: {x: 0.22326925, y: 0.26688486}
   m_EdgeRadius: 0
 --- !u!114 &899922030006313703
 MonoBehaviour:
@@ -154,6 +155,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: '::'
   maxHealth: 50
+  interactionRange: 3
 --- !u!114 &1058140804578759783
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -182,9 +184,8 @@ MonoBehaviour:
   - {fileID: -2558502474331502081, guid: 7c15b63e29427474ca531c00e7b8203a, type: 3}
   - {fileID: -5708732599238763129, guid: 7c15b63e29427474ca531c00e7b8203a, type: 3}
   - {fileID: 5339291101311410579, guid: 7c15b63e29427474ca531c00e7b8203a, type: 3}
-  fenceLayer:
-    serializedVersion: 2
-    m_Bits: 256
+  defaultSize: {x: 1, y: 1}
+  elongatedSize: {x: 1, y: 1.5}
 --- !u!114 &7443075487368853059
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -233,6 +234,18 @@ CapsuleCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: -0.0148755135, y: 0}
-  m_Size: {x: 0.21267322, y: 0.6969697}
+  m_Offset: {x: -0.0148755135, y: 0.017156878}
+  m_Size: {x: 0.21267322, y: 0.6626558}
   m_Direction: 0
+--- !u!114 &443925362424535151
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 404050990418344674}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: adc99a8c95fe02147bf6f0b44179a0a0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ghostBuildPreview

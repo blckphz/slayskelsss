@@ -1,97 +1,151 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class PlayerInteraction2D : MonoBehaviour
 {
-    [Header("Interaction Settings")]
-    public float interactRadius = 1.5f;
+    [Header("Settings")]
+    public float interactRadius = 2f;
     public LayerMask interactableLayer;
     public InventoryManager inventory;
 
-    [Header("Quick Add (Press 1)")]
-    public ItemData woodItemData;
+    [Header("Performance")]
+    [SerializeField] private float scanInterval = 0.1f;
+    [SerializeField] private int maxResults = 16;
 
-    // --- DECONSTRUCT (RIGHT CLICK) ---
-    public void OnDeconstruct(InputValue value)
+    [Header("Input")]
+    public InputActionReference interactAction;
+
+    private IInteractable currentInteractable;
+
+    private Collider2D[] results;
+    private float scanTimer;
+
+    private void Awake()
     {
-        if (!value.isPressed)
+        results = new Collider2D[maxResults];
+
+        if (inventory == null)
+            Debug.LogError("[INIT] Inventory is NOT assigned!");
+    }
+
+    private void OnEnable()
+    {
+        if (interactAction == null)
         {
-            Debug.Log("<color=grey>[INPUT]</color> Deconstruct released");
+            Debug.LogError("[INPUT] interactAction NOT assigned in Inspector!");
             return;
         }
 
-        Debug.Log("<color=cyan>[INPUT]</color> Deconstruct pressed");
+        interactAction.action.Enable();
+        interactAction.action.performed += OnInteract;
 
-        // 1. Get mouse position
-        Vector2 mousePos = Mouse.current.position.ReadValue();
-        Debug.Log($"<color=cyan>[MOUSE]</color> Screen Pos: {mousePos}");
+        Debug.Log("[INPUT] Action enabled and subscribed");
+    }
 
-        // 2. Convert to world
-        Vector3 worldPos = Camera.main.ScreenToWorldPoint(mousePos);
-        worldPos.z = 0f;
-
-        Debug.Log($"<color=cyan>[MOUSE]</color> World Pos: {worldPos}");
-
-        // 3. Check for collider at that exact point
-        Collider2D hit = Physics2D.OverlapPoint(worldPos, interactableLayer);
-
-        if (hit == null)
+    private void OnDisable()
+    {
+        if (interactAction != null)
         {
-            Debug.Log("<color=red>[DECONSTRUCT]</color> No object under mouse");
-            return;
-        }
-
-        Debug.Log($"<color=green>[DECONSTRUCT]</color> Hit: {hit.name}");
-
-        // 4. Check for objectHealth
-        if (hit.TryGetComponent(out objectHealth health))
-        {
-            Debug.Log($"<color=orange>[DECONSTRUCT]</color> Deconstructing {hit.name}");
-            health.Deconstruct();
+            interactAction.action.performed -= OnInteract;
+            interactAction.action.Disable();
         }
     }
 
-    // --- QUICK ADD WOOD ---
-    public void OnAddWood(InputValue value)
+    private void Start()
     {
-        if (!value.isPressed) return;
-
-        if (inventory != null && woodItemData != null)
+        if (interactAction != null)
         {
-            Debug.Log("<color=cyan>[HOTBAR]</color> Adding 1 Wood");
-            inventory.AddItem(woodItemData, 1);
-        }
-        else
-        {
-            Debug.LogWarning("<color=red>[ERROR]</color> Inventory or WoodItem missing!");
+            interactAction.action.Enable();
         }
     }
 
-    // --- INTERACT (E) ---
-    public void OnInteract(InputValue value)
+    private void Update()
     {
-        if (!value.isPressed) return;
+        DetectNearest();
 
-        Debug.Log("<color=cyan>[INPUT]</color> Interact pressed");
-
-        Collider2D hit = Physics2D.OverlapCircle(transform.position, interactRadius, interactableLayer);
-
-        if (hit == null)
+        // Debug fallback (optional, can remove in production)
+        if (Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
         {
-            Debug.Log("<color=red>[INTERACT]</color> Nothing nearby");
+            TryInteract();
+        }
+    }
+
+    private void DetectNearest()
+    {
+        scanTimer += Time.deltaTime;
+        if (scanTimer < scanInterval)
+            return;
+
+        scanTimer = 0f;
+
+        int count = Physics2D.OverlapCircleNonAlloc(
+            transform.position,
+            interactRadius,
+            results,
+            interactableLayer
+        );
+
+        IInteractable nearest = null;
+        float bestDist = float.MaxValue;
+
+        for (int i = 0; i < count; i++)
+        {
+            Collider2D hit = results[i];
+
+            if (hit == null)
+                continue;
+
+            if (hit.TryGetComponent(out IInteractable interactable))
+            {
+                float dist = Vector2.Distance(transform.position, hit.transform.position);
+
+                if (dist < bestDist)
+                {
+                    bestDist = dist;
+                    nearest = interactable;
+                }
+            }
+        }
+
+        if (nearest == currentInteractable)
+            return;
+
+        // Lost previous
+        if (currentInteractable != null)
+        {
+            currentInteractable.OnLoseFocus();
+            InteractionUI.Instance.Hide();
+        }
+
+        currentInteractable = nearest;
+
+        if (currentInteractable != null)
+        {
+            currentInteractable.OnFocus();
+            InteractionUI.Instance.Show(currentInteractable.GetPrompt());
+        }
+    }
+
+    private void OnInteract(InputAction.CallbackContext context)
+    {
+        TryInteract();
+    }
+
+    private void TryInteract()
+    {
+        if (currentInteractable == null)
+        {
+            Debug.Log("[INTERACT] No interactable in range");
             return;
         }
 
-        Debug.Log($"<color=green>[INTERACT]</color> Found: {hit.name}");
+        if (inventory == null)
+        {
+            Debug.LogError("[INTERACT] Inventory is NULL");
+            return;
+        }
 
-        if (hit.TryGetComponent(out IInteractable interactable))
-        {
-            interactable.Interact(inventory);
-        }
-        else
-        {
-            Debug.LogWarning("<color=yellow>[INTERACT]</color> No IInteractable on object");
-        }
+        currentInteractable.Interact(inventory);
     }
 
     private void OnDrawGizmosSelected()
