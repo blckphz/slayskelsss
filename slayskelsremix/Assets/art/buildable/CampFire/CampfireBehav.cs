@@ -34,9 +34,10 @@ public class CampfireBehav : MonoBehaviour, IInteractable, IBuildPreview
         CampfireUI.Instance?.OpenCampfire(this);
     }
 
+    // Only describes the action (NOT the key anymore)
     public string GetPrompt()
     {
-        return isBurning ? "It's warm!" : "Light Fire";
+        return "Use Campfire";
     }
 
     public void Ignite()
@@ -47,7 +48,6 @@ public class CampfireBehav : MonoBehaviour, IInteractable, IBuildPreview
             anim.Play("Burning");
     }
 
-    // 🔥 ADD WHOLE STACK SUPPORT
     public int AddFuel(ItemData item, int amount)
     {
         if (fuelItem != null && fuelItem.itemID != item.itemID)
@@ -57,7 +57,6 @@ public class CampfireBehav : MonoBehaviour, IInteractable, IBuildPreview
             fuelItem = item;
 
         int spaceLeft = maxFuel - fuelAmount;
-
         int amountToAdd = Mathf.Min(spaceLeft, amount);
 
         fuelAmount += amountToAdd;

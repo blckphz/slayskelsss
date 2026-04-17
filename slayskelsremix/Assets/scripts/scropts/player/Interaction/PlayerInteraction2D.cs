@@ -32,14 +32,12 @@ public class PlayerInteraction2D : MonoBehaviour
     {
         if (interactAction == null)
         {
-            Debug.LogError("[INPUT] interactAction NOT assigned in Inspector!");
+            Debug.LogError("[INPUT] interactAction NOT assigned!");
             return;
         }
 
         interactAction.action.Enable();
         interactAction.action.performed += OnInteract;
-
-        Debug.Log("[INPUT] Action enabled and subscribed");
     }
 
     private void OnDisable()
@@ -51,19 +49,10 @@ public class PlayerInteraction2D : MonoBehaviour
         }
     }
 
-    private void Start()
-    {
-        if (interactAction != null)
-        {
-            interactAction.action.Enable();
-        }
-    }
-
     private void Update()
     {
         DetectNearest();
 
-        // Debug fallback (optional, can remove in production)
         if (Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
         {
             TryInteract();
@@ -91,9 +80,7 @@ public class PlayerInteraction2D : MonoBehaviour
         for (int i = 0; i < count; i++)
         {
             Collider2D hit = results[i];
-
-            if (hit == null)
-                continue;
+            if (hit == null) continue;
 
             if (hit.TryGetComponent(out IInteractable interactable))
             {
@@ -110,7 +97,6 @@ public class PlayerInteraction2D : MonoBehaviour
         if (nearest == currentInteractable)
             return;
 
-        // Lost previous
         if (currentInteractable != null)
         {
             currentInteractable.OnLoseFocus();
@@ -122,8 +108,20 @@ public class PlayerInteraction2D : MonoBehaviour
         if (currentInteractable != null)
         {
             currentInteractable.OnFocus();
-            InteractionUI.Instance.Show(currentInteractable.GetPrompt());
+
+            string key = GetBoundKey();
+            string prompt = currentInteractable.GetPrompt();
+
+            InteractionUI.Instance.Show($"[{key}]");
         }
+    }
+
+    private string GetBoundKey()
+    {
+        if (interactAction == null || interactAction.action == null)
+            return "E";
+
+        return interactAction.action.bindings[0].ToDisplayString();
     }
 
     private void OnInteract(InputAction.CallbackContext context)

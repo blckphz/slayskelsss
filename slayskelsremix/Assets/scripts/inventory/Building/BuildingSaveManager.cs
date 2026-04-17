@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
 
@@ -39,21 +39,43 @@ public class BuildingSaveManager : MonoBehaviour
         placementHistory.Push(obj);
     }
 
+    public void UnregisterBuilding(GameObject obj)
+    {
+        if (obj == null) return;
+
+        placedBuildings.Remove(obj);
+
+        Stack<GameObject> temp = new Stack<GameObject>();
+        while (placementHistory.Count > 0)
+        {
+            GameObject top = placementHistory.Pop();
+            if (top != obj)
+                temp.Push(top);
+        }
+
+        while (temp.Count > 0)
+            placementHistory.Push(temp.Pop());
+    }
+
     public void SaveNow()
     {
         SaveData data = new SaveData();
         foreach (GameObject obj in placedBuildings)
         {
             if (obj == null) continue;
+
             BuildIdentity id = obj.GetComponent<BuildIdentity>();
             if (id == null || id.item == null) continue;
 
-            data.buildings.Add(new BuildingData { itemID = id.item.itemID, position = obj.transform.position });
+            data.buildings.Add(new BuildingData
+            {
+                itemID = id.item.itemID,
+                position = obj.transform.position
+            });
         }
 
         string json = JsonUtility.ToJson(data, true);
         File.WriteAllText(savePath, json);
-        Debug.Log("<color=cyan>[SaveManager]</color> Buildings saved to disk.");
     }
 
     public void LoadBuildings()
@@ -63,23 +85,19 @@ public class BuildingSaveManager : MonoBehaviour
         string json = File.ReadAllText(savePath);
         SaveData data = JsonUtility.FromJson<SaveData>(json);
 
-        Debug.Log($"<color=cyan>[SaveManager]</color> Loading {data.buildings.Count} buildings...");
-
         foreach (var b in data.buildings)
         {
             ItemData item = database.GetItemByID(b.itemID);
-            if (item == null)
-            {
-                Debug.LogError($"<color=red>[SaveManager]</color> Could not find ItemID {b.itemID} in Database!");
-                continue;
-            }
+            if (item == null) continue;
 
             buildSO buildItem = item as buildSO;
             if (buildItem == null || buildItem.placeablePrefab == null) continue;
 
             GameObject obj = Instantiate(buildItem.placeablePrefab, b.position, Quaternion.identity);
+
             BuildIdentity id = obj.GetComponent<BuildIdentity>() ?? obj.AddComponent<BuildIdentity>();
             id.item = buildItem;
+
             placedBuildings.Add(obj);
         }
     }
@@ -94,7 +112,6 @@ public class BuildingSaveManager : MonoBehaviour
             placedBuildings.Remove(last);
             Destroy(last);
             SaveNow();
-            Debug.Log("<color=yellow>[Undo]</color> Last building removed.");
         }
     }
 }
