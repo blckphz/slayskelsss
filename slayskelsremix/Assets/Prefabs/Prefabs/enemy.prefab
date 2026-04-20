@@ -536,7 +536,7 @@ MonoBehaviour:
   maxGold: 3
   healthBarObject: {fileID: 5581953174699453615}
   healthBarFill: {fileID: 4075190892320438791}
-  damageTextPrefab: {fileID: 3247628565010243195, guid: e2da221bf74f11340b439450cb25f81e, type: 3}
+  damageTextPrefab: {fileID: 9146332368269871989, guid: e2da221bf74f11340b439450cb25f81e, type: 3}
   flashDuration: 0.2
   hitIntensityName: _Intensity
   stunIntensityName: _StunIntensity

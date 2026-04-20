@@ -11,12 +11,12 @@ public class PlayerAim : MonoBehaviour
 
     [Header("Input")]
     public InputActionReference lookAction;
-    public InputActionReference lockOnAction; // Assign the 'E' key action here
+    public InputActionReference lockOnAction;
 
     [Header("Aim Settings (Camera)")]
     public float anchorMaxDist = 3f;
     public float anchorSmooth = 15f;
-    public float lockOnRadius = 10f;  // How far away we search for enemies
+    public float lockOnRadius = 10f;
 
     [Header("Light Settings (Visual)")]
     public float lightMaxRange = 8f;
@@ -33,6 +33,7 @@ public class PlayerAim : MonoBehaviour
     private void Awake()
     {
         cam = Camera.main;
+        // Detach anchor from player to allow smooth following without jitter
         if (anchor != null && anchor.parent == player) anchor.SetParent(null);
     }
 
@@ -43,6 +44,9 @@ public class PlayerAim : MonoBehaviour
             lockOnAction.action.performed += OnLockOnPressed;
             lockOnAction.action.Enable();
         }
+
+        // Ensure look action is enabled
+        if (lookAction != null) lookAction.action.Enable();
     }
 
     private void OnDisable()
@@ -58,13 +62,11 @@ public class PlayerAim : MonoBehaviour
     {
         if (isLockedOn)
         {
-            // Unlock
             isLockedOn = false;
             lockedEnemy = null;
         }
         else
         {
-            // Try to Find Closest Enemy
             lockedEnemy = FindClosestEnemy();
             if (lockedEnemy != null)
             {
@@ -75,6 +77,7 @@ public class PlayerAim : MonoBehaviour
 
     private Transform FindClosestEnemy()
     {
+        // Using FindObjectsByType for modern Unity versions
         enemyHealth[] enemies = Object.FindObjectsByType<enemyHealth>(FindObjectsSortMode.None);
         Transform closest = null;
         float minDist = lockOnRadius;
@@ -93,9 +96,12 @@ public class PlayerAim : MonoBehaviour
 
     void LateUpdate()
     {
-        if (player == null || cam == null) return;
+        // CRITICAL CHECK: If the UI is open and the Action Map is switched, 
+        // the lookAction will be disabled. We stop here to prevent "blocking" logic.
+        if (player == null || cam == null || lookAction == null || !lookAction.action.enabled)
+            return;
 
-        // 1. GET RAW INPUT POSITION (Used for the Light/Aim direction)
+        // 1. GET RAW INPUT POSITION
         Vector2 input = lookAction.action.ReadValue<Vector2>();
         Vector3 mouseWorldPos;
         bool isMouse = lookAction.action.activeControl?.device is Pointer;
@@ -120,7 +126,6 @@ public class PlayerAim : MonoBehaviour
 
             if (isLockedOn && lockedEnemy != null)
             {
-                // Follow Enemy
                 targetPos = lockedEnemy.position;
 
                 // Auto-Unlock if enemy dies or goes too far
@@ -132,7 +137,6 @@ public class PlayerAim : MonoBehaviour
             }
             else
             {
-                // Normal Mouse Aim
                 Vector3 anchorDir = fullDir;
                 if (anchorDir.magnitude > anchorMaxDist)
                     anchorDir = anchorDir.normalized * anchorMaxDist;
@@ -143,7 +147,7 @@ public class PlayerAim : MonoBehaviour
             anchor.position = Vector3.Lerp(anchor.position, targetPos, anchorSmooth * Time.deltaTime);
         }
 
-        // 3. LIGHT LOGIC (Points at enemy if locked, else points at mouse)
+        // 3. LIGHT LOGIC
         if (spotlight != null)
         {
             spotlight.transform.position = player.position;

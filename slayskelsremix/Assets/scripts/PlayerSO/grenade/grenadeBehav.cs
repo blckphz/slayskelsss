@@ -52,31 +52,31 @@ public class grenadeBehav : MonoBehaviour
         foreach (Collider2D obj in objectsInRange)
         {
             IDamageable target = obj.GetComponent<IDamageable>();
-            Rigidbody2D rb = obj.GetComponent<Rigidbody2D>();
 
+            // Only proceed if the object is "Damageable" (Enemies, Crates, etc.)
+            // This ignores gold, pickups, and regular floor tiles
             if (target != null && !uniqueEnemiesHit.Contains(target))
             {
                 uniqueEnemiesHit.Add(target);
                 chainController.hitCcunter += chargesPerEnemyHit;
                 target.TakeDamage(damage);
-            }
 
-            // --- IMPROVED PHYSICS HANDLING ---
-            if (rb != null)
-            {
-                Vector2 pullDir = (Vector2)transform.position - (Vector2)obj.transform.position;
-                Vector2 finalForce = pullDir.normalized * implosionForce;
+                // --- PHYSICS HANDLING (Only for Damageables) ---
+                Rigidbody2D rb = obj.GetComponent<Rigidbody2D>();
+                if (rb != null)
+                {
+                    Vector2 pullDir = (Vector2)transform.position - (Vector2)obj.transform.position;
+                    Vector2 finalForce = pullDir.normalized * implosionForce;
 
-                // Check if it's an enemy (AI controlled) or just a prop/gold
-                enemyHealth enemy = obj.GetComponent<enemyHealth>();
-                if (enemy != null)
-                {
-                    enemy.ApplyImpulse(finalForce);
-                }
-                else
-                {
-                    // Regular physics for gold, crates, etc.
-                    rb.AddForce(finalForce, ForceMode2D.Impulse);
+                    enemyHealth enemy = obj.GetComponent<enemyHealth>();
+                    if (enemy != null)
+                    {
+                        enemy.ApplyImpulse(finalForce);
+                    }
+                    else
+                    {
+                        rb.AddForce(finalForce, ForceMode2D.Impulse);
+                    }
                 }
             }
         }

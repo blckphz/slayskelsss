@@ -11,6 +11,9 @@ public class BuildingSaveManager : MonoBehaviour
     {
         public int itemID;
         public Vector3 position;
+        // Campfire specific data
+        public float fuelAmount;
+        public bool isBurning;
     }
 
     [System.Serializable]
@@ -21,7 +24,6 @@ public class BuildingSaveManager : MonoBehaviour
 
     public ItemDatabase database;
     private List<GameObject> placedBuildings = new List<GameObject>();
-    private Stack<GameObject> placementHistory = new Stack<GameObject>();
     private string savePath;
 
     void Awake()
@@ -33,29 +35,8 @@ public class BuildingSaveManager : MonoBehaviour
         LoadBuildings();
     }
 
-    public void RegisterBuilding(GameObject obj)
-    {
-        placedBuildings.Add(obj);
-        placementHistory.Push(obj);
-    }
-
-    public void UnregisterBuilding(GameObject obj)
-    {
-        if (obj == null) return;
-
-        placedBuildings.Remove(obj);
-
-        Stack<GameObject> temp = new Stack<GameObject>();
-        while (placementHistory.Count > 0)
-        {
-            GameObject top = placementHistory.Pop();
-            if (top != obj)
-                temp.Push(top);
-        }
-
-        while (temp.Count > 0)
-            placementHistory.Push(temp.Pop());
-    }
+    public void RegisterBuilding(GameObject obj) => placedBuildings.Add(obj);
+    public void UnregisterBuilding(GameObject obj) => placedBuildings.Remove(obj);
 
     public void SaveNow()
     {
@@ -67,11 +48,21 @@ public class BuildingSaveManager : MonoBehaviour
             BuildIdentity id = obj.GetComponent<BuildIdentity>();
             if (id == null || id.item == null) continue;
 
-            data.buildings.Add(new BuildingData
+            BuildingData bData = new BuildingData
             {
                 itemID = id.item.itemID,
                 position = obj.transform.position
-            });
+            };
+
+            // If it's a campfire, grab its unique data
+            CampfireBehav campfire = obj.GetComponent<CampfireBehav>();
+            if (campfire != null)
+            {
+                bData.fuelAmount = campfire.fuelAmount;
+                bData.isBurning = campfire.isBurning;
+            }
+
+            data.buildings.Add(bData);
         }
 
         string json = JsonUtility.ToJson(data, true);
@@ -98,20 +89,16 @@ public class BuildingSaveManager : MonoBehaviour
             BuildIdentity id = obj.GetComponent<BuildIdentity>() ?? obj.AddComponent<BuildIdentity>();
             id.item = buildItem;
 
+            // Restore campfire state
+            CampfireBehav campfire = obj.GetComponent<CampfireBehav>();
+            if (campfire != null)
+            {
+                campfire.fuelAmount = b.fuelAmount;
+                campfire.isBurning = b.isBurning;
+                campfire.InitializeFromSave();
+            }
+
             placedBuildings.Add(obj);
-        }
-    }
-
-    public void UndoLastBuilding()
-    {
-        if (placementHistory.Count == 0) return;
-
-        GameObject last = placementHistory.Pop();
-        if (last != null)
-        {
-            placedBuildings.Remove(last);
-            Destroy(last);
-            SaveNow();
         }
     }
 }

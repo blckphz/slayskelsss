@@ -151,7 +151,7 @@
                     "initialStateCheck": false
                 },
                 {
-                    "name": "BuildMode",
+                    "name": "ToggleCrafting",
                     "type": "Button",
                     "id": "046be2ed-f7e7-46c2-9b90-d332fad0af1f",
                     "expectedControlType": "",
@@ -630,7 +630,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "BuildMode",
+                    "action": "ToggleCrafting",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

@@ -53,6 +53,7 @@ public class PlayerInteraction2D : MonoBehaviour
     {
         DetectNearest();
 
+        // Manual backup for Keyboard if InputSystem reference isn't firing
         if (Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
         {
             TryInteract();
@@ -94,25 +95,34 @@ public class PlayerInteraction2D : MonoBehaviour
             }
         }
 
-        if (nearest == currentInteractable)
-            return;
-
-        if (currentInteractable != null)
+        // If the nearest interactable has changed (or become null)
+        if (nearest != currentInteractable)
         {
-            currentInteractable.OnLoseFocus();
-            InteractionUI.Instance.Hide();
-        }
+            if (currentInteractable != null)
+            {
+                currentInteractable.OnLoseFocus();
+                InteractionUI.Instance?.Hide();
 
-        currentInteractable = nearest;
+                // 🔹 AUTO-CLOSE CAMPFIRE UI ON RANGE EXIT
+                // If the thing we lost focus on was a campfire, close the specific Campfire UI
+                if (currentInteractable is CampfireBehav)
+                {
+                    CampfireUI.Instance?.CloseCampfire();
+                }
+            }
 
-        if (currentInteractable != null)
-        {
-            currentInteractable.OnFocus();
+            currentInteractable = nearest;
 
-            string key = GetBoundKey();
-            string prompt = currentInteractable.GetPrompt();
+            if (currentInteractable != null)
+            {
+                currentInteractable.OnFocus();
 
-            InteractionUI.Instance.Show($"[{key}]");
+                string key = GetBoundKey();
+                string prompt = currentInteractable.GetPrompt();
+
+                // Show the floating interaction prompt (e.g., "[E] Light Campfire")
+                InteractionUI.Instance?.Show($"[{key}]");
+            }
         }
     }
 

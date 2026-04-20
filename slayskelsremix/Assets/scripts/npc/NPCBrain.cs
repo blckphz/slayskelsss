@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using Pathfinding;
+using System.Collections.Generic;
 
 [RequireComponent(typeof(AIPath))]
 [RequireComponent(typeof(AIDestinationSetter))]
@@ -11,6 +12,7 @@ public class NPCBrain : MonoBehaviour
     public float detectionRange = 20f;
     public float searchInterval = 0.5f;
     public float attackStopDistance = 1.5f;
+    public float chestActionCooldown = 0.5f;
 
     [Header("Status")]
     [SerializeField] private bool targetInAttackTrigger = false;
@@ -24,7 +26,7 @@ public class NPCBrain : MonoBehaviour
     private float searchTimer;
     private int myID;
     private float nextChestActionTime = 0f;
-    public float chestActionCooldown = 0.5f;
+    private float stuckTimer = 0f;
 
     void Awake()
     {
@@ -40,6 +42,15 @@ public class NPCBrain : MonoBehaviour
 
     void Update()
     {
+        // FAILSAFE 1: Immediate cleanup if the target object is destroyed/collected
+        if (currentTargetID != -1 && destinationSetter.target == null)
+        {
+            ClearCurrentTarget();
+        }
+
+        // FAILSAFE 2: Stuck check (If target exists but we aren't moving)
+        CheckIfStuck();
+
         searchTimer += Time.deltaTime;
         if (searchTimer >= searchInterval)
         {
@@ -50,12 +61,29 @@ public class NPCBrain : MonoBehaviour
         HandleAction();
     }
 
+    private void CheckIfStuck()
+    {
+        if (destinationSetter.target != null && aiPath.velocity.sqrMagnitude < 0.1f)
+        {
+            stuckTimer += Time.deltaTime;
+            if (stuckTimer > 2f) // If stuck for 2 seconds
+            {
+                ClearCurrentTarget();
+                stuckTimer = 0;
+            }
+        }
+        else
+        {
+            stuckTimer = 0;
+        }
+    }
+
     private void HandleTargetDestroyed(int destroyedID)
     {
         if (currentTargetID == destroyedID)
         {
             ClearCurrentTarget();
-            // Wait a tiny bit for Unity to finish destroying the object before searching again
+            // Search again after a tiny delay to let the physics engine catch up
             Invoke(nameof(FindBestTarget), 0.05f);
         }
     }
@@ -64,33 +92,41 @@ public class NPCBrain : MonoBehaviour
     {
         // 1. ⚔️ ENEMIES
         Transform enemy = GetClosest<enemyHealth>();
-        if (enemy) { SetTarget(enemy, attackStopDistance, "Combat"); return; }
+        if (enemy) { SetTarget(enemy, attackStopDistance); return; }
 
         // 2. 📦 STORAGE (Priority if holding items)
         if (IsCarryingItems())
         {
             Transform chest = GetClosest<ChestInventory>();
-            if (chest) { SetTarget(chest, 1.2f, "Storing"); return; }
+            if (chest) { SetTarget(chest, 1.2f); return; }
         }
 
         // 3. ⛏ RESOURCES
         Transform resource = GetClosest<ItemHealth>();
-        if (resource) { SetTarget(resource, attackStopDistance, "Gathering"); return; }
+        if (resource) { SetTarget(resource, attackStopDistance); return; }
 
         // 4. 💰 LOOT
         Transform loot = GetClosest<PickupItem>();
-        if (loot) { SetTarget(loot, 0.1f, "Looting"); return; }
+        if (loot) { SetTarget(loot, 0.1f); return; }
 
+        // If we found nothing but still have a target, clear it
         if (destinationSetter.target != null) ClearCurrentTarget();
     }
 
-    private void SetTarget(Transform target, float dist, string reason)
+    private void SetTarget(Transform target, float dist)
     {
+        if (target == null)
+        {
+            ClearCurrentTarget();
+            return;
+        }
+
         if (destinationSetter.target != target)
         {
             destinationSetter.target = target;
             currentTargetID = target.gameObject.GetInstanceID();
         }
+
         if (aiPath != null) aiPath.endReachedDistance = dist;
     }
 
@@ -100,18 +136,28 @@ public class NPCBrain : MonoBehaviour
         destinationSetter.target = null;
         currentTargetID = -1;
         targetInAttackTrigger = false;
+        stuckTimer = 0;
     }
 
     private void HandleAction()
     {
-        if (destinationSetter.target == null) return;
+        // If the target is missing, stop everything
+        if (destinationSetter.target == null)
+        {
+            attackModule.StopAttacking();
+            targetInAttackTrigger = false;
+            return;
+        }
 
         if (targetInAttackTrigger)
         {
             var damageable = destinationSetter.target.GetComponent<IDamageable>();
             var chest = destinationSetter.target.GetComponent<ChestInventory>();
 
-            if (damageable != null) attackModule.TryAttack(destinationSetter.target);
+            if (damageable != null)
+            {
+                attackModule.TryAttack(destinationSetter.target);
+            }
             else if (chest != null && IsCarryingItems())
             {
                 if (Time.time >= nextChestActionTime)
@@ -121,22 +167,27 @@ public class NPCBrain : MonoBehaviour
                 }
             }
         }
-        else attackModule.StopAttacking();
+        else
+        {
+            attackModule.StopAttacking();
+        }
     }
 
-    private bool IsCarryingItems() => inventory != null && inventory.inventory.Exists(s => s.count > 0);
+    private bool IsCarryingItems() => inventory != null && inventory.inventory != null && inventory.inventory.Exists(s => s.count > 0);
 
     private void StoreItems(ChestInventory chest)
     {
-        foreach (var slot in inventory.inventory)
+        for (int i = inventory.inventory.Count - 1; i >= 0; i--)
         {
+            var slot = inventory.inventory[i];
             if (slot.item != null && slot.count > 0)
             {
-                if (chest.AddItem(slot.item, slot.count)) slot.count = 0;
+                if (chest.AddItem(slot.item, slot.count))
+                    slot.count = 0;
             }
         }
         inventory.inventory.RemoveAll(s => s.count <= 0);
-        ClearCurrentTarget();
+        ClearCurrentTarget(); // Go back to searching after storing
     }
 
     private Transform GetClosest<T>() where T : MonoBehaviour
@@ -149,7 +200,7 @@ public class NPCBrain : MonoBehaviour
         {
             if (t == null || !t.gameObject.activeInHierarchy) continue;
 
-            // Check NPCList to see if this specific object is taken or dying
+            // Failsafe: Check if someone else claimed this
             if (NPCList.Instance != null && NPCList.Instance.IsTargetClaimed(t.transform, myID))
                 continue;
 

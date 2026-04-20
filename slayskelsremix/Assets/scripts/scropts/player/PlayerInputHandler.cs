@@ -46,6 +46,15 @@ public class PlayerInputHandler : MonoBehaviour
         };
     }
 
+    // --- ADDED THIS METHOD ---
+    public void ToggleInput(bool enable)
+    {
+        if (enable)
+            controls.Enable();
+        else
+            controls.Disable();
+    }
+
     private void LateUpdate()
     {
         // reset "pressed this frame" flags
@@ -61,28 +70,14 @@ public class PlayerInputHandler : MonoBehaviour
 
     // ---------------- GETTERS ----------------
 
-    public Vector2 GetMousePosition()
-    {
-        return mousePosition;
-    }
-
-    public bool LeftClickPressed()
-    {
-        return leftClickPressed;
-    }
-
-    public bool RightClickPressed()
-    {
-        return rightClickPressed;
-    }
+    public Vector2 GetMousePosition() => mousePosition;
+    public bool LeftClickPressed() => leftClickPressed;
+    public bool RightClickPressed() => rightClickPressed;
+    public bool BuildModePressed() => buildModePressed;
 
     public bool RightClickHeld()
     {
-        return controls.Gameplay.RightClick.IsPressed();
-    }
-
-    public bool BuildModePressed()
-    {
-        return buildModePressed;
+        // Added a null check just in case it's called while disabled
+        return controls != null && controls.Gameplay.RightClick.IsPressed();
     }
 }

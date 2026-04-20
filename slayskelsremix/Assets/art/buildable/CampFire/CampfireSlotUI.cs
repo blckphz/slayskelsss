@@ -3,7 +3,7 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using TMPro;
 
-public class CampfireSlotUI : MonoBehaviour, IDropHandler, IPointerEnterHandler
+public class CampfireSlotUI : MonoBehaviour, IDropHandler, IPointerClickHandler
 {
     [Header("References")]
     public CampfireBehav campfire;
@@ -14,58 +14,46 @@ public class CampfireSlotUI : MonoBehaviour, IDropHandler, IPointerEnterHandler
     [SerializeField] private Sprite emptySprite;
     [SerializeField] private TextMeshProUGUI amountText;
 
-    private void Start()
+    // LEFT CLICK TO REMOVE WOOD
+    public void OnPointerClick(PointerEventData eventData)
     {
-        UpdateUI();
+        if (campfire == null || campfire.fuelItem == null || campfire.fuelAmount < 1f)
+            return;
+
+        if (eventData.button == PointerEventData.InputButton.Left)
+        {
+            int removed = campfire.RemoveFuel(1);
+            if (removed > 0)
+            {
+                InventoryManager.Instance.AddItem(campfire.fuelItem, removed);
+                UpdateUI();
+                InvUI.Instance?.RefreshUI();
+            }
+        }
     }
 
-    // ---------------------------------------------------
-    // DROP WHOLE STACK
-    // ---------------------------------------------------
     public void OnDrop(PointerEventData eventData)
     {
-        if (eventData.pointerDrag == null)
-            return;
-
-        InventorySlotUI draggedSlot =
-            eventData.pointerDrag.GetComponentInParent<InventorySlotUI>();
-
-        if (draggedSlot == null)
-            return;
+        InventorySlotUI draggedSlot = eventData.pointerDrag?.GetComponent<InventorySlotUI>();
+        if (draggedSlot == null) return;
 
         ItemData item = draggedSlot.GetItem();
-        if (item == null || item.itemID != woodID)
-            return;
+        if (item == null || item.itemID != woodID || campfire == null) return;
 
-        if (campfire == null)
-            return;
-
-        int stackAmount = draggedSlot.GetCount();
-
-        int added = campfire.AddFuel(item, stackAmount);
-
-        if (added <= 0)
+        int added = campfire.AddFuel(item, draggedSlot.GetCount());
+        if (added > 0)
         {
-            Debug.Log("Campfire full or wrong item");
-            return;
+            InventoryManager.Instance.RemoveItem(item, added);
+            if (!campfire.isBurning) campfire.Ignite();
+            UpdateUI();
+            InvUI.Instance?.RefreshUI();
+            BuildingSaveManager.Instance?.SaveNow();
         }
-
-        InventoryManager.Instance.RemoveItem(item, added);
-
-        UpdateUI();
-
-        if (!campfire.isBurning)
-            campfire.Ignite();
-
-        InvUI.Instance?.RefreshUI();
     }
 
-    // ---------------------------------------------------
-    // UI UPDATE
-    // ---------------------------------------------------
     public void UpdateUI()
     {
-        if (campfire == null || campfire.fuelItem == null || campfire.fuelAmount <= 0)
+        if (campfire == null || campfire.fuelAmount <= 0)
         {
             ResetSlot();
             return;
@@ -73,58 +61,38 @@ public class CampfireSlotUI : MonoBehaviour, IDropHandler, IPointerEnterHandler
 
         if (itemIconImage != null)
         {
-            itemIconImage.enabled = true;
             itemIconImage.sprite = campfire.fuelItem.icon;
-            itemIconImage.color = Color.white;
+            itemIconImage.color = new Color(1, 1, 1, 1); // Opacity 100%
+            itemIconImage.enabled = true;
         }
 
         if (amountText != null)
         {
-            amountText.gameObject.SetActive(true);
-            amountText.text = campfire.fuelAmount > 1
-                ? campfire.fuelAmount.ToString()
-                : "";
+            int displayFuel = Mathf.CeilToInt(campfire.fuelAmount);
+            amountText.gameObject.SetActive(displayFuel > 0);
+            amountText.text = displayFuel.ToString();
         }
     }
 
-    // ---------------------------------------------------
-    // RESET (EMPTY / OUT OF RANGE FIX)
-    // ---------------------------------------------------
     public void ResetSlot()
     {
         if (itemIconImage != null)
         {
-            itemIconImage.enabled = true;
             itemIconImage.sprite = emptySprite;
-            itemIconImage.color = emptySprite != null
-                ? Color.white
-                : new Color(1f, 1f, 1f, 0f);
+            // If no item and no empty sprite, hide it (Opacity 0)
+            itemIconImage.color = emptySprite != null ? Color.white : new Color(1, 1, 1, 0);
         }
 
         if (amountText != null)
-        {
-            amountText.text = "";
-            amountText.gameObject.SetActive(false); // 🔥 IMPORTANT FIX
-        }
+            amountText.gameObject.SetActive(false);
     }
 
-    // ---------------------------------------------------
-    // FORCE HIDE (OUT OF RANGE CALL)
-    // ---------------------------------------------------
     public void HideOutsideRange()
     {
         if (itemIconImage != null)
-            itemIconImage.enabled = false;
+            itemIconImage.color = new Color(1, 1, 1, 0);
 
         if (amountText != null)
-        {
-            amountText.text = "";
             amountText.gameObject.SetActive(false);
-        }
-    }
-
-    public void OnPointerEnter(PointerEventData eventData)
-    {
-        Debug.Log("🟡 Pointer Enter");
     }
 }

@@ -185,7 +185,13 @@ public class BuildManager : MonoBehaviour
     {
         if (obj == null) return;
 
-        // Return item to inventory
+        // Check if it's a campfire to refund extra fuel? (Optional)
+        CampfireBehav cf = obj.GetComponent<CampfireBehav>();
+        if (cf != null && cf.fuelAmount >= 1 && inventory != null)
+        {
+            inventory.AddItem(cf.fuelItem, Mathf.FloorToInt(cf.fuelAmount));
+        }
+
         BuildIdentity id = obj.GetComponent<BuildIdentity>();
         if (id != null && id.item != null && inventory != null)
         {
@@ -193,7 +199,7 @@ public class BuildManager : MonoBehaviour
         }
 
         BuildingSaveManager.Instance?.UnregisterBuilding(obj);
-        BuildingSaveManager.Instance?.SaveNow();
+        BuildingSaveManager.Instance?.SaveNow(); // Removes from JSON
 
         Destroy(obj);
     }

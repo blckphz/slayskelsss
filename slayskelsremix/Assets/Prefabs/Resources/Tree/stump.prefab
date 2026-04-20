@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7208816122101253887}
   - component: {fileID: 508285678147993437}
+  - component: {fileID: 1702189935939130270}
   m_Layer: 0
   m_Name: stump
   m_TagString: Untagged
@@ -89,4 +90,19 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
-  m_SpriteSortPoint: 1
+  m_SpriteSortPoint: 0
+--- !u!114 &1702189935939130270
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4272399698899235473}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1d22da432f8d1244d8709f835af5e22b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TreeStumpRegrow
+  treeID: 
+  treePrefab: {fileID: 7005833747306306358, guid: 80a2f909dc74a784e8a5d5ac5bf6d90c, type: 3}
+  regrowTime: 10

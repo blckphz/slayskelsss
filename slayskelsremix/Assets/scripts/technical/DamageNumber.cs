@@ -1,42 +1,52 @@
 using UnityEngine;
 using TMPro;
 
+[RequireComponent(typeof(Rigidbody2D))]
 public class DamageNumber : MonoBehaviour
 {
-    public float moveSpeed = 2f;
+    [Header("Settings")]
+    public float moveSpeed = 5f;
     public float lifeTime = 1f;
     public float spreadRange = 0.5f;
 
+    [Header("References")]
     private TMP_Text textMesh;
     private Color textColor;
-    private Vector3 moveDirection;
+    private Camera mainCam;
+    private Rigidbody2D rb;
 
     void Awake()
     {
+        mainCam = Camera.main;
+        rb = GetComponent<Rigidbody2D>();
         textMesh = GetComponentInChildren<TMP_Text>();
+
         if (textMesh != null)
         {
             textColor = textMesh.color;
         }
+        else
+        {
+            Debug.LogError($"<color=red>[DamageNumber]</color> Missing TMP_Text on {gameObject.name}");
+        }
 
-        // Random horizontal drift
-        float randomX = Random.Range(-spreadRange, spreadRange);
-        moveDirection = new Vector3(randomX, 1f, 0).normalized;
+        // Configure Rigidbody for smooth motion
+        rb.interpolation = RigidbodyInterpolation2D.Interpolate;
     }
 
     public void Setup(float damageAmount)
     {
-        // --- AUTOMATIC FIND LOGIC ---
+        // Find and parent to Canvas
         GameObject canvasGO = GameObject.Find("DmgNumbersCanvas");
-
         if (canvasGO != null)
         {
-            // Parent it to the canvas but KEEP the world position
-            transform.SetParent(canvasGO.transform, worldPositionStays: true);
-        }
-        else
-        {
-            Debug.LogError("Could not find 'DmgNumbersCanvas' in the scene! Make sure the name matches exactly.");
+            transform.SetParent(canvasGO.transform, true);
+
+            // Fix scale issues often caused by UI parenting
+            if (transform.localScale.magnitude < 0.1f)
+            {
+                transform.localScale = Vector3.one;
+            }
         }
 
         if (textMesh != null)
@@ -44,19 +54,41 @@ public class DamageNumber : MonoBehaviour
             textMesh.text = Mathf.RoundToInt(damageAmount).ToString();
         }
 
+        // --- PHYSICS BOUNCE LOGIC ---
+        // Create a random upward arc
+        float randomX = Random.Range(-spreadRange, spreadRange);
+        Vector2 launchDirection = new Vector2(randomX, 1f).normalized;
+
+        // Apply velocity once. Physics engine takes it from here!
+        rb.linearVelocity = launchDirection * moveSpeed;
+
+        Invoke(nameof(ReportDestruction), lifeTime);
         Destroy(gameObject, lifeTime);
     }
 
     void Update()
     {
-        // Move in world space
-        transform.position += moveDirection * moveSpeed * Time.deltaTime;
-
-        // Fade out logic
+        // Fade out logic remains in Update for smoothness
         if (textMesh != null)
         {
             textColor.a -= (1f / lifeTime) * Time.deltaTime;
             textMesh.color = textColor;
         }
+    }
+
+    void LateUpdate()
+    {
+        // Billboarding moved to LateUpdate to prevent jitter 
+        // if the camera is moving or following a target.
+        if (mainCam != null)
+        {
+            transform.LookAt(transform.position + mainCam.transform.rotation * Vector3.forward,
+                             mainCam.transform.rotation * Vector3.up);
+        }
+    }
+
+    private void ReportDestruction()
+    {
+        Debug.Log($"<color=white>[DamageNumber]</color> Lifetime expired: {gameObject.name}");
     }
 }

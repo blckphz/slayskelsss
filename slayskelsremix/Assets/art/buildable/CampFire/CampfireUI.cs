@@ -9,6 +9,8 @@ public class CampfireUI : MonoBehaviour
     [SerializeField] private GameObject uiBackground;
     [SerializeField] private CampfireSlotUI slotScript;
 
+    // We expose this so CampfireBehav can check: if (CampfireUI.Instance.CurrentCampfire == this)
+    public CampfireBehav CurrentCampfire => currentCampfire;
     private CampfireBehav currentCampfire;
 
     private void Awake()
@@ -21,7 +23,6 @@ public class CampfireUI : MonoBehaviour
 
         Instance = this;
 
-
         SafeSetActive(uiPanel, false, "uiPanel (Awake)");
         SafeSetActive(uiBackground, false, "uiBackground (Awake)");
     }
@@ -31,23 +32,21 @@ public class CampfireUI : MonoBehaviour
         if (Instance == this)
         {
             Instance = null;
-            Debug.Log("[CampfireUI] OnDestroy - Instance cleared");
         }
     }
 
-    // ---------------------------------------------------
-    // OPEN
-    // ---------------------------------------------------
+    // This is the method called by CampfireBehav whenever fuel ticks down
+    public void RefreshUI()
+    {
+        if (uiPanel.activeSelf && slotScript != null)
+        {
+            slotScript.UpdateUI();
+        }
+    }
+
     public void OpenCampfire(CampfireBehav campfire)
     {
-        Debug.Log("[CampfireUI] OpenCampfire called");
-
-        if (!ValidateReferences()) return;
-
-        if (!campfire)
-        {
-            return;
-        }
+        if (!ValidateReferences() || !campfire) return;
 
         currentCampfire = campfire;
 
@@ -57,22 +56,12 @@ public class CampfireUI : MonoBehaviour
         if (slotScript)
         {
             slotScript.campfire = campfire;
-
             slotScript.UpdateUI();
         }
-        else
-        {
-            Debug.LogWarning("[CampfireUI] slotScript missing!");
-        }
-
     }
 
-    // ---------------------------------------------------
-    // CLOSE
-    // ---------------------------------------------------
     public void CloseCampfire()
     {
-
         SafeSetActive(uiPanel, false, "uiPanel (Close)");
         SafeSetActive(uiBackground, false, "uiBackground (Close)");
 
@@ -83,15 +72,10 @@ public class CampfireUI : MonoBehaviour
             slotScript.ResetSlot();
             slotScript.campfire = null;
         }
-
     }
 
-    // ---------------------------------------------------
-    // OUT OF RANGE
-    // ---------------------------------------------------
     public void HideDueToRangeExit()
     {
-
         SafeSetActive(uiPanel, false, "uiPanel (RangeExit)");
         SafeSetActive(uiBackground, false, "uiBackground (RangeExit)");
 
@@ -103,44 +87,19 @@ public class CampfireUI : MonoBehaviour
         currentCampfire = null;
     }
 
-    // ---------------------------------------------------
-    // VALIDATION
-    // ---------------------------------------------------
     private bool ValidateReferences()
     {
-        if (!this)
+        if (!this || !uiPanel || !slotScript)
         {
-            Debug.LogWarning("[CampfireUI] Object is destroyed");
+            Debug.LogError("[CampfireUI] Missing critical references!");
             return false;
         }
-
-        if (!uiPanel)
-        {
-            Debug.LogError("[CampfireUI] uiPanel is NULL or DESTROYED");
-            return false;
-        }
-
-        if (!slotScript)
-        {
-            Debug.LogError("[CampfireUI] slotScript is NULL or DESTROYED");
-            return false;
-        }
-
         return true;
     }
 
-    // ---------------------------------------------------
-    // SAFE SET ACTIVE
-    // ---------------------------------------------------
     private void SafeSetActive(GameObject obj, bool state, string context)
     {
-        if (!obj)
-        {
-            Debug.LogWarning($"[CampfireUI] Tried SetActive on NULL: {context}");
-            return;
-        }
-
+        if (!obj) return;
         obj.SetActive(state);
-        Debug.Log($"[CampfireUI] {context} -> SetActive({state})");
     }
 }

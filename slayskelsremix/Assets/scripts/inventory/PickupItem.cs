@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public class PickupItem : MonoBehaviour, IInteractable
+public class PickupItem : MonoBehaviour 
 {
     [Header("Item Settings")]
     [SerializeField] private ItemData woodData;
