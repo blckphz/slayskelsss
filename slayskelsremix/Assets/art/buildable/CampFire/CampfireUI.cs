@@ -9,7 +9,9 @@ public class CampfireUI : MonoBehaviour
     [SerializeField] private GameObject uiBackground;
     [SerializeField] private CampfireSlotUI slotScript;
 
-    // We expose this so CampfireBehav can check: if (CampfireUI.Instance.CurrentCampfire == this)
+    [Header("Inventory Integration")]
+    [SerializeField] private invUIToggle inventorySystem;
+
     public CampfireBehav CurrentCampfire => currentCampfire;
     private CampfireBehav currentCampfire;
 
@@ -20,38 +22,50 @@ public class CampfireUI : MonoBehaviour
             Destroy(gameObject);
             return;
         }
-
         Instance = this;
 
-        SafeSetActive(uiPanel, false, "uiPanel (Awake)");
-        SafeSetActive(uiBackground, false, "uiBackground (Awake)");
+        if (inventorySystem == null)
+            inventorySystem = Object.FindFirstObjectByType<invUIToggle>();
+
+        SafeSetActive(uiPanel, false);
+        SafeSetActive(uiBackground, false);
     }
 
-    private void OnDestroy()
-    {
-        if (Instance == this)
-        {
-            Instance = null;
-        }
-    }
-
-    // This is the method called by CampfireBehav whenever fuel ticks down
     public void RefreshUI()
     {
-        if (uiPanel.activeSelf && slotScript != null)
+        if (uiPanel != null && uiPanel.activeSelf && slotScript != null)
         {
             slotScript.UpdateUI();
         }
     }
 
+    // This is the method called by the 'E' interaction
     public void OpenCampfire(CampfireBehav campfire)
     {
-        if (!ValidateReferences() || !campfire) return;
+        if (!campfire) return;
 
+        // CHECK: If the panel is ALREADY open...
+        if (uiPanel != null && uiPanel.activeSelf)
+        {
+            // ...and it's the SAME campfire, close everything and stop.
+            if (currentCampfire == campfire)
+            {
+                CloseCampfire();
+                return;
+            }
+            // If it's a DIFFERENT campfire, we just switch the reference (rare case)
+        }
+
+        // Otherwise, open it up
         currentCampfire = campfire;
 
-        SafeSetActive(uiPanel, true, "uiPanel (Open)");
-        SafeSetActive(uiBackground, true, "uiBackground (Open)");
+        SafeSetActive(uiPanel, true);
+        SafeSetActive(uiBackground, true);
+
+        if (inventorySystem != null)
+        {
+            inventorySystem.ForceOpenInventory();
+        }
 
         if (slotScript)
         {
@@ -62,8 +76,13 @@ public class CampfireUI : MonoBehaviour
 
     public void CloseCampfire()
     {
-        SafeSetActive(uiPanel, false, "uiPanel (Close)");
-        SafeSetActive(uiBackground, false, "uiBackground (Close)");
+        SafeSetActive(uiPanel, false);
+        SafeSetActive(uiBackground, false);
+
+        if (inventorySystem != null)
+        {
+            inventorySystem.ForceCloseInventory();
+        }
 
         currentCampfire = null;
 
@@ -76,30 +95,16 @@ public class CampfireUI : MonoBehaviour
 
     public void HideDueToRangeExit()
     {
-        SafeSetActive(uiPanel, false, "uiPanel (RangeExit)");
-        SafeSetActive(uiBackground, false, "uiBackground (RangeExit)");
-
-        if (slotScript)
-        {
-            slotScript.HideOutsideRange();
-        }
-
-        currentCampfire = null;
+        CloseCampfire();
     }
 
     private bool ValidateReferences()
     {
-        if (!this || !uiPanel || !slotScript)
-        {
-            Debug.LogError("[CampfireUI] Missing critical references!");
-            return false;
-        }
-        return true;
+        return uiPanel != null && slotScript != null;
     }
 
-    private void SafeSetActive(GameObject obj, bool state, string context)
+    private void SafeSetActive(GameObject obj, bool state)
     {
-        if (!obj) return;
-        obj.SetActive(state);
+        if (obj != null) obj.SetActive(state);
     }
 }

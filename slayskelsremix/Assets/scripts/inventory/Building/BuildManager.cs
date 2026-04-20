@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.EventSystems;
+using Pathfinding; // Required for A* Pathfinding updates
+using System.Collections; // Required for Coroutines
 
 public class BuildManager : MonoBehaviour
 {
@@ -18,15 +20,32 @@ public class BuildManager : MonoBehaviour
     public float destroyInterval = 0.05f;
 
     private float destroyCooldown;
-
     private GameObject previewObject;
     private buildSO currentItem;
     private bool isPlacing = false;
 
+    private void Start()
+    {
+        // We wait a frame or two to ensure buildings loaded from a Save Manager 
+        // have been fully instantiated before we scan the graph.
+        StartCoroutine(InitialGraphScan());
+    }
+
+    private IEnumerator InitialGraphScan()
+    {
+        // Wait until the end of the frame or a fixed delay to let physics/saving catch up
+        yield return new WaitForEndOfFrame();
+
+        if (AstarPath.active != null)
+        {
+            Debug.Log("BuildManager: Scanning A* Graph on Start.");
+            AstarPath.active.Scan();
+        }
+    }
+
     void Update()
     {
         CheckHotbarSelection();
-
         HandleDestruction();
 
         if (!isPlacing || currentItem == null || previewObject == null)
@@ -146,6 +165,9 @@ public class BuildManager : MonoBehaviour
                                  obj.AddComponent<BuildIdentity>();
         identity.item = currentItem;
 
+        // Pathfinding: Update the graph at the new object's position
+        UpdateAstarGraph(obj.GetComponent<Collider2D>().bounds);
+
         BuildingSaveManager.Instance?.RegisterBuilding(obj);
         BuildingSaveManager.Instance?.SaveNow();
 
@@ -170,7 +192,6 @@ public class BuildManager : MonoBehaviour
             float camDist = Mathf.Abs(playerCamera.transform.position.z);
             Vector3 worldPos = playerCamera.ScreenToWorldPoint(new Vector3(mousePos.x, mousePos.y, camDist));
 
-            // Use a small circle to make "painting" over objects easier
             Collider2D hit = Physics2D.OverlapCircle(worldPos, 0.1f, destroyMask);
 
             if (hit != null)
@@ -185,7 +206,9 @@ public class BuildManager : MonoBehaviour
     {
         if (obj == null) return;
 
-        // Check if it's a campfire to refund extra fuel? (Optional)
+        // Pathfinding: Get bounds before destruction
+        Bounds areaToUpdate = obj.GetComponent<Collider2D>().bounds;
+
         CampfireBehav cf = obj.GetComponent<CampfireBehav>();
         if (cf != null && cf.fuelAmount >= 1 && inventory != null)
         {
@@ -199,9 +222,22 @@ public class BuildManager : MonoBehaviour
         }
 
         BuildingSaveManager.Instance?.UnregisterBuilding(obj);
-        BuildingSaveManager.Instance?.SaveNow(); // Removes from JSON
+        BuildingSaveManager.Instance?.SaveNow();
 
         Destroy(obj);
+
+        // Pathfinding: Update the graph after destruction
+        UpdateAstarGraph(areaToUpdate);
+    }
+
+    private void UpdateAstarGraph(Bounds bounds)
+    {
+        if (AstarPath.active != null)
+        {
+            GraphUpdateObject guo = new GraphUpdateObject(bounds);
+            guo.updatePhysics = true;
+            AstarPath.active.UpdateGraphs(guo);
+        }
     }
 
     private void Cancel()

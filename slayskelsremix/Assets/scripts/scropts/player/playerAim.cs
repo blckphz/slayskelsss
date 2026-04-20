@@ -29,6 +29,7 @@ public class PlayerAim : MonoBehaviour
     private Camera cam;
     private Transform lockedEnemy;
     private bool isLockedOn = false;
+    private bool isInventoryOpen = false; // Tracks if UI is active
 
     private void Awake()
     {
@@ -45,7 +46,6 @@ public class PlayerAim : MonoBehaviour
             lockOnAction.action.Enable();
         }
 
-        // Ensure look action is enabled
         if (lookAction != null) lookAction.action.Enable();
     }
 
@@ -58,8 +58,19 @@ public class PlayerAim : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Called by the Inventory script to center the camera on the player.
+    /// </summary>
+    public void SetInventoryState(bool isOpen)
+    {
+        isInventoryOpen = isOpen;
+    }
+
     private void OnLockOnPressed(InputAction.CallbackContext context)
     {
+        // Disable lock-on toggling while in inventory
+        if (isInventoryOpen) return;
+
         if (isLockedOn)
         {
             isLockedOn = false;
@@ -77,7 +88,6 @@ public class PlayerAim : MonoBehaviour
 
     private Transform FindClosestEnemy()
     {
-        // Using FindObjectsByType for modern Unity versions
         enemyHealth[] enemies = Object.FindObjectsByType<enemyHealth>(FindObjectsSortMode.None);
         Transform closest = null;
         float minDist = lockOnRadius;
@@ -96,9 +106,7 @@ public class PlayerAim : MonoBehaviour
 
     void LateUpdate()
     {
-        // CRITICAL CHECK: If the UI is open and the Action Map is switched, 
-        // the lookAction will be disabled. We stop here to prevent "blocking" logic.
-        if (player == null || cam == null || lookAction == null || !lookAction.action.enabled)
+        if (player == null || cam == null || lookAction == null)
             return;
 
         // 1. GET RAW INPUT POSITION
@@ -124,7 +132,12 @@ public class PlayerAim : MonoBehaviour
         {
             Vector3 targetPos;
 
-            if (isLockedOn && lockedEnemy != null)
+            // NEW: If inventory is open, target is always the player
+            if (isInventoryOpen)
+            {
+                targetPos = player.position;
+            }
+            else if (isLockedOn && lockedEnemy != null)
             {
                 targetPos = lockedEnemy.position;
 
@@ -144,6 +157,7 @@ public class PlayerAim : MonoBehaviour
                 targetPos = player.position + anchorDir;
             }
 
+            // Move the anchor smoothly toward the target (Player or Aim point)
             anchor.position = Vector3.Lerp(anchor.position, targetPos, anchorSmooth * Time.deltaTime);
         }
 
@@ -152,7 +166,9 @@ public class PlayerAim : MonoBehaviour
         {
             spotlight.transform.position = player.position;
 
-            Vector3 lookDir = isLockedOn && lockedEnemy != null ? (lockedEnemy.position - player.position) : fullDir;
+            // If inventory is open, we might want the light to just freeze or look forward
+            // Otherwise, follow the aim/enemy
+            Vector3 lookDir = (isLockedOn && lockedEnemy != null) ? (lockedEnemy.position - player.position) : fullDir;
 
             float angle = Mathf.Atan2(lookDir.y, lookDir.x) * Mathf.Rad2Deg;
             spotlight.transform.rotation = Quaternion.Euler(0, 0, angle + rotationOffset);

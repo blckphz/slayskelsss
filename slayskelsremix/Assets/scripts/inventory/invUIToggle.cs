@@ -1,13 +1,13 @@
 using UnityEngine;
-using UnityEngine.InputSystem; // Essential: You need this namespace!
+using UnityEngine.InputSystem;
 
 public class invUIToggle : MonoBehaviour
 {
-    [SerializeField] private GameObject inventoryPanel;
+    public GameObject inventoryPanel;
+    [SerializeField] private PlayerAim playerAimScript;
 
     void Update()
     {
-        // Checks if the 'I' key was pressed this frame
         if (Keyboard.current.iKey.wasPressedThisFrame)
         {
             ToggleInventory();
@@ -18,9 +18,31 @@ public class invUIToggle : MonoBehaviour
     {
         if (inventoryPanel != null)
         {
-            // Sets the active state to the opposite of what it currently is
-            bool isActive = inventoryPanel.activeSelf;
-            inventoryPanel.SetActive(!isActive);
+            SetState(!inventoryPanel.activeSelf);
+        }
+    }
+
+    public void ForceOpenInventory()
+    {
+        SetState(true);
+    }
+
+    public void ForceCloseInventory()
+    {
+        SetState(false);
+    }
+
+    private void SetState(bool isOpen)
+    {
+        if (inventoryPanel != null)
+        {
+            inventoryPanel.SetActive(isOpen);
+
+            // Sync with PlayerAim to move camera to player or back to cursor
+            if (playerAimScript != null)
+            {
+                playerAimScript.SetInventoryState(isOpen);
+            }
         }
     }
 }
