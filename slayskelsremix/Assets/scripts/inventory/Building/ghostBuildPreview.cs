@@ -8,23 +8,36 @@ public class ghostBuildPreview : MonoBehaviour
     {
         Debug.Log($"<color=cyan>[Ghost]</color> Initializing {gameObject.name}...");
 
-        // 1. Disable all scripts (CampfireBehav, FenceBehav, objectHealth, etc.)
+        // 1. Disable all scripts
         MonoBehaviour[] scripts = GetComponentsInChildren<MonoBehaviour>();
         foreach (var s in scripts)
         {
-            if (s != this) s.enabled = false;
+            // Check if s is null AND check if it's NOT this script
+            if (s != null && s != this)
+            {
+                s.enabled = false;
+            }
         }
 
-        // 2. Kill colliders/triggers so it doesn't block the mouse or hit the player
+        // 2. Kill colliders/triggers
         Collider2D[] colliders = GetComponentsInChildren<Collider2D>();
-        foreach (var c in colliders) c.enabled = false;
+        foreach (var c in colliders)
+        {
+            if (c != null) c.enabled = false;
+        }
 
         // 3. Setup Renderers
         renderers = GetComponentsInChildren<SpriteRenderer>();
-        if (renderers.Length == 0)
-            Debug.LogError($"<color=red>[Ghost]</color> No SpriteRenderers found on {gameObject.name}!");
 
-        SetColor(Color.white); // Initial tint
+        // Safety check for empty renderers array
+        if (renderers == null || renderers.Length == 0)
+        {
+            Debug.LogError($"<color=red>[Ghost]</color> No SpriteRenderers found on {gameObject.name}!");
+        }
+        else
+        {
+            SetColor(Color.white);
+        }
     }
 
     public void SetColor(Color color)

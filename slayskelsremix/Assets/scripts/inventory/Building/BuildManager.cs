@@ -1,8 +1,8 @@
 ﻿using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.EventSystems;
-using Pathfinding; // Required for A* Pathfinding updates
-using System.Collections; // Required for Coroutines
+using Pathfinding;
+using System.Collections;
 
 public class BuildManager : MonoBehaviour
 {
@@ -26,14 +26,11 @@ public class BuildManager : MonoBehaviour
 
     private void Start()
     {
-        // We wait a frame or two to ensure buildings loaded from a Save Manager 
-        // have been fully instantiated before we scan the graph.
         StartCoroutine(InitialGraphScan());
     }
 
     private IEnumerator InitialGraphScan()
     {
-        // Wait until the end of the frame or a fixed delay to let physics/saving catch up
         yield return new WaitForEndOfFrame();
 
         if (AstarPath.active != null)
@@ -165,7 +162,6 @@ public class BuildManager : MonoBehaviour
                                  obj.AddComponent<BuildIdentity>();
         identity.item = currentItem;
 
-        // Pathfinding: Update the graph at the new object's position
         UpdateAstarGraph(obj.GetComponent<Collider2D>().bounds);
 
         BuildingSaveManager.Instance?.RegisterBuilding(obj);
@@ -206,7 +202,14 @@ public class BuildManager : MonoBehaviour
     {
         if (obj == null) return;
 
-        // Pathfinding: Get bounds before destruction
+        // 🔹 BLOCK DESTRUCTION IF CHEST IS NOT EMPTY
+        ChestInventory chest = obj.GetComponent<ChestInventory>();
+        if (chest != null && !chest.IsEmpty())
+        {
+            Debug.Log("Cannot destroy: Chest contains items!");
+            return;
+        }
+
         Bounds areaToUpdate = obj.GetComponent<Collider2D>().bounds;
 
         CampfireBehav cf = obj.GetComponent<CampfireBehav>();
@@ -226,7 +229,6 @@ public class BuildManager : MonoBehaviour
 
         Destroy(obj);
 
-        // Pathfinding: Update the graph after destruction
         UpdateAstarGraph(areaToUpdate);
     }
 

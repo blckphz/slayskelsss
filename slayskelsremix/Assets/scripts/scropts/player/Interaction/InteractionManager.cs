@@ -8,7 +8,7 @@ public class InteractionManager : MonoBehaviour
 
     private Camera mainCam;
 
-    private objectHealth currentHover;
+    private GameObject currentHoverObj; // Track the GameObject instead of just objectHealth
     private SpriteRenderer currentRenderer;
     private Color originalColor;
 
@@ -26,31 +26,27 @@ public class InteractionManager : MonoBehaviour
     private Vector2 GetMouseWorldPos()
     {
         Vector2 mousePos = Mouse.current.position.ReadValue();
-
         Vector3 world = mainCam.ScreenToWorldPoint(
             new Vector3(mousePos.x, mousePos.y, Mathf.Abs(mainCam.transform.position.z))
         );
-
         return new Vector2(world.x, world.y);
     }
 
     private void HandleHover()
     {
         Vector2 point = GetMouseWorldPos();
-
         Collider2D hit = Physics2D.OverlapPoint(point, interactLayer);
 
         if (hit != null)
         {
-            objectHealth newHover = hit.GetComponent<objectHealth>();
-
-            if (newHover != currentHover)
+            if (hit.gameObject != currentHoverObj)
             {
                 ClearHighlight();
 
-                if (newHover != null)
+                // Highlight if it has objectHealth OR ChestInventory
+                if (hit.GetComponent<objectHealth>() != null || hit.GetComponent<ChestInventory>() != null)
                 {
-                    currentHover = newHover;
+                    currentHoverObj = hit.gameObject;
                     currentRenderer = hit.GetComponent<SpriteRenderer>();
 
                     if (currentRenderer != null)
@@ -73,16 +69,24 @@ public class InteractionManager : MonoBehaviour
             return;
 
         Vector2 point = GetMouseWorldPos();
-
         Collider2D hit = Physics2D.OverlapPoint(point, interactLayer);
 
         if (hit != null)
         {
-            objectHealth obj = hit.GetComponent<objectHealth>();
+            objectHealth health = hit.GetComponent<objectHealth>();
+            ChestInventory chest = hit.GetComponent<ChestInventory>();
 
-            if (obj != null && obj.IsPlayerInRange())
+            // If it has health and is in range
+            if (health != null && health.IsPlayerInRange())
             {
-                obj.Deconstruct();
+                // Extra check here for immediate feedback
+                if (chest != null && !chest.IsEmpty())
+                {
+                    Debug.Log("InteractionManager: Chest must be empty to pick up!");
+                    return;
+                }
+
+                health.Deconstruct();
             }
         }
     }
@@ -94,7 +98,7 @@ public class InteractionManager : MonoBehaviour
             currentRenderer.color = originalColor;
         }
 
-        currentHover = null;
+        currentHoverObj = null;
         currentRenderer = null;
     }
 }

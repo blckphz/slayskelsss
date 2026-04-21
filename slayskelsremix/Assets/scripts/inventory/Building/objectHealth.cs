@@ -20,11 +20,9 @@ public class objectHealth : MonoBehaviour
             player = playerObj.transform;
     }
 
-    // ✅ DAMAGE SYSTEM (KEPT)
     public void TakeDamage(float amount)
     {
         currentHealth -= amount;
-
         Debug.Log($"{gameObject.name} took {amount} damage. HP: {currentHealth}");
 
         if (currentHealth <= 0f)
@@ -36,13 +34,22 @@ public class objectHealth : MonoBehaviour
     public bool IsPlayerInRange()
     {
         if (player == null) return true;
-
         return Vector2.Distance(transform.position, player.position) <= interactionRange;
     }
 
-    // ✅ RIGHT CLICK ACTION (PICKUP)
+    // ✅ UPDATED DECONSTRUCT (WITH CHEST CHECK)
     public void Deconstruct()
     {
+        // 1. Check if this is a chest and if it's empty
+        ChestInventory chest = GetComponent<ChestInventory>();
+        if (chest != null && !chest.IsEmpty())
+        {
+            Debug.LogWarning($"Cannot pick up {gameObject.name}: Chest is not empty!");
+            // Optional: Trigger a UI shake or message here
+            return;
+        }
+
+        // 2. Normal Deconstruction Logic
         BuildIdentity identity = GetComponent<BuildIdentity>();
 
         if (identity == null || identity.item == null)

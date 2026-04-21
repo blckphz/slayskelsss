@@ -30,7 +30,6 @@ public class ChestInventory : MonoBehaviour, IInteractable
 
     public void Interact(InventoryManager playerInventory)
     {
-        // Toggle Logic: If it's already open, close it. Otherwise, open it.
         if (ChestUI.Instance != null && ChestUI.Instance.GetCurrentChest() == this)
         {
             CloseChest();
@@ -67,6 +66,12 @@ public class ChestInventory : MonoBehaviour, IInteractable
     {
         SaveChest();
         ChestUI.Instance?.Close();
+    }
+
+    public bool IsEmpty()
+    {
+        // Returns true if the list is empty or all slots are null
+        return chestItems == null || chestItems.Count == 0;
     }
 
     public bool AddItem(ItemData item, int amount)
