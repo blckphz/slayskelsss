@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-[CreateAssetMenu(menuName = "Inventory/Item")]
+
 public class ItemData : ScriptableObject
 {
     public int itemID;
@@ -11,8 +11,7 @@ public class ItemData : ScriptableObject
     public ItemType itemType;
     public int maxStackSize = 99;
 
-    [Header("Consumable Settings")]
-    public int healAmount;
+   
 
     // 🔥 MODULAR: Every item can now be "Used"
     // We pass caster and anchor so the item knows WHERE to spawn/effect

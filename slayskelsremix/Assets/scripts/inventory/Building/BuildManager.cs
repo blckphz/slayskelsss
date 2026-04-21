@@ -17,6 +17,7 @@ public class BuildManager : MonoBehaviour
 
     [Header("Destruction")]
     public LayerMask destroyMask;
+    public LayerMask largeStructureLayer;
     public float destroyInterval = 0.05f;
 
     private float destroyCooldown;
@@ -32,12 +33,7 @@ public class BuildManager : MonoBehaviour
     private IEnumerator InitialGraphScan()
     {
         yield return new WaitForEndOfFrame();
-
-        if (AstarPath.active != null)
-        {
-            Debug.Log("BuildManager: Scanning A* Graph on Start.");
-            AstarPath.active.Scan();
-        }
+        if (AstarPath.active != null) AstarPath.active.Scan();
     }
 
     void Update()
@@ -50,14 +46,10 @@ public class BuildManager : MonoBehaviour
 
         MovePreview();
 
-        bool isOverUI = EventSystem.current != null &&
-                        EventSystem.current.IsPointerOverGameObject();
-
+        bool isOverUI = EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
         UpdatePreviewVisuals(isOverUI);
 
-        if (!isOverUI &&
-            PlayerInputHandler.Instance != null &&
-            PlayerInputHandler.Instance.LeftClickPressed())
+        if (!isOverUI && PlayerInputHandler.Instance != null && PlayerInputHandler.Instance.LeftClickPressed())
         {
             TryPlace();
         }
@@ -66,15 +58,12 @@ public class BuildManager : MonoBehaviour
     private void CheckHotbarSelection()
     {
         if (PlayerHotbarManager.Instance == null) return;
-
         ItemData selectedItem = PlayerHotbarManager.Instance.GetSelectedItem();
 
         if (selectedItem is buildSO buildItem)
         {
             if (currentItem == null || currentItem.itemName != buildItem.itemName)
-            {
                 StartPlacing(buildItem);
-            }
         }
         else if (isPlacing)
         {
@@ -85,17 +74,16 @@ public class BuildManager : MonoBehaviour
     public void StartPlacing(buildSO item)
     {
         Cancel();
-
         if (item == null || item.placeablePrefab == null) return;
 
         currentItem = item;
         isPlacing = true;
-
         previewObject = Instantiate(item.placeablePrefab);
 
         ghostBuildPreview ghost = previewObject.GetComponent<ghostBuildPreview>();
         if (ghost != null)
         {
+            ghost.placementMask = placementMask; // Assign the mask
             ghost.InitializeGhost();
         }
     }
@@ -108,7 +96,6 @@ public class BuildManager : MonoBehaviour
 
         float snapX = Mathf.Round(worldPos.x / gridSize) * gridSize;
         float snapY = Mathf.Round(worldPos.y / gridSize) * gridSize;
-
         previewObject.transform.position = new Vector3(snapX, snapY, 0f);
     }
 
@@ -131,64 +118,59 @@ public class BuildManager : MonoBehaviour
     {
         if (previewObject == null) return false;
 
-        if (radiusController != null &&
-            !radiusController.IsWithinRadius(previewObject.transform.position))
+        // 1. Radius Check
+        if (radiusController != null && !radiusController.IsWithinRadius(previewObject.transform.position))
             return false;
 
-        Collider2D col = previewObject.GetComponent<Collider2D>();
-        if (col == null) return true;
+        // 2. Body Overlap Check
+        ghostBuildPreview ghost = previewObject.GetComponent<ghostBuildPreview>();
+        if (ghost != null && ghost.IsBlocked())
+        {
+            return false; // The ghost's body is hitting something on the placementMask
+        }
 
-        Collider2D hit = Physics2D.OverlapBox(
-            col.bounds.center,
-            col.bounds.size * 0.9f,
-            0f,
-            placementMask
-        );
-
-        return hit == null;
+        return true;
     }
 
     public void TryPlace()
     {
         if (previewObject == null || !CanPlace()) return;
 
-        GameObject obj = Instantiate(
-            currentItem.placeablePrefab,
-            previewObject.transform.position,
-            Quaternion.identity
-        );
+        GameObject obj = Instantiate(currentItem.placeablePrefab, previewObject.transform.position, Quaternion.identity);
 
-        BuildIdentity identity = obj.GetComponent<BuildIdentity>() ??
-                                 obj.AddComponent<BuildIdentity>();
+        BuildIdentity identity = obj.GetComponent<BuildIdentity>() ?? obj.AddComponent<BuildIdentity>();
         identity.item = currentItem;
 
-        UpdateAstarGraph(obj.GetComponent<Collider2D>().bounds);
+        if (QuestManager.Instance != null) QuestManager.Instance.OnBuildingPlaced(currentItem);
 
+        UpdateAstarGraph(obj.GetComponent<Collider2D>().bounds);
         BuildingSaveManager.Instance?.RegisterBuilding(obj);
         BuildingSaveManager.Instance?.SaveNow();
-
         PlayerHotbarManager.Instance.UseSelectedStack(1);
     }
 
     private void HandleDestruction()
     {
-        if (PlayerInputHandler.Instance == null) return;
-
-        if (!PlayerInputHandler.Instance.RightClickHeld())
+        if (PlayerInputHandler.Instance == null || !PlayerInputHandler.Instance.RightClickHeld())
         {
             destroyCooldown = 0f;
             return;
         }
 
         destroyCooldown -= Time.deltaTime;
-
         if (destroyCooldown <= 0f)
         {
             Vector2 mousePos = PlayerInputHandler.Instance.GetMousePosition();
-            float camDist = Mathf.Abs(playerCamera.transform.position.z);
-            Vector3 worldPos = playerCamera.ScreenToWorldPoint(new Vector3(mousePos.x, mousePos.y, camDist));
+            Vector3 worldPos = playerCamera.ScreenToWorldPoint(new Vector3(mousePos.x, mousePos.y, Mathf.Abs(playerCamera.transform.position.z)));
 
-            Collider2D hit = Physics2D.OverlapCircle(worldPos, 0.1f, destroyMask);
+            bool isShiftHeld = Keyboard.current != null && Keyboard.current.shiftKey.isPressed;
+            Collider2D hit = null;
+
+            if (isShiftHeld)
+                hit = Physics2D.OverlapPoint(worldPos, largeStructureLayer);
+
+            if (hit == null)
+                hit = Physics2D.OverlapPoint(worldPos, destroyMask & ~largeStructureLayer);
 
             if (hit != null)
             {
@@ -201,34 +183,16 @@ public class BuildManager : MonoBehaviour
     private void DestroyBuilding(GameObject obj)
     {
         if (obj == null) return;
-
-        // 🔹 BLOCK DESTRUCTION IF CHEST IS NOT EMPTY
         ChestInventory chest = obj.GetComponent<ChestInventory>();
-        if (chest != null && !chest.IsEmpty())
-        {
-            Debug.Log("Cannot destroy: Chest contains items!");
-            return;
-        }
+        if (chest != null && !chest.IsEmpty()) return;
 
         Bounds areaToUpdate = obj.GetComponent<Collider2D>().bounds;
-
-        CampfireBehav cf = obj.GetComponent<CampfireBehav>();
-        if (cf != null && cf.fuelAmount >= 1 && inventory != null)
-        {
-            inventory.AddItem(cf.fuelItem, Mathf.FloorToInt(cf.fuelAmount));
-        }
-
         BuildIdentity id = obj.GetComponent<BuildIdentity>();
-        if (id != null && id.item != null && inventory != null)
-        {
-            inventory.AddItem(id.item, 1);
-        }
+        if (id != null && id.item != null && inventory != null) inventory.AddItem(id.item, 1);
 
         BuildingSaveManager.Instance?.UnregisterBuilding(obj);
         BuildingSaveManager.Instance?.SaveNow();
-
         Destroy(obj);
-
         UpdateAstarGraph(areaToUpdate);
     }
 
@@ -244,9 +208,7 @@ public class BuildManager : MonoBehaviour
 
     private void Cancel()
     {
-        if (previewObject != null)
-            Destroy(previewObject);
-
+        if (previewObject != null) Destroy(previewObject);
         previewObject = null;
         currentItem = null;
         isPlacing = false;

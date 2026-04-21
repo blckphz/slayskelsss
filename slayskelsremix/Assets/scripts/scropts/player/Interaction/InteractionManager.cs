@@ -4,11 +4,12 @@ using UnityEngine.InputSystem;
 public class InteractionManager : MonoBehaviour
 {
     public LayerMask interactLayer;
+    [Tooltip("The layer your Tents/Houses are on.")]
+    public LayerMask largeStructureLayer;
     public Color highlightColor = Color.yellow;
 
     private Camera mainCam;
-
-    private GameObject currentHoverObj; // Track the GameObject instead of just objectHealth
+    private GameObject currentHoverObj;
     private SpriteRenderer currentRenderer;
     private Color originalColor;
 
@@ -35,19 +36,42 @@ public class InteractionManager : MonoBehaviour
     private void HandleHover()
     {
         Vector2 point = GetMouseWorldPos();
-        Collider2D hit = Physics2D.OverlapPoint(point, interactLayer);
+        bool isShiftHeld = Keyboard.current != null && Keyboard.current.shiftKey.isPressed;
 
-        if (hit != null)
+        GameObject targetObj = null;
+
+        if (isShiftHeld)
         {
-            if (hit.gameObject != currentHoverObj)
+            // Priority 1: If Shift is held, try to find a Large Structure first
+            Collider2D largeHit = Physics2D.OverlapPoint(point, largeStructureLayer);
+            if (largeHit != null)
+            {
+                targetObj = largeHit.gameObject;
+            }
+        }
+
+        // Priority 2: If no large structure found (or Shift not held), look for small items
+        if (targetObj == null)
+        {
+            // Check everything EXCEPT the large structures
+            Collider2D smallHit = Physics2D.OverlapPoint(point, interactLayer & ~largeStructureLayer);
+            if (smallHit != null)
+            {
+                targetObj = smallHit.gameObject;
+            }
+        }
+
+        // Apply highlighting logic
+        if (targetObj != null)
+        {
+            if (targetObj != currentHoverObj)
             {
                 ClearHighlight();
 
-                // Highlight if it has objectHealth OR ChestInventory
-                if (hit.GetComponent<objectHealth>() != null || hit.GetComponent<ChestInventory>() != null)
+                if (targetObj.GetComponent<objectHealth>() != null || targetObj.GetComponent<ChestInventory>() != null)
                 {
-                    currentHoverObj = hit.gameObject;
-                    currentRenderer = hit.GetComponent<SpriteRenderer>();
+                    currentHoverObj = targetObj;
+                    currentRenderer = targetObj.GetComponent<SpriteRenderer>();
 
                     if (currentRenderer != null)
                     {
@@ -69,17 +93,29 @@ public class InteractionManager : MonoBehaviour
             return;
 
         Vector2 point = GetMouseWorldPos();
-        Collider2D hit = Physics2D.OverlapPoint(point, interactLayer);
+        bool isShiftHeld = Keyboard.current != null && Keyboard.current.shiftKey.isPressed;
+
+        Collider2D hit = null;
+
+        if (isShiftHeld)
+        {
+            // Shift + Right Click = Focus on Tent
+            hit = Physics2D.OverlapPoint(point, largeStructureLayer);
+        }
+
+        // If not holding shift OR we held shift but didn't click a tent, check for small items
+        if (hit == null)
+        {
+            hit = Physics2D.OverlapPoint(point, interactLayer & ~largeStructureLayer);
+        }
 
         if (hit != null)
         {
             objectHealth health = hit.GetComponent<objectHealth>();
             ChestInventory chest = hit.GetComponent<ChestInventory>();
 
-            // If it has health and is in range
             if (health != null && health.IsPlayerInRange())
             {
-                // Extra check here for immediate feedback
                 if (chest != null && !chest.IsEmpty())
                 {
                     Debug.Log("InteractionManager: Chest must be empty to pick up!");

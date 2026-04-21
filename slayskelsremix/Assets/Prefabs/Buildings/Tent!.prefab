@@ -13,7 +13,9 @@ GameObject:
   - component: {fileID: 4604911591842154203}
   - component: {fileID: 9071838228509985084}
   - component: {fileID: 3460222472007300791}
-  m_Layer: 0
+  - component: {fileID: 326114646395407521}
+  - component: {fileID: 3264304991939650011}
+  m_Layer: 10
   m_Name: Tent!
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -107,7 +109,7 @@ BoxCollider2D:
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 4294967295
   m_ExcludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -125,7 +127,7 @@ BoxCollider2D:
     serializedVersion: 2
     m_Bits: 4294967295
   m_IsTrigger: 1
-  m_UsedByEffector: 1
+  m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 1.5939893}
@@ -152,7 +154,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 63cfe8a5307f271439d2215d15a60a11, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TentBehav
-  fadedOpacity: 0.5
+  fadedOpacity: 0.283
   fullOpacity: 1
 --- !u!114 &3460222472007300791
 MonoBehaviour:
@@ -166,6 +168,34 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: adc99a8c95fe02147bf6f0b44179a0a0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ghostBuildPreview
+--- !u!114 &326114646395407521
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 713142446651820219}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 480bf6f5b63fd37448bfb150bbe29e4f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::objectHealth
+  maxHealth: 50
+  interactionRange: 3
+--- !u!114 &3264304991939650011
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 713142446651820219}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: de912e1aea8edeb4fb61180ff9475330, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::BuildIdentity
+  item: {fileID: 11400000, guid: ddafe589b041bb545bf63332c438f856, type: 2}
+  recipeUsed: {fileID: 11400000, guid: 818734075ed902347b6ae6f79334f9b1, type: 2}
 --- !u!1 &2084571467903935428
 GameObject:
   m_ObjectHideFlags: 0
@@ -176,7 +206,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3297193224714213061}
   - component: {fileID: 3594422731129994133}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: hitboxes (2)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -254,7 +284,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2666313287982167715}
   - component: {fileID: 2908364637204907544}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: hitboxes (1)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -332,7 +362,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4619146812466267667}
   - component: {fileID: 8737808973565549732}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: hitboxes (3)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -410,7 +440,7 @@ GameObject:
   m_Component:
   - component: {fileID: 8580255211155144667}
   - component: {fileID: 2685516659190405629}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: hitboxes (4)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -488,7 +518,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2222618883917578333}
   - component: {fileID: 1772349024870313320}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: hitboxes
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -565,7 +595,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 9106573253879585092}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Hitboxes
   m_TagString: Untagged
   m_Icon: {fileID: 0}

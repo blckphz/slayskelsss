@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-[CreateAssetMenu(menuName = "Inventory/Items/Useable Item")]
+[CreateAssetMenu(menuName = "Inventory/Useable Item")]
 public class UseableItem : ItemData
 {
     [Header("Ability to Trigger")]
