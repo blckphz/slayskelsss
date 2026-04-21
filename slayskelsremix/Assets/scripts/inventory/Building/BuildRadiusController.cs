@@ -4,18 +4,11 @@ public class BuildRadiusController : MonoBehaviour
 {
     [Header("References")]
     public Transform player;
-    public GameObject visualRoot;
 
     [Header("Settings")]
     public float buildRadius = 5f;
 
     private bool isActive = false;
-
-    void Start()
-    {
-        if (visualRoot != null)
-            visualRoot.SetActive(false);
-    }
 
     void Update()
     {
@@ -24,37 +17,30 @@ public class BuildRadiusController : MonoBehaviour
         {
             Toggle();
         }
-
-        if (!isActive || player == null || visualRoot == null) return;
-
-        UpdatePosition();
-        UpdateScale();
     }
 
     void Toggle()
     {
         isActive = !isActive;
-
-        if (visualRoot != null)
-            visualRoot.SetActive(isActive);
     }
 
-    void UpdatePosition()
+    // Used by BuildManager (LineRenderer circle)
+    public float GetRadius()
     {
-        visualRoot.transform.position = player.position;
+        return isActive ? buildRadius : 0f;
     }
 
-    void UpdateScale()
+    public bool IsActive()
     {
-        float diameter = buildRadius * 2f;
-        visualRoot.transform.localScale = new Vector3(diameter, diameter, 1f);
+        return isActive;
     }
 
     public bool IsWithinRadius(Vector3 position)
     {
         if (player == null) return true;
 
-        float dist = Vector2.Distance(position, player.position);
-        return dist <= buildRadius;
+        if (!isActive) return true; // optional: allow placement outside when off
+
+        return Vector2.Distance(position, player.position) <= buildRadius;
     }
 }

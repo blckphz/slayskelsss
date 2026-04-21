@@ -1,17 +1,22 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class InteractionManager : MonoBehaviour
 {
     public LayerMask interactLayer;
-    [Tooltip("The layer your Tents/Houses are on.")]
     public LayerMask largeStructureLayer;
     public Color highlightColor = Color.yellow;
 
+    [Header("Delete Settings")]
+    public float deconstructInterval = 0.05f;
+
     private Camera mainCam;
+
     private GameObject currentHoverObj;
     private SpriteRenderer currentRenderer;
     private Color originalColor;
+
+    private float deconstructCooldown;
 
     private void Awake()
     {
@@ -21,17 +26,24 @@ public class InteractionManager : MonoBehaviour
     private void Update()
     {
         HandleHover();
-        HandleRightClick();
+        HandleHoldDelete();
     }
+
+    // ---------------- MOUSE POSITION ----------------
 
     private Vector2 GetMouseWorldPos()
     {
         Vector2 mousePos = Mouse.current.position.ReadValue();
+
         Vector3 world = mainCam.ScreenToWorldPoint(
-            new Vector3(mousePos.x, mousePos.y, Mathf.Abs(mainCam.transform.position.z))
+            new Vector3(mousePos.x, mousePos.y,
+            Mathf.Abs(mainCam.transform.position.z))
         );
+
         return new Vector2(world.x, world.y);
     }
+
+    // ---------------- HOVER ----------------
 
     private void HandleHover()
     {
@@ -42,97 +54,102 @@ public class InteractionManager : MonoBehaviour
 
         if (isShiftHeld)
         {
-            // Priority 1: If Shift is held, try to find a Large Structure first
             Collider2D largeHit = Physics2D.OverlapPoint(point, largeStructureLayer);
             if (largeHit != null)
-            {
                 targetObj = largeHit.gameObject;
-            }
         }
 
-        // Priority 2: If no large structure found (or Shift not held), look for small items
         if (targetObj == null)
         {
-            // Check everything EXCEPT the large structures
             Collider2D smallHit = Physics2D.OverlapPoint(point, interactLayer & ~largeStructureLayer);
             if (smallHit != null)
-            {
                 targetObj = smallHit.gameObject;
-            }
         }
 
-        // Apply highlighting logic
-        if (targetObj != null)
+        if (targetObj != currentHoverObj)
         {
-            if (targetObj != currentHoverObj)
+            ClearHighlight();
+
+            if (targetObj != null &&
+                (targetObj.GetComponent<objectHealth>() != null ||
+                 targetObj.GetComponent<ChestInventory>() != null ||
+                 targetObj.GetComponent<BuildIdentity>() != null))
             {
-                ClearHighlight();
+                currentHoverObj = targetObj;
+                currentRenderer = targetObj.GetComponent<SpriteRenderer>();
 
-                if (targetObj.GetComponent<objectHealth>() != null || targetObj.GetComponent<ChestInventory>() != null)
+                if (currentRenderer != null)
                 {
-                    currentHoverObj = targetObj;
-                    currentRenderer = targetObj.GetComponent<SpriteRenderer>();
-
-                    if (currentRenderer != null)
-                    {
-                        originalColor = currentRenderer.color;
-                        currentRenderer.color = highlightColor;
-                    }
+                    originalColor = currentRenderer.color;
+                    currentRenderer.color = highlightColor;
                 }
             }
         }
-        else
-        {
+
+        if (targetObj == null)
             ClearHighlight();
-        }
     }
 
-    private void HandleRightClick()
+    // ---------------- HOLD DELETE SYSTEM ----------------
+
+    private void HandleHoldDelete()
     {
-        if (!Mouse.current.rightButton.wasPressedThisFrame)
+        if (!Mouse.current.rightButton.isPressed)
+        {
+            deconstructCooldown = 0f;
             return;
-
-        Vector2 point = GetMouseWorldPos();
-        bool isShiftHeld = Keyboard.current != null && Keyboard.current.shiftKey.isPressed;
-
-        Collider2D hit = null;
-
-        if (isShiftHeld)
-        {
-            // Shift + Right Click = Focus on Tent
-            hit = Physics2D.OverlapPoint(point, largeStructureLayer);
         }
 
-        // If not holding shift OR we held shift but didn't click a tent, check for small items
-        if (hit == null)
+        deconstructCooldown -= Time.deltaTime;
+        if (deconstructCooldown > 0f) return;
+
+        // 🔒 ONLY allow deleting highlighted object
+        if (currentHoverObj == null)
         {
-            hit = Physics2D.OverlapPoint(point, interactLayer & ~largeStructureLayer);
+            return;
         }
 
-        if (hit != null)
-        {
-            objectHealth health = hit.GetComponent<objectHealth>();
-            ChestInventory chest = hit.GetComponent<ChestInventory>();
+        GameObject target = currentHoverObj;
 
-            if (health != null && health.IsPlayerInRange())
+        // ---------------- BUILDING DELETE ----------------
+        BuildIdentity build = target.GetComponent<BuildIdentity>();
+
+        if (build != null && build.item != null)
+        {
+            InventoryManager.Instance.AddItem(build.item, 1);
+            Destroy(target);
+
+            deconstructCooldown = deconstructInterval;
+            return;
+        }
+
+        // ---------------- OBJECT HEALTH DELETE ----------------
+        objectHealth health = target.GetComponent<objectHealth>();
+
+        if (health != null)
+        {
+            if (health.IsPlayerInRange())
             {
+                ChestInventory chest = target.GetComponent<ChestInventory>();
+
                 if (chest != null && !chest.IsEmpty())
                 {
-                    Debug.Log("InteractionManager: Chest must be empty to pick up!");
+                    Debug.Log("Chest must be empty!");
                     return;
                 }
 
                 health.Deconstruct();
+                deconstructCooldown = deconstructInterval;
             }
         }
     }
 
+    // ---------------- CLEANUP ----------------
+
     private void ClearHighlight()
     {
         if (currentRenderer != null)
-        {
             currentRenderer.color = originalColor;
-        }
 
         currentHoverObj = null;
         currentRenderer = null;
