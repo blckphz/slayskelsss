@@ -415,6 +415,7 @@ MonoBehaviour:
   uiPanel: {fileID: 8019324148511579916}
   uiBackground: {fileID: 4742589118705326091}
   slotScript: {fileID: 8939838516255656990}
+  inventorySystem: {fileID: 0}
 --- !u!1 &7554350650681072654
 GameObject:
   m_ObjectHideFlags: 0
@@ -527,7 +528,7 @@ BoxCollider2D:
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 4294967295
   m_ExcludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -601,7 +602,7 @@ CapsuleCollider2D:
   m_Material: {fileID: 0}
   m_IncludeLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 4294967295
   m_ExcludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -637,6 +638,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: adc99a8c95fe02147bf6f0b44179a0a0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ghostBuildPreview
+  placementMask:
+    serializedVersion: 2
+    m_Bits: 256
 --- !u!114 &6255077897952755555
 MonoBehaviour:
   m_ObjectHideFlags: 0

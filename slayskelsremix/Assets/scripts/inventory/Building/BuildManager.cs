@@ -10,6 +10,7 @@ public class BuildManager : MonoBehaviour
     public Camera playerCamera;
     public Transform player;
     public LayerMask placementMask;
+    public LayerMask largeStructureLayer;
     public BuildRadiusController radiusController;
     public InventoryManager inventory;
 
@@ -20,6 +21,8 @@ public class BuildManager : MonoBehaviour
     private buildSO currentItem;
     private bool isPlacing = false;
 
+    private ghostBuildPreview ghost;
+
     private GameObject circleObj;
     private LineRenderer circleLine;
 
@@ -27,14 +30,12 @@ public class BuildManager : MonoBehaviour
 
     private void Start()
     {
-        Debug.Log("[BuildManager] Initialized");
         StartCoroutine(InitialGraphScan());
     }
 
     private IEnumerator InitialGraphScan()
     {
         yield return new WaitForEndOfFrame();
-
         if (AstarPath.active != null)
             AstarPath.active.Scan();
     }
@@ -81,8 +82,6 @@ public class BuildManager : MonoBehaviour
         }
     }
 
-    // ---------------- START / CANCEL ----------------
-
     public void StartPlacing(buildSO item)
     {
         Cancel();
@@ -96,7 +95,7 @@ public class BuildManager : MonoBehaviour
 
         CreateRadiusCircle();
 
-        ghostBuildPreview ghost = previewObject.GetComponent<ghostBuildPreview>();
+        ghost = previewObject.GetComponent<ghostBuildPreview>();
         if (ghost != null)
         {
             ghost.placementMask = placementMask;
@@ -112,12 +111,12 @@ public class BuildManager : MonoBehaviour
         previewObject = null;
         circleObj = null;
         circleLine = null;
-
         currentItem = null;
+        ghost = null;
         isPlacing = false;
     }
 
-    // ---------------- MOVE PREVIEW ----------------
+    // ---------------- PREVIEW ----------------
 
     private void MovePreview()
     {
@@ -160,6 +159,9 @@ public class BuildManager : MonoBehaviour
             Quaternion.identity
         );
 
+        // Ensure correct layer is applied AFTER placement
+        obj.layer = currentItem.placeablePrefab.layer;
+
         BuildIdentity identity = obj.GetComponent<BuildIdentity>() ??
                                  obj.AddComponent<BuildIdentity>();
 
@@ -168,57 +170,50 @@ public class BuildManager : MonoBehaviour
         PlayerHotbarManager.Instance.UseSelectedStack(1);
     }
 
-    // ---------------- 🔥 SPRITE FOOTPRINT BLOCKING (FIXED) ----------------
-
     private bool CanPlace()
     {
         if (previewObject == null) return false;
 
         Vector3 pos = previewObject.transform.position;
 
-        // 1. Radius check
+        // Radius check
         if (radiusController != null &&
             !radiusController.IsWithinRadius(pos))
-        {
-            Debug.Log("[Build] ❌ Outside radius");
             return false;
-        }
 
-        // 2. REAL FOOTPRINT CHECK (SPRITE / COLLIDER SIZE)
-        Collider2D previewCol = previewObject.GetComponent<Collider2D>();
+        if (ghost == null) return false;
 
-        if (previewCol == null)
-        {
-            Debug.LogWarning("[Build] ❌ No Collider2D on prefab!");
-            return false;
-        }
+        int itemLayer = currentItem.placeablePrefab.layer;
+        bool buildingLarge = (largeStructureLayer.value & (1 << itemLayer)) != 0;
 
-        Vector2 size = previewCol.bounds.size;
+        var obstacles = ghost.GetObstacles(); // 👈 we’ll add this
 
-        Collider2D[] hits = Physics2D.OverlapBoxAll(
-            pos,
-            size,
-            0f,
-            placementMask
-        );
-
-        Debug.Log($"[Build] Checking {pos} | Size {size} | Hits {hits.Length}");
-
-        foreach (var hit in hits)
+        foreach (var hit in obstacles)
         {
             if (hit == null) continue;
 
-            if (hit.gameObject == previewObject)
-                continue;
+            if (hit.CompareTag("Player")) continue;
 
-            if (hit.GetComponent<ghostBuildPreview>() != null)
-                continue;
+            int hitLayer = hit.gameObject.layer;
+            bool hitIsLarge = (largeStructureLayer.value & (1 << hitLayer)) != 0;
 
-            Debug.Log($"[Build] ❌ BLOCKED BY: {hit.name}");
-            return false;
+            if (!buildingLarge)
+            {
+                // SMALL ITEM
+                if (hitIsLarge)
+                    continue; // ✅ allow placing on large
+
+                // ❌ blocked by anything else
+                return false;
+            }
+            else
+            {
+                // LARGE STRUCTURE
+                if (hitIsLarge)
+                    return false; // ❌ large cannot overlap large
+            }
         }
 
-        Debug.Log("[Build] ✅ Placement allowed");
         return true;
     }
 
@@ -226,13 +221,16 @@ public class BuildManager : MonoBehaviour
 
     private void UpdatePreviewVisuals(bool blockedByUI)
     {
-        if (previewObject == null) return;
-
-        ghostBuildPreview ghost = previewObject.GetComponent<ghostBuildPreview>();
         if (ghost == null) return;
 
-        ghost.SetColor(blockedByUI ? Color.clear :
-            (CanPlace() ? Color.green : Color.red));
+        if (blockedByUI)
+        {
+            ghost.SetColor(Color.clear);
+        }
+        else
+        {
+            ghost.SetColor(CanPlace() ? Color.green : Color.red);
+        }
     }
 
     // ---------------- RADIUS ----------------
@@ -242,8 +240,8 @@ public class BuildManager : MonoBehaviour
         if (circleObj != null) return;
 
         circleObj = new GameObject("BuildRadiusCircle");
-        circleLine = circleObj.AddComponent<LineRenderer>();
 
+        circleLine = circleObj.AddComponent<LineRenderer>();
         circleLine.positionCount = CIRCLE_SEGMENTS;
         circleLine.loop = true;
         circleLine.material = new Material(Shader.Find("Sprites/Default"));
