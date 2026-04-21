@@ -53,7 +53,6 @@ public class PlayerInteraction2D : MonoBehaviour
     {
         DetectNearest();
 
-        // Manual backup for Keyboard if InputSystem reference isn't firing
         if (Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
         {
             TryInteract();
@@ -95,7 +94,6 @@ public class PlayerInteraction2D : MonoBehaviour
             }
         }
 
-        // If the nearest interactable has changed (or become null)
         if (nearest != currentInteractable)
         {
             if (currentInteractable != null)
@@ -103,11 +101,17 @@ public class PlayerInteraction2D : MonoBehaviour
                 currentInteractable.OnLoseFocus();
                 InteractionUI.Instance?.Hide();
 
-                // 🔹 AUTO-CLOSE CAMPFIRE UI ON RANGE EXIT
-                // If the thing we lost focus on was a campfire, close the specific Campfire UI
+                // 🔹 AUTO-CLOSE CAMPFIRE
                 if (currentInteractable is CampfireBehav)
                 {
                     CampfireUI.Instance?.CloseCampfire();
+                }
+
+                // 🔹 AUTO-CLOSE CHEST
+                // We check if it's a ChestInventory and close it if the player walks away
+                if (currentInteractable is ChestInventory chest)
+                {
+                    chest.CloseChest();
                 }
             }
 
@@ -118,9 +122,6 @@ public class PlayerInteraction2D : MonoBehaviour
                 currentInteractable.OnFocus();
 
                 string key = GetBoundKey();
-                string prompt = currentInteractable.GetPrompt();
-
-                // Show the floating interaction prompt (e.g., "[E] Light Campfire")
                 InteractionUI.Instance?.Show($"[{key}]");
             }
         }
@@ -141,17 +142,8 @@ public class PlayerInteraction2D : MonoBehaviour
 
     private void TryInteract()
     {
-        if (currentInteractable == null)
-        {
-            Debug.Log("[INTERACT] No interactable in range");
-            return;
-        }
-
-        if (inventory == null)
-        {
-            Debug.LogError("[INTERACT] Inventory is NULL");
-            return;
-        }
+        if (currentInteractable == null) return;
+        if (inventory == null) return;
 
         currentInteractable.Interact(inventory);
     }

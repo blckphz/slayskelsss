@@ -7,7 +7,7 @@ public class ChestSlotUI : MonoBehaviour, IPointerClickHandler, IBeginDragHandle
 {
     public Image icon;
     public TextMeshProUGUI amountText;
-    public Image dragPreviewIcon; // Assign the same global drag preview used in InventorySlotUI
+    public Image dragPreviewIcon;
 
     private ItemData currentItem;
     private int currentCount;
@@ -44,14 +44,19 @@ public class ChestSlotUI : MonoBehaviour, IPointerClickHandler, IBeginDragHandle
     public ItemData GetItem() => currentItem;
     public int GetCount() => currentCount;
 
-    // --- CLICK TO TRANSFER (Old Logic kept for convenience) ---
+    // --- CLICK TO TRANSFER (CHEST -> PLAYER) ---
     public void OnPointerClick(PointerEventData eventData)
     {
-        if (currentItem == null) return;
+        if (currentItem == null || eventData.dragging) return;
 
-        if (eventData.button == PointerEventData.InputButton.Left && !eventData.dragging)
+        // Left Click: Transfer Stack | Right Click: Transfer 1
+        if (eventData.button == PointerEventData.InputButton.Left)
         {
             TransferToPlayer(currentCount);
+        }
+        else if (eventData.button == PointerEventData.InputButton.Right)
+        {
+            TransferToPlayer(1);
         }
     }
 
@@ -60,17 +65,20 @@ public class ChestSlotUI : MonoBehaviour, IPointerClickHandler, IBeginDragHandle
         ChestInventory chest = ChestUI.Instance.GetCurrentChest();
         if (chest == null) return;
 
-        // Try to add to player first
-        InventoryManager.Instance.AddItem(currentItem, amount);
-        // Remove from chest
-        chest.RemoveItem(currentItem, amount);
+        int amountToMove = Mathf.Min(amount, currentCount);
 
+        // Add to player inventory
+        InventoryManager.Instance.AddItem(currentItem, amountToMove);
+
+        // Remove from chest inventory
+        chest.RemoveItem(currentItem, amountToMove);
+
+        // Refresh both UI panels
         ChestUI.Instance.Refresh();
-        InvUI.Instance.RefreshUI();
+        if (InvUI.Instance != null) InvUI.Instance.RefreshUI();
     }
 
     // --- DRAG AND DROP LOGIC ---
-
     public void OnBeginDrag(PointerEventData eventData)
     {
         if (currentItem == null) return;
@@ -107,25 +115,13 @@ public class ChestSlotUI : MonoBehaviour, IPointerClickHandler, IBeginDragHandle
             ChestInventory chest = ChestUI.Instance.GetCurrentChest();
             if (chest != null)
             {
-                // Add to chest
                 if (chest.AddItem(item, count))
                 {
-                    // Remove from player
                     InventoryManager.Instance.RemoveItem(item, count);
-
                     ChestUI.Instance.Refresh();
                     InvUI.Instance.RefreshUI();
                 }
             }
-            return;
-        }
-
-        // Handle Item dropped FROM another Chest Slot (Swapping/Stacking)
-        ChestSlotUI otherChestSlot = eventData.pointerDrag?.GetComponent<ChestSlotUI>();
-        if (otherChestSlot != null && otherChestSlot != this)
-        {
-            // Logic for rearranging items inside the chest could go here
-            // But usually, since chestItems is a List, Refresh() handles the order.
         }
     }
 }

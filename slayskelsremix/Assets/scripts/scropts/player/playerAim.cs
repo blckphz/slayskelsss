@@ -29,7 +29,7 @@ public class PlayerAim : MonoBehaviour
     private Camera cam;
     private Transform lockedEnemy;
     private bool isLockedOn = false;
-    private bool isInventoryOpen = false; // Tracks if UI is active
+    private bool isInventoryOpen = false;
 
     private void Awake()
     {
@@ -59,7 +59,7 @@ public class PlayerAim : MonoBehaviour
     }
 
     /// <summary>
-    /// Called by the Inventory script to center the camera on the player.
+    /// Now only tracks state. Movement logic is no longer restricted by this.
     /// </summary>
     public void SetInventoryState(bool isOpen)
     {
@@ -68,7 +68,8 @@ public class PlayerAim : MonoBehaviour
 
     private void OnLockOnPressed(InputAction.CallbackContext context)
     {
-        // Disable lock-on toggling while in inventory
+        // We still block toggling lock-on targets while in inventory 
+        // to prevent accidental targeting while clicking UI.
         if (isInventoryOpen) return;
 
         if (isLockedOn)
@@ -128,16 +129,12 @@ public class PlayerAim : MonoBehaviour
         fullDir.z = 0;
 
         // 2. ANCHOR LOGIC (Camera/Aim)
+        // This now runs normally even if isInventoryOpen is true.
         if (anchor != null)
         {
             Vector3 targetPos;
 
-            // NEW: If inventory is open, target is always the player
-            if (isInventoryOpen)
-            {
-                targetPos = player.position;
-            }
-            else if (isLockedOn && lockedEnemy != null)
+            if (isLockedOn && lockedEnemy != null)
             {
                 targetPos = lockedEnemy.position;
 
@@ -157,7 +154,7 @@ public class PlayerAim : MonoBehaviour
                 targetPos = player.position + anchorDir;
             }
 
-            // Move the anchor smoothly toward the target (Player or Aim point)
+            // Move the anchor smoothly toward the target
             anchor.position = Vector3.Lerp(anchor.position, targetPos, anchorSmooth * Time.deltaTime);
         }
 
@@ -166,8 +163,7 @@ public class PlayerAim : MonoBehaviour
         {
             spotlight.transform.position = player.position;
 
-            // If inventory is open, we might want the light to just freeze or look forward
-            // Otherwise, follow the aim/enemy
+            // Follow the aim/enemy regardless of UI state
             Vector3 lookDir = (isLockedOn && lockedEnemy != null) ? (lockedEnemy.position - player.position) : fullDir;
 
             float angle = Mathf.Atan2(lookDir.y, lookDir.x) * Mathf.Rad2Deg;

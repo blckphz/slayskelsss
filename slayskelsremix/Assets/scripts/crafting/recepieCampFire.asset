@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b8a9a032426623847a24a1e07df607e7, type: 3}
-  m_Name: CampFire
+  m_Name: recepieCampFire
   m_EditorClassIdentifier: Assembly-CSharp::CraftingSO
   resultItem: {fileID: 11400000, guid: dfd6fa04ef92e3e4bac14d8e63b25f5b, type: 2}
   resultCount: 1

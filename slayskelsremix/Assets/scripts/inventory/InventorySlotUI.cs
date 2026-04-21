@@ -16,13 +16,13 @@ public class InventorySlotUI : MonoBehaviour,
     private int currentCount;
 
     // ---------------------------------------------------
-    // INTERACTION: CLICK TO DEPOSIT
+    // INTERACTION: CLICK TO DEPOSIT (CAMPFIRE OR CHEST)
     // ---------------------------------------------------
     public void OnPointerClick(PointerEventData eventData)
     {
-        if (currentItem == null) return;
+        if (currentItem == null || eventData.dragging) return;
 
-        // Check if the Campfire Menu is currently open
+        // --- 1. HANDLE CAMPFIRE INTERACTION ---
         if (CampfireUI.Instance != null && CampfireUI.Instance.CurrentCampfire != null)
         {
             CampfireBehav activeFire = CampfireUI.Instance.CurrentCampfire;
@@ -32,12 +32,12 @@ public class InventorySlotUI : MonoBehaviour,
             {
                 int amountToDeposit = 0;
 
-                // 🔹 LEFT CLICK: Deposit 1
+                // LEFT CLICK: Deposit 1 (Standard for Campfire)
                 if (eventData.button == PointerEventData.InputButton.Left)
                 {
                     amountToDeposit = 1;
                 }
-                // 🔹 RIGHT CLICK: Deposit All
+                // RIGHT CLICK: Deposit All (Standard for Campfire)
                 else if (eventData.button == PointerEventData.InputButton.Right)
                 {
                     amountToDeposit = currentCount;
@@ -50,11 +50,40 @@ public class InventorySlotUI : MonoBehaviour,
                     if (added > 0)
                     {
                         UpdateCount(-added);
-
                         if (!activeFire.isBurning) activeFire.Ignite();
-
                         InvUI.Instance?.SyncToInventory();
+                        return; // Exit so we don't trigger chest logic
                     }
+                }
+            }
+        }
+
+        // --- 2. HANDLE CHEST INTERACTION ---
+        ChestInventory openChest = ChestUI.Instance != null ? ChestUI.Instance.GetCurrentChest() : null;
+        if (openChest != null)
+        {
+            int amountToMove = 0;
+
+            // LEFT CLICK: Transfer All
+            if (eventData.button == PointerEventData.InputButton.Left)
+            {
+                amountToMove = currentCount;
+            }
+            // RIGHT CLICK: Transfer 1
+            else if (eventData.button == PointerEventData.InputButton.Right)
+            {
+                amountToMove = 1;
+            }
+
+            if (amountToMove > 0)
+            {
+                int actualToMove = Mathf.Min(amountToMove, currentCount);
+
+                if (openChest.AddItem(currentItem, actualToMove))
+                {
+                    UpdateCount(-actualToMove);
+                    ChestUI.Instance.Refresh();
+                    InvUI.Instance?.SyncToInventory();
                 }
             }
         }
@@ -184,8 +213,11 @@ public class InventorySlotUI : MonoBehaviour,
 
             if (chest != null && item != null)
             {
+                // Remove from chest first
                 chest.RemoveItem(item, count);
+                // Then add to player manager (Standard logic)
                 InventoryManager.Instance.AddItem(item, count);
+
                 ChestUI.Instance.Refresh();
                 InvUI.Instance.RefreshUI();
             }

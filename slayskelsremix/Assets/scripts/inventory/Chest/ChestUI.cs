@@ -13,6 +13,10 @@ public class ChestUI : MonoBehaviour
     [Header("Slots")]
     public ChestSlotUI[] chestSlots;
 
+    [Header("Inventory Integration")]
+    [Tooltip("Drag the object with your invUIToggle script here.")]
+    public invUIToggle inventorySystem;
+
     private ChestInventory currentChest;
 
     private void Awake()
@@ -26,6 +30,12 @@ public class ChestUI : MonoBehaviour
         {
             Destroy(gameObject);
             return;
+        }
+
+        // Try to find inventory system if not assigned
+        if (inventorySystem == null)
+        {
+            inventorySystem = Object.FindFirstObjectByType<invUIToggle>();
         }
 
         // Ensure the UI starts hidden
@@ -48,6 +58,12 @@ public class ChestUI : MonoBehaviour
             uiVisualRoot.SetActive(true);
         }
 
+        // --- SYNC INVENTORY ---
+        if (inventorySystem != null)
+        {
+            inventorySystem.ForceOpenInventory();
+        }
+
         Refresh();
     }
 
@@ -60,6 +76,12 @@ public class ChestUI : MonoBehaviour
         {
             uiVisualRoot.SetActive(false);
         }
+
+        // --- SYNC INVENTORY ---
+        if (inventorySystem != null)
+        {
+            inventorySystem.ForceCloseInventory();
+        }
     }
 
     public ChestInventory GetCurrentChest()
@@ -69,14 +91,11 @@ public class ChestUI : MonoBehaviour
 
     /// <summary>
     /// Updates the UI slots to match the currentChest's inventory data.
-    /// Called when the chest opens, and whenever an NPC or Player adds/removes items.
     /// </summary>
     public void Refresh()
     {
         if (currentChest == null)
         {
-            // This warning is fine to ignore if we just closed the chest, 
-            // but helpful for debugging NPC interactions.
             return;
         }
 
