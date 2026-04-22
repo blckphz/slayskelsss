@@ -12,6 +12,7 @@ public class PlayerInputHandler : MonoBehaviour
     private bool leftClickPressed;
     private bool rightClickPressed;
     private bool buildModePressed;
+    private bool layerTogglePressed; // New flag
 
     private void Awake()
     {
@@ -44,9 +45,15 @@ public class PlayerInputHandler : MonoBehaviour
         {
             buildModePressed = true;
         };
+
+        // --- ADDED LAYER TOGGLE LISTENER ---
+        // Make sure "LayerToggle" matches the name in your Input Action Asset exactly
+        controls.Gameplay.LayerTogglePressed.performed += ctx =>
+        {
+            layerTogglePressed = true;
+        };
     }
 
-    // --- ADDED THIS METHOD ---
     public void ToggleInput(bool enable)
     {
         if (enable)
@@ -61,6 +68,7 @@ public class PlayerInputHandler : MonoBehaviour
         leftClickPressed = false;
         rightClickPressed = false;
         buildModePressed = false;
+        layerTogglePressed = false; // Reset the new flag
     }
 
     private void OnDisable()
@@ -75,9 +83,11 @@ public class PlayerInputHandler : MonoBehaviour
     public bool RightClickPressed() => rightClickPressed;
     public bool BuildModePressed() => buildModePressed;
 
+    // --- ADDED THIS METHOD TO FIX YOUR ERROR ---
+    public bool LayerTogglePressed() => layerTogglePressed;
+
     public bool RightClickHeld()
     {
-        // Added a null check just in case it's called while disabled
         return controls != null && controls.Gameplay.RightClick.IsPressed();
     }
 }

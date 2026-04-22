@@ -145,6 +145,15 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""LayerTogglePressed"",
+                    ""type"": ""Button"",
+                    ""id"": ""6b644b02-c3d6-426f-9bdd-965fa91a217b"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -211,6 +220,17 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""BuildMode"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""e0f6a61c-7a94-4f67-a4c6-915ad55a48c0"",
+                    ""path"": ""<Keyboard>/numpadPlus"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""LayerTogglePressed"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -403,6 +423,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         m_Gameplay_Cancel = m_Gameplay.FindAction("Cancel", throwIfNotFound: true);
         m_Gameplay_UseHotkey = m_Gameplay.FindAction("UseHotkey", throwIfNotFound: true);
         m_Gameplay_BuildMode = m_Gameplay.FindAction("BuildMode", throwIfNotFound: true);
+        m_Gameplay_LayerTogglePressed = m_Gameplay.FindAction("LayerTogglePressed", throwIfNotFound: true);
         // Player
         m_Player = asset.FindActionMap("Player", throwIfNotFound: true);
         m_Player_Hotbar = m_Player.FindAction("Hotbar", throwIfNotFound: true);
@@ -496,6 +517,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
     private readonly InputAction m_Gameplay_Cancel;
     private readonly InputAction m_Gameplay_UseHotkey;
     private readonly InputAction m_Gameplay_BuildMode;
+    private readonly InputAction m_Gameplay_LayerTogglePressed;
     /// <summary>
     /// Provides access to input actions defined in input action map "Gameplay".
     /// </summary>
@@ -531,6 +553,10 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Gameplay/BuildMode".
         /// </summary>
         public InputAction @BuildMode => m_Wrapper.m_Gameplay_BuildMode;
+        /// <summary>
+        /// Provides access to the underlying input action "Gameplay/LayerTogglePressed".
+        /// </summary>
+        public InputAction @LayerTogglePressed => m_Wrapper.m_Gameplay_LayerTogglePressed;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -575,6 +601,9 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @BuildMode.started += instance.OnBuildMode;
             @BuildMode.performed += instance.OnBuildMode;
             @BuildMode.canceled += instance.OnBuildMode;
+            @LayerTogglePressed.started += instance.OnLayerTogglePressed;
+            @LayerTogglePressed.performed += instance.OnLayerTogglePressed;
+            @LayerTogglePressed.canceled += instance.OnLayerTogglePressed;
         }
 
         /// <summary>
@@ -604,6 +633,9 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @BuildMode.started -= instance.OnBuildMode;
             @BuildMode.performed -= instance.OnBuildMode;
             @BuildMode.canceled -= instance.OnBuildMode;
+            @LayerTogglePressed.started -= instance.OnLayerTogglePressed;
+            @LayerTogglePressed.performed -= instance.OnLayerTogglePressed;
+            @LayerTogglePressed.canceled -= instance.OnLayerTogglePressed;
         }
 
         /// <summary>
@@ -815,6 +847,13 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnBuildMode(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "LayerTogglePressed" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnLayerTogglePressed(InputAction.CallbackContext context);
     }
     /// <summary>
     /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "Player" which allows adding and removing callbacks.

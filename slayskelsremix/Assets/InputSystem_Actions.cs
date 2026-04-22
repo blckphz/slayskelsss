@@ -244,6 +244,15 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""LayerTogglePressed"",
+                    ""type"": ""Button"",
+                    ""id"": ""b21a27cf-7ac9-4689-b956-a0953ceeeeed"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -717,6 +726,17 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""ToggleCrafting"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""e36e24a3-df6f-4c6f-a335-66fca7531f35"",
+                    ""path"": ""<Keyboard>/numpadPlus"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""LayerTogglePressed"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -1321,6 +1341,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         m_Player_Use = m_Player.FindAction("Use", throwIfNotFound: true);
         m_Player_Deconstruct = m_Player.FindAction("Deconstruct", throwIfNotFound: true);
         m_Player_ToggleCrafting = m_Player.FindAction("ToggleCrafting", throwIfNotFound: true);
+        m_Player_LayerTogglePressed = m_Player.FindAction("LayerTogglePressed", throwIfNotFound: true);
         // UI
         m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
         m_UI_Navigate = m_UI.FindAction("Navigate", throwIfNotFound: true);
@@ -1431,6 +1452,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_Use;
     private readonly InputAction m_Player_Deconstruct;
     private readonly InputAction m_Player_ToggleCrafting;
+    private readonly InputAction m_Player_LayerTogglePressed;
     /// <summary>
     /// Provides access to input actions defined in input action map "Player".
     /// </summary>
@@ -1511,6 +1533,10 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         /// </summary>
         public InputAction @ToggleCrafting => m_Wrapper.m_Player_ToggleCrafting;
         /// <summary>
+        /// Provides access to the underlying input action "Player/LayerTogglePressed".
+        /// </summary>
+        public InputAction @LayerTogglePressed => m_Wrapper.m_Player_LayerTogglePressed;
+        /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
         public InputActionMap Get() { return m_Wrapper.m_Player; }
@@ -1587,6 +1613,9 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
             @ToggleCrafting.started += instance.OnToggleCrafting;
             @ToggleCrafting.performed += instance.OnToggleCrafting;
             @ToggleCrafting.canceled += instance.OnToggleCrafting;
+            @LayerTogglePressed.started += instance.OnLayerTogglePressed;
+            @LayerTogglePressed.performed += instance.OnLayerTogglePressed;
+            @LayerTogglePressed.canceled += instance.OnLayerTogglePressed;
         }
 
         /// <summary>
@@ -1649,6 +1678,9 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
             @ToggleCrafting.started -= instance.OnToggleCrafting;
             @ToggleCrafting.performed -= instance.OnToggleCrafting;
             @ToggleCrafting.canceled -= instance.OnToggleCrafting;
+            @LayerTogglePressed.started -= instance.OnLayerTogglePressed;
+            @LayerTogglePressed.performed -= instance.OnLayerTogglePressed;
+            @LayerTogglePressed.canceled -= instance.OnLayerTogglePressed;
         }
 
         /// <summary>
@@ -2068,6 +2100,13 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnToggleCrafting(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "LayerTogglePressed" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnLayerTogglePressed(InputAction.CallbackContext context);
     }
     /// <summary>
     /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "UI" which allows adding and removing callbacks.

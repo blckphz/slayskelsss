@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 3521712899297651443}
   - component: {fileID: 269444901188624760}
   - component: {fileID: 3504163744361751598}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Stuff
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -152,6 +152,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: '::'
   maxHealth: 50
+  interactionRange: 3
 --- !u!114 &3504163744361751598
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -165,4 +166,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: '::'
   item: {fileID: 11400000, guid: f7404efa0ffa6f942a16ba06fe608c14, type: 2}
-  recipeUsed: {fileID: 0}
+  recipeUsed: {fileID: 11400000, guid: 6a505873a99a0dd46ad71e18f2025ff5, type: 2}

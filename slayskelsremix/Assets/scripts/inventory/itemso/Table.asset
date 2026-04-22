@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2e0351e2672834f42bfde66072954537, type: 3}
-  m_Name: Campfire
+  m_Name: Table
   m_EditorClassIdentifier: Assembly-CSharp::buildSO
-  itemID: 103
-  itemName: Campfire
-  icon: {fileID: 21300000, guid: 45f0f074f93e39a4f87057f409867c96, type: 3}
+  itemID: 107
+  itemName: table
+  icon: {fileID: 21300000, guid: bb151ef93281def4dac648f7e9e4b491, type: 3}
   itemType: 1
   maxStackSize: 99
-  placeablePrefab: {fileID: 7554350650681072654, guid: 3930914dcb859aa468d831cfae01edfb, type: 3}
-  size: {x: 1, y: 1}
+  placeablePrefab: {fileID: 4419128621082481542, guid: f9fdd504d9527464abfc7359b7f460d9, type: 3}
+  size: {x: 3, y: 3}

@@ -12,10 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5110ba2641b0f89439e9e096593d0894, type: 3}
   m_Name: Wood
   m_EditorClassIdentifier: Assembly-CSharp::ResourceSO
-  itemID: 2
+  itemID: 1
   itemName: Wood
   icon: {fileID: 21300000, guid: 8152add850cba6646a0bbcc811ab751c, type: 3}
   itemType: 2
-  healAmount: 0
   maxStackSize: 99
   isBurnable: 1
