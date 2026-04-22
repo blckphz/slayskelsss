@@ -514,7 +514,7 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
-  m_SpriteSortPoint: 0
+  m_SpriteSortPoint: 1
 --- !u!61 &8454415536334058884
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -638,6 +638,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: adc99a8c95fe02147bf6f0b44179a0a0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ghostBuildPreview
+  footprint: {x: 1, y: 3}
+  gridSize: 1
   placementMask:
     serializedVersion: 2
     m_Bits: 256

@@ -10,6 +10,7 @@ public class BuildingSaveManager : MonoBehaviour
     public class BuildingData
     {
         public int itemID;
+        public string uniqueID; // 🔥 Added to JSON data
         public Vector3 position;
         public float fuelAmount;
         public bool isBurning;
@@ -37,45 +38,23 @@ public class BuildingSaveManager : MonoBehaviour
 
         savePath = Application.persistentDataPath + "/buildings.json";
 
-        Debug.Log($"[SAVE] INIT → {savePath}");
-
         LoadBuildings();
         AutoRegisterSceneBuildings();
     }
 
-    // ---------------- REGISTER ----------------
-
     public void RegisterBuilding(GameObject obj)
     {
-        if (obj == null) return;
-
-        if (!placedBuildings.Contains(obj))
-        {
+        if (obj != null && !placedBuildings.Contains(obj))
             placedBuildings.Add(obj);
-            Debug.Log($"[SAVE] REGISTER → {obj.name}");
-        }
     }
 
     public void UnregisterBuilding(GameObject obj)
     {
-        if (obj == null) return;
-
-        if (placedBuildings.Remove(obj))
-        {
-            Debug.Log($"[SAVE] UNREGISTER → {obj.name}");
-        }
-        else
-        {
-            Debug.LogWarning($"[SAVE] UNREGISTER FAILED (not found) → {obj.name}");
-        }
+        if (obj != null) placedBuildings.Remove(obj);
     }
-
-    // ---------------- SAVE ----------------
 
     public void SaveNow()
     {
-        Debug.Log($"[SAVE] SAVE START → count {placedBuildings.Count}");
-
         SaveData data = new SaveData();
 
         foreach (GameObject obj in placedBuildings)
@@ -91,6 +70,11 @@ public class BuildingSaveManager : MonoBehaviour
                 position = obj.transform.position
             };
 
+            // 🔥 Save the Unique ID
+            tableBehav table = obj.GetComponent<tableBehav>();
+            if (table != null) b.uniqueID = table.ID;
+
+            // Campfire specific data
             CampfireBehav campfire = obj.GetComponent<CampfireBehav>();
             if (campfire != null)
             {
@@ -102,30 +86,17 @@ public class BuildingSaveManager : MonoBehaviour
         }
 
         File.WriteAllText(savePath, JsonUtility.ToJson(data, true));
-
-        Debug.Log($"[SAVE] COMPLETE → saved {data.buildings.Count}");
+        Debug.Log("[SAVE] Data saved with unique IDs.");
     }
 
-    public void SaveAfterChange()
-    {
-        Debug.Log("[SAVE] AUTO SAVE TRIGGERED");
-        SaveNow();
-    }
-
-    // ---------------- LOAD ----------------
+    public void SaveAfterChange() => SaveNow();
 
     public void LoadBuildings()
     {
-        if (!File.Exists(savePath))
-        {
-            Debug.Log("[LOAD] no save file");
-            return;
-        }
+        if (!File.Exists(savePath)) return;
 
         string json = File.ReadAllText(savePath);
         SaveData data = JsonUtility.FromJson<SaveData>(json);
-
-        Debug.Log($"[LOAD] loading {data.buildings.Count}");
 
         foreach (var b in data.buildings)
         {
@@ -137,6 +108,13 @@ public class BuildingSaveManager : MonoBehaviour
 
             GameObject obj = Instantiate(buildItem.placeablePrefab, b.position, Quaternion.identity);
 
+            // 🔥 Restore the Unique ID
+            tableBehav table = obj.GetComponent<tableBehav>();
+            if (table != null && !string.IsNullOrEmpty(b.uniqueID))
+            {
+                table.LoadPersistentID(b.uniqueID);
+            }
+
             BuildIdentity id = obj.GetComponent<BuildIdentity>() ?? obj.AddComponent<BuildIdentity>();
             id.item = buildItem;
 
@@ -144,26 +122,10 @@ public class BuildingSaveManager : MonoBehaviour
         }
     }
 
-    // ---------------- AUTO REGISTER ----------------
-
     void AutoRegisterSceneBuildings()
     {
-        GameObject[] all = FindObjectsOfType<GameObject>();
         int bigLayer = LayerMask.NameToLayer(bigBuildablesLayerName);
-
-        int count = 0;
-
-        foreach (var obj in all)
-        {
-            if (obj == null) continue;
-
-            if (obj.GetComponent<BuildIdentity>() != null || obj.layer == bigLayer)
-            {
-                RegisterBuilding(obj);
-                count++;
-            }
-        }
-
-        Debug.Log($"[AUTO] registered {count} objects");
+        foreach (var id in FindObjectsOfType<BuildIdentity>())
+            RegisterBuilding(id.gameObject);
     }
 }
