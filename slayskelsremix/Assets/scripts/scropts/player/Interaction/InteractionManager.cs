@@ -29,7 +29,7 @@ public class InteractionManager : MonoBehaviour
         HandleHoldDelete();
     }
 
-    // ---------------- MOUSE POSITION ----------------
+    // ---------------- MOUSE ----------------
 
     private Vector2 GetMouseWorldPos()
     {
@@ -90,7 +90,7 @@ public class InteractionManager : MonoBehaviour
             ClearHighlight();
     }
 
-    // ---------------- HOLD DELETE SYSTEM ----------------
+    // ---------------- DELETE ----------------
 
     private void HandleHoldDelete()
     {
@@ -103,27 +103,33 @@ public class InteractionManager : MonoBehaviour
         deconstructCooldown -= Time.deltaTime;
         if (deconstructCooldown > 0f) return;
 
-        // 🔒 ONLY allow deleting highlighted object
         if (currentHoverObj == null)
-        {
             return;
-        }
 
         GameObject target = currentHoverObj;
 
-        // ---------------- BUILDING DELETE ----------------
+        // ---------------- BUILDING ----------------
         BuildIdentity build = target.GetComponent<BuildIdentity>();
 
         if (build != null && build.item != null)
         {
             InventoryManager.Instance.AddItem(build.item, 1);
+
+            Debug.Log($"[INTERACT] Removing building → {target.name}");
+
+            if (BuildingSaveManager.Instance != null)
+            {
+                BuildingSaveManager.Instance.UnregisterBuilding(target);
+                BuildingSaveManager.Instance.SaveAfterChange();
+            }
+
             Destroy(target);
 
             deconstructCooldown = deconstructInterval;
             return;
         }
 
-        // ---------------- OBJECT HEALTH DELETE ----------------
+        // ---------------- OBJECT HEALTH ----------------
         objectHealth health = target.GetComponent<objectHealth>();
 
         if (health != null)
@@ -143,8 +149,6 @@ public class InteractionManager : MonoBehaviour
             }
         }
     }
-
-    // ---------------- CLEANUP ----------------
 
     private void ClearHighlight()
     {

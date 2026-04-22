@@ -1,61 +1,42 @@
 ﻿using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.EventSystems;
-using Pathfinding;
-using System.Collections;
+using System.Collections.Generic;
 
 public class BuildManager : MonoBehaviour
 {
     [Header("References")]
     public Camera playerCamera;
-    public Transform player;
-    public LayerMask placementMask;
-    public LayerMask largeStructureLayer;
-    public BuildRadiusController radiusController;
-    public InventoryManager inventory;
+
+    [Header("Layers")]
+    public LayerMask placementMask;         // Must include BOTH Small and Large layers
+    public LayerMask interactLayer;        // Check the "Interactable" box in Inspector
+    public LayerMask largeStructureLayer;  // Check the "LargeStructure" box in Inspector
 
     [Header("Grid")]
     public float gridSize = 1f;
 
     private GameObject previewObject;
     private buildSO currentItem;
-    private bool isPlacing = false;
-
+    private bool isPlacing;
     private ghostBuildPreview ghost;
 
-    private GameObject circleObj;
-    private LineRenderer circleLine;
-
-    private const int CIRCLE_SEGMENTS = 64;
-
-    private void Start()
-    {
-        StartCoroutine(InitialGraphScan());
-    }
-
-    private IEnumerator InitialGraphScan()
-    {
-        yield return new WaitForEndOfFrame();
-        if (AstarPath.active != null)
-            AstarPath.active.Scan();
-    }
+    private bool isCurrentItemSmall;
 
     void Update()
     {
-        CheckHotbarSelection();
+        CheckHotbar();
 
-        if (!isPlacing || currentItem == null || previewObject == null)
-            return;
+        if (!isPlacing || previewObject == null) return;
 
         MovePreview();
 
-        bool isOverUI = EventSystem.current != null &&
-                        EventSystem.current.IsPointerOverGameObject();
+        // Check if mouse is over UI
+        bool isUI = EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
 
-        UpdatePreviewVisuals(isOverUI);
-        UpdateRadiusCircle();
+        UpdateColor(isUI);
 
-        if (!isOverUI &&
+        if (!isUI &&
             PlayerInputHandler.Instance != null &&
             PlayerInputHandler.Instance.LeftClickPressed())
         {
@@ -63,18 +44,16 @@ public class BuildManager : MonoBehaviour
         }
     }
 
-    // ---------------- HOTBAR ----------------
-
-    private void CheckHotbarSelection()
+    void CheckHotbar()
     {
         if (PlayerHotbarManager.Instance == null) return;
 
-        ItemData selectedItem = PlayerHotbarManager.Instance.GetSelectedItem();
+        ItemData item = PlayerHotbarManager.Instance.GetSelectedItem();
 
-        if (selectedItem is buildSO buildItem)
+        if (item is buildSO build)
         {
-            if (currentItem == null || currentItem.itemName != buildItem.itemName)
-                StartPlacing(buildItem);
+            if (currentItem == null || currentItem.itemName != build.itemName)
+                StartPlacing(build);
         }
         else if (isPlacing)
         {
@@ -86,197 +65,106 @@ public class BuildManager : MonoBehaviour
     {
         Cancel();
 
-        if (item == null || item.placeablePrefab == null) return;
-
         currentItem = item;
         isPlacing = true;
 
-        previewObject = Instantiate(item.placeablePrefab);
+        // --- IMPROVED LAYER CHECK ---
+        int prefabLayer = item.placeablePrefab.layer;
+        // This checks if the prefab's layer is included in the interactLayer mask
+        isCurrentItemSmall = (interactLayer.value & (1 << prefabLayer)) != 0;
 
-        CreateRadiusCircle();
+        previewObject = Instantiate(item.placeablePrefab);
 
         ghost = previewObject.GetComponent<ghostBuildPreview>();
         if (ghost != null)
         {
             ghost.placementMask = placementMask;
+            ghost.footprint = currentItem.size;
+            ghost.gridSize = gridSize;
             ghost.InitializeGhost();
         }
+
+        // VERIFICATION LOG
+        Debug.Log($"[BUILD] Selected: {item.itemName} | Layer: {LayerMask.LayerToName(prefabLayer)} | IsSmall: {isCurrentItemSmall}");
     }
 
-    private void Cancel()
+    bool CanPlace()
     {
-        if (previewObject != null) Destroy(previewObject);
-        if (circleObj != null) Destroy(circleObj);
-
-        previewObject = null;
-        circleObj = null;
-        circleLine = null;
-        currentItem = null;
-        ghost = null;
-        isPlacing = false;
-    }
-
-    // ---------------- PREVIEW ----------------
-
-    private void MovePreview()
-    {
-        Vector2 mousePos = PlayerInputHandler.Instance.GetMousePosition();
-        float camDist = Mathf.Abs(playerCamera.transform.position.z);
-
-        Vector3 worldPos = playerCamera.ScreenToWorldPoint(
-            new Vector3(mousePos.x, mousePos.y, camDist));
-
-        float snapX = Mathf.Round(worldPos.x / gridSize) * gridSize;
-        float snapY = Mathf.Round(worldPos.y / gridSize) * gridSize;
-
-        Vector3 snappedPos = new Vector3(snapX, snapY, 0f);
-
-        if (radiusController != null && player != null)
-        {
-            float radius = radiusController.GetRadius();
-
-            if (radius > 0f)
-            {
-                Vector2 toPos = snappedPos - player.position;
-
-                if (toPos.magnitude > radius)
-                    snappedPos = player.position + (Vector3)(toPos.normalized * radius);
-            }
-        }
-
-        previewObject.transform.position = snappedPos;
-    }
-
-    // ---------------- PLACE ----------------
-
-    public void TryPlace()
-    {
-        if (previewObject == null || !CanPlace()) return;
-
-        GameObject obj = Instantiate(
-            currentItem.placeablePrefab,
-            previewObject.transform.position,
-            Quaternion.identity
-        );
-
-        // Ensure correct layer is applied AFTER placement
-        obj.layer = currentItem.placeablePrefab.layer;
-
-        BuildIdentity identity = obj.GetComponent<BuildIdentity>() ??
-                                 obj.AddComponent<BuildIdentity>();
-
-        identity.item = currentItem;
-
-        PlayerHotbarManager.Instance.UseSelectedStack(1);
-    }
-
-    private bool CanPlace()
-    {
-        if (previewObject == null) return false;
-
-        Vector3 pos = previewObject.transform.position;
-
-        // Radius check
-        if (radiusController != null &&
-            !radiusController.IsWithinRadius(pos))
-            return false;
-
         if (ghost == null) return false;
 
-        int itemLayer = currentItem.placeablePrefab.layer;
-        bool buildingLarge = (largeStructureLayer.value & (1 << itemLayer)) != 0;
-
-        var obstacles = ghost.GetObstacles(); // 👈 we’ll add this
+        List<Collider2D> obstacles = ghost.GetObstacles();
 
         foreach (var hit in obstacles)
         {
             if (hit == null) continue;
-
             if (hit.CompareTag("Player")) continue;
 
             int hitLayer = hit.gameObject.layer;
-            bool hitIsLarge = (largeStructureLayer.value & (1 << hitLayer)) != 0;
 
-            if (!buildingLarge)
-            {
-                // SMALL ITEM
-                if (hitIsLarge)
-                    continue; // ✅ allow placing on large
+            // Is the obstacle a Large Structure?
+            bool hitLarge = (largeStructureLayer.value & (1 << hitLayer)) != 0;
 
-                // ❌ blocked by anything else
-                return false;
-            }
-            else
+            // If placing small item on large structure, ignore collision
+            if (isCurrentItemSmall && hitLarge)
             {
-                // LARGE STRUCTURE
-                if (hitIsLarge)
-                    return false; // ❌ large cannot overlap large
+                continue;
             }
+
+            // Otherwise, it's a real blockage
+            return false;
         }
 
         return true;
     }
 
-    // ---------------- VISUALS ----------------
+    void MovePreview()
+    {
+        Vector2 mouse = PlayerInputHandler.Instance.GetMousePosition();
+        Vector3 world = playerCamera.ScreenToWorldPoint(new Vector3(mouse.x, mouse.y, Mathf.Abs(playerCamera.transform.position.z)));
 
-    private void UpdatePreviewVisuals(bool blockedByUI)
+        float x = Mathf.Floor(world.x / gridSize) * gridSize;
+        float y = Mathf.Floor(world.y / gridSize) * gridSize;
+
+        previewObject.transform.position = new Vector3(x, y, 0f);
+    }
+
+    void TryPlace()
+    {
+        if (previewObject == null || !CanPlace()) return;
+
+        GameObject obj = Instantiate(currentItem.placeablePrefab, previewObject.transform.position, Quaternion.identity);
+
+        if (BuildingSaveManager.Instance != null)
+        {
+            BuildingSaveManager.Instance.RegisterBuilding(obj);
+            BuildingSaveManager.Instance.SaveAfterChange();
+        }
+
+        PlayerHotbarManager.Instance.UseSelectedStack(1);
+    }
+
+    void Cancel()
+    {
+        if (previewObject) Destroy(previewObject);
+        previewObject = null;
+        ghost = null;
+        currentItem = null;
+        isPlacing = false;
+    }
+
+    void UpdateColor(bool blockedUI)
     {
         if (ghost == null) return;
 
-        if (blockedByUI)
+        // FIXED: Removed Color.clear so it doesn't turn into a "shadow"
+        if (blockedUI)
         {
-            ghost.SetColor(Color.clear);
+            // If over UI, we just make it red or hide it, but not "shadowy"
+            ghost.SetColor(new Color(1, 0, 0, 0.2f));
         }
         else
         {
             ghost.SetColor(CanPlace() ? Color.green : Color.red);
-        }
-    }
-
-    // ---------------- RADIUS ----------------
-
-    private void CreateRadiusCircle()
-    {
-        if (circleObj != null) return;
-
-        circleObj = new GameObject("BuildRadiusCircle");
-
-        circleLine = circleObj.AddComponent<LineRenderer>();
-        circleLine.positionCount = CIRCLE_SEGMENTS;
-        circleLine.loop = true;
-        circleLine.material = new Material(Shader.Find("Sprites/Default"));
-        circleLine.startWidth = 0.05f;
-        circleLine.endWidth = 0.05f;
-        circleLine.useWorldSpace = true;
-    }
-
-    private void UpdateRadiusCircle()
-    {
-        if (circleLine == null || player == null || radiusController == null)
-            return;
-
-        float radius = radiusController.GetRadius();
-        Vector3 center = player.position;
-
-        if (radius <= 0.01f)
-        {
-            circleLine.enabled = false;
-            return;
-        }
-
-        circleLine.enabled = true;
-
-        for (int i = 0; i < CIRCLE_SEGMENTS; i++)
-        {
-            float angle = (float)i / CIRCLE_SEGMENTS * Mathf.PI * 2f;
-
-            Vector3 pos = new Vector3(
-                center.x + Mathf.Cos(angle) * radius,
-                center.y + Mathf.Sin(angle) * radius,
-                -1f
-            );
-
-            circleLine.SetPosition(i, pos);
         }
     }
 }

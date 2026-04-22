@@ -3,61 +3,39 @@ using System.Collections.Generic;
 
 public class ghostBuildPreview : MonoBehaviour
 {
-    private SpriteRenderer[] renderers;
-
-    private List<Collider2D> detectedObstacles = new List<Collider2D>();
+    [Header("Grid")]
+    public Vector2Int footprint = Vector2Int.one;
+    public float gridSize = 1f;
 
     public LayerMask placementMask;
+
+    private SpriteRenderer[] renderers;
+    private List<Collider2D> detectedObstacles = new List<Collider2D>();
 
     // ---------------- INIT ----------------
 
     public void InitializeGhost()
     {
-        // Set to Ignore Raycast so it doesn't interfere with mouse
         gameObject.layer = LayerMask.NameToLayer("Ignore Raycast");
-
-        foreach (Transform child in transform)
-        {
-            child.gameObject.layer = LayerMask.NameToLayer("Ignore Raycast");
-        }
-
-        // Remove tag so InteractionManager ignores it
         gameObject.tag = "Untagged";
 
-        // Disable ALL scripts except this one
+        foreach (Transform child in transform)
+            child.gameObject.layer = LayerMask.NameToLayer("Ignore Raycast");
+
         MonoBehaviour[] scripts = GetComponentsInChildren<MonoBehaviour>();
         foreach (var s in scripts)
-        {
             if (s != null && s != this)
                 s.enabled = false;
-        }
 
-        // Remove identity so it isn't treated as real object
         var buildId = GetComponent<BuildIdentity>();
         if (buildId != null)
             Destroy(buildId);
 
-        // Setup colliders as triggers
         Collider2D[] colliders = GetComponentsInChildren<Collider2D>();
         foreach (var c in colliders)
-        {
-            if (c != null)
-            {
-                c.enabled = true;
-                c.isTrigger = true;
-            }
-        }
-
-        // Ensure Rigidbody2D exists for trigger events
-        Rigidbody2D rb = GetComponent<Rigidbody2D>();
-        if (rb == null)
-            rb = gameObject.AddComponent<Rigidbody2D>();
-
-        rb.bodyType = RigidbodyType2D.Kinematic;
-        rb.useFullKinematicContacts = true;
+            c.enabled = false;
 
         renderers = GetComponentsInChildren<SpriteRenderer>();
-
         SetColor(Color.white);
     }
 
@@ -74,49 +52,37 @@ public class ghostBuildPreview : MonoBehaviour
         }
     }
 
-    // ---------------- OBSTACLE ACCESS ----------------
+    // ---------------- GRID HIT CHECK ----------------
 
     public List<Collider2D> GetObstacles()
     {
-        // Clean invalid entries
-        detectedObstacles.RemoveAll(item =>
-            item == null ||
-            !item.enabled ||
-            !item.gameObject.activeInHierarchy);
+        detectedObstacles.Clear();
+
+        Vector3 origin = transform.position;
+
+        // 🔥 IMPORTANT: convert bottom-center pivot → bottom-left anchor
+        Vector3 bottomLeft = origin - new Vector3(
+            (footprint.x - 1) * gridSize * 0.5f,
+            0f,
+            0f
+        );
+
+        for (int x = 0; x < footprint.x; x++)
+        {
+            for (int y = 0; y < footprint.y; y++)
+            {
+                Vector2 checkPos = new Vector2(
+                    bottomLeft.x + x * gridSize,
+                    bottomLeft.y + y * gridSize
+                );
+
+                Collider2D hit = Physics2D.OverlapPoint(checkPos, placementMask);
+
+                if (hit != null && !detectedObstacles.Contains(hit))
+                    detectedObstacles.Add(hit);
+            }
+        }
 
         return detectedObstacles;
-    }
-
-    public bool IsBlocked()
-    {
-        return GetObstacles().Count > 0;
-    }
-
-    // ---------------- TRIGGERS ----------------
-
-    private void OnTriggerEnter2D(Collider2D other)
-    {
-        // Only track layers we care about
-        if (((1 << other.gameObject.layer) & placementMask) == 0)
-            return;
-
-        if (!detectedObstacles.Contains(other))
-        {
-            detectedObstacles.Add(other);
-
-            // 🔍 DEBUG (optional)
-            // Debug.Log($"[Ghost] Enter: {other.name}");
-        }
-    }
-
-    private void OnTriggerExit2D(Collider2D other)
-    {
-        if (detectedObstacles.Contains(other))
-        {
-            detectedObstacles.Remove(other);
-
-            // 🔍 DEBUG (optional)
-            // Debug.Log($"[Ghost] Exit: {other.name}");
-        }
     }
 }

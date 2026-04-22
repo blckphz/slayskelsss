@@ -11,7 +11,6 @@ public class BuildingSaveManager : MonoBehaviour
     {
         public int itemID;
         public Vector3 position;
-        // Campfire specific data
         public float fuelAmount;
         public bool isBurning;
     }
@@ -22,7 +21,12 @@ public class BuildingSaveManager : MonoBehaviour
         public List<BuildingData> buildings = new List<BuildingData>();
     }
 
+    [Header("References")]
     public ItemDatabase database;
+
+    [Header("Layers")]
+    public string bigBuildablesLayerName = "bigbuildables";
+
     private List<GameObject> placedBuildings = new List<GameObject>();
     private string savePath;
 
@@ -32,15 +36,48 @@ public class BuildingSaveManager : MonoBehaviour
         else { Destroy(gameObject); return; }
 
         savePath = Application.persistentDataPath + "/buildings.json";
+
+        Debug.Log($"[SAVE] INIT → {savePath}");
+
         LoadBuildings();
+        AutoRegisterSceneBuildings();
     }
 
-    public void RegisterBuilding(GameObject obj) => placedBuildings.Add(obj);
-    public void UnregisterBuilding(GameObject obj) => placedBuildings.Remove(obj);
+    // ---------------- REGISTER ----------------
+
+    public void RegisterBuilding(GameObject obj)
+    {
+        if (obj == null) return;
+
+        if (!placedBuildings.Contains(obj))
+        {
+            placedBuildings.Add(obj);
+            Debug.Log($"[SAVE] REGISTER → {obj.name}");
+        }
+    }
+
+    public void UnregisterBuilding(GameObject obj)
+    {
+        if (obj == null) return;
+
+        if (placedBuildings.Remove(obj))
+        {
+            Debug.Log($"[SAVE] UNREGISTER → {obj.name}");
+        }
+        else
+        {
+            Debug.LogWarning($"[SAVE] UNREGISTER FAILED (not found) → {obj.name}");
+        }
+    }
+
+    // ---------------- SAVE ----------------
 
     public void SaveNow()
     {
+        Debug.Log($"[SAVE] SAVE START → count {placedBuildings.Count}");
+
         SaveData data = new SaveData();
+
         foreach (GameObject obj in placedBuildings)
         {
             if (obj == null) continue;
@@ -48,33 +85,47 @@ public class BuildingSaveManager : MonoBehaviour
             BuildIdentity id = obj.GetComponent<BuildIdentity>();
             if (id == null || id.item == null) continue;
 
-            BuildingData bData = new BuildingData
+            BuildingData b = new BuildingData
             {
                 itemID = id.item.itemID,
                 position = obj.transform.position
             };
 
-            // If it's a campfire, grab its unique data
             CampfireBehav campfire = obj.GetComponent<CampfireBehav>();
             if (campfire != null)
             {
-                bData.fuelAmount = campfire.fuelAmount;
-                bData.isBurning = campfire.isBurning;
+                b.fuelAmount = campfire.fuelAmount;
+                b.isBurning = campfire.isBurning;
             }
 
-            data.buildings.Add(bData);
+            data.buildings.Add(b);
         }
 
-        string json = JsonUtility.ToJson(data, true);
-        File.WriteAllText(savePath, json);
+        File.WriteAllText(savePath, JsonUtility.ToJson(data, true));
+
+        Debug.Log($"[SAVE] COMPLETE → saved {data.buildings.Count}");
     }
+
+    public void SaveAfterChange()
+    {
+        Debug.Log("[SAVE] AUTO SAVE TRIGGERED");
+        SaveNow();
+    }
+
+    // ---------------- LOAD ----------------
 
     public void LoadBuildings()
     {
-        if (!File.Exists(savePath)) return;
+        if (!File.Exists(savePath))
+        {
+            Debug.Log("[LOAD] no save file");
+            return;
+        }
 
         string json = File.ReadAllText(savePath);
         SaveData data = JsonUtility.FromJson<SaveData>(json);
+
+        Debug.Log($"[LOAD] loading {data.buildings.Count}");
 
         foreach (var b in data.buildings)
         {
@@ -89,16 +140,30 @@ public class BuildingSaveManager : MonoBehaviour
             BuildIdentity id = obj.GetComponent<BuildIdentity>() ?? obj.AddComponent<BuildIdentity>();
             id.item = buildItem;
 
-            // Restore campfire state
-            CampfireBehav campfire = obj.GetComponent<CampfireBehav>();
-            if (campfire != null)
-            {
-                campfire.fuelAmount = b.fuelAmount;
-                campfire.isBurning = b.isBurning;
-                campfire.InitializeFromSave();
-            }
-
-            placedBuildings.Add(obj);
+            RegisterBuilding(obj);
         }
+    }
+
+    // ---------------- AUTO REGISTER ----------------
+
+    void AutoRegisterSceneBuildings()
+    {
+        GameObject[] all = FindObjectsOfType<GameObject>();
+        int bigLayer = LayerMask.NameToLayer(bigBuildablesLayerName);
+
+        int count = 0;
+
+        foreach (var obj in all)
+        {
+            if (obj == null) continue;
+
+            if (obj.GetComponent<BuildIdentity>() != null || obj.layer == bigLayer)
+            {
+                RegisterBuilding(obj);
+                count++;
+            }
+        }
+
+        Debug.Log($"[AUTO] registered {count} objects");
     }
 }

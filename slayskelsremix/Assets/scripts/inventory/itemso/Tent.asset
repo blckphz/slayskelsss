@@ -17,5 +17,5 @@ MonoBehaviour:
   icon: {fileID: 21300000, guid: eca5fe76ed538444999d21c349a0056a, type: 3}
   itemType: 1
   maxStackSize: 99
-  healAmount: 0
   placeablePrefab: {fileID: 713142446651820219, guid: e876140309cf1b944994658dc54841ba, type: 3}
+  size: {x: 10, y: 10}

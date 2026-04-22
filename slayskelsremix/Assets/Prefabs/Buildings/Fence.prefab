@@ -249,3 +249,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: adc99a8c95fe02147bf6f0b44179a0a0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ghostBuildPreview
+  footprint: {x: 1, y: 1}
+  gridSize: 1
+  placementMask:
+    serializedVersion: 2
+    m_Bits: 0
