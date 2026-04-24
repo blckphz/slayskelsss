@@ -27,7 +27,6 @@ public class CraftingSO : ScriptableObject
 
         foreach (var ingredient in ingredients)
         {
-            // You'll need a method in InventoryManager to check total count of an item
             if (InventoryManager.Instance.GetTotalCount(ingredient.item) < ingredient.amount)
             {
                 return false;

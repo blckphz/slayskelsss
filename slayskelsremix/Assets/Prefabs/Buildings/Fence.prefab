@@ -184,8 +184,8 @@ MonoBehaviour:
   - {fileID: -2558502474331502081, guid: 7c15b63e29427474ca531c00e7b8203a, type: 3}
   - {fileID: -5708732599238763129, guid: 7c15b63e29427474ca531c00e7b8203a, type: 3}
   - {fileID: 5339291101311410579, guid: 7c15b63e29427474ca531c00e7b8203a, type: 3}
-  defaultSize: {x: 1, y: 1}
-  elongatedSize: {x: 1, y: 1.5}
+  defaultSize: {x: 0.4, y: 0.4}
+  elongatedSize: {x: 0.8, y: 0.8}
 --- !u!114 &7443075487368853059
 MonoBehaviour:
   m_ObjectHideFlags: 0

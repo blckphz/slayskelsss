@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using UnityEngine.InputSystem;
+using System.Linq; // Required for filtering
 
 public class CraftUIManager : MonoBehaviour
 {
@@ -10,6 +11,10 @@ public class CraftUIManager : MonoBehaviour
 
     [Header("Recipe Database")]
     public List<CraftingSO> allRecipes = new List<CraftingSO>();
+    private List<CraftingSO> filteredRecipes = new List<CraftingSO>();
+
+    [Header("Search Settings")]
+    public TMP_InputField searchInputField;
 
     [Header("Pagination Settings")]
     public int recipesPerPage = 10;
@@ -26,15 +31,15 @@ public class CraftUIManager : MonoBehaviour
     public Button craftButton;
 
     [Header("Visual Settings")]
-    [Range(0, 1)] public float normalAlpha = 0.5f; // Initial/Default transparency
-    [Range(0, 1)] public float selectedAlpha = 1.0f; // Full transparency (opaque)
+    [Range(0, 1)] public float normalAlpha = 0.5f;
+    [Range(0, 1)] public float selectedAlpha = 1.0f;
 
     [Header("Input System")]
     public InputActionReference nextPageAction;
     public InputActionReference prevPageAction;
 
     private CraftingSO selectedRecipe;
-    private int selectedSlotIndex = -1; // Tracks which slot in the current view is highlighted
+    private int selectedSlotIndex = -1;
 
     private List<Transform> bgSlots = new List<Transform>();
     private List<Transform> iconSlots = new List<Transform>();
@@ -87,6 +92,15 @@ public class CraftUIManager : MonoBehaviour
     private void Start()
     {
         craftButton.onClick.AddListener(OnCraftClicked);
+
+        // Initialize filtered list with everything
+        filteredRecipes = new List<CraftingSO>(allRecipes);
+
+        if (searchInputField != null)
+        {
+            searchInputField.onValueChanged.AddListener(OnSearchInputChanged);
+        }
+
         RefreshGrid();
         SelectRecipe(null);
     }
@@ -94,12 +108,34 @@ public class CraftUIManager : MonoBehaviour
     private void OnNextPage(InputAction.CallbackContext ctx) => NextPage();
     private void OnPrevPage(InputAction.CallbackContext ctx) => PrevPage();
 
+    public void OnSearchInputChanged(string value)
+    {
+        currentPage = 0; // Reset to first page on new search
+
+        if (string.IsNullOrEmpty(value))
+        {
+            filteredRecipes = new List<CraftingSO>(allRecipes);
+        }
+        else
+        {
+            // Case-insensitive search through result item names
+            filteredRecipes = allRecipes.Where(recipe =>
+                recipe.resultItem != null &&
+                recipe.resultItem.itemName.ToLower().Contains(value.ToLower())
+            ).ToList();
+        }
+
+        selectedSlotIndex = -1;
+        SelectRecipe(null);
+        RefreshGrid();
+    }
+
     public void NextPage()
     {
-        if ((currentPage + 1) * recipesPerPage < allRecipes.Count)
+        if ((currentPage + 1) * recipesPerPage < filteredRecipes.Count)
         {
             currentPage++;
-            selectedSlotIndex = -1; // Reset selection visual on page change
+            selectedSlotIndex = -1;
             RefreshGrid();
         }
     }
@@ -109,7 +145,7 @@ public class CraftUIManager : MonoBehaviour
         if (currentPage > 0)
         {
             currentPage--;
-            selectedSlotIndex = -1; // Reset selection visual on page change
+            selectedSlotIndex = -1;
             RefreshGrid();
         }
     }
@@ -117,19 +153,18 @@ public class CraftUIManager : MonoBehaviour
     public void RefreshGrid()
     {
         int startIndex = currentPage * recipesPerPage;
-        int endIndex = Mathf.Min(startIndex + recipesPerPage, allRecipes.Count);
+        int endIndex = Mathf.Min(startIndex + recipesPerPage, filteredRecipes.Count);
         int slotIndex = 0;
 
         for (int i = startIndex; i < endIndex; i++)
         {
-            CraftingSO recipe = allRecipes[i];
+            CraftingSO recipe = filteredRecipes[i];
             Transform bgSlot = bgSlots[slotIndex];
             Transform iconSlot = iconSlots[slotIndex];
 
             bgSlot.gameObject.SetActive(true);
             iconSlot.gameObject.SetActive(true);
 
-            // Handle Selection Logic
             int capturedIndex = slotIndex;
             Button btn = bgSlot.GetComponent<Button>();
             if (btn != null)
@@ -137,12 +172,11 @@ public class CraftUIManager : MonoBehaviour
                 btn.onClick.RemoveAllListeners();
                 btn.onClick.AddListener(() =>
                 {
-                    selectedSlotIndex = capturedIndex; // Store which slot was clicked
+                    selectedSlotIndex = capturedIndex;
                     SelectRecipe(recipe);
                 });
             }
 
-            // ICON
             Image icon = iconSlot.GetComponent<Image>();
             if (icon != null)
             {
@@ -194,8 +228,6 @@ public class CraftUIManager : MonoBehaviour
         else selectedIconImage.enabled = false;
 
         craftButton.interactable = recipe.CanCraft();
-
-        // Refresh the alphas whenever a selection is made
         UpdateSlotVisuals();
     }
 
@@ -207,7 +239,6 @@ public class CraftUIManager : MonoBehaviour
             if (img != null)
             {
                 Color c = img.color;
-                // If this is the selected index, set alpha to 1.0 (100%), otherwise set to normalAlpha
                 c.a = (i == selectedSlotIndex) ? selectedAlpha : normalAlpha;
                 img.color = c;
             }
@@ -230,7 +261,7 @@ public class CraftUIManager : MonoBehaviour
         if (selectedRecipe != null && selectedRecipe.CanCraft())
         {
             selectedRecipe.Craft();
-            SelectRecipe(selectedRecipe);
+            SelectRecipe(selectedRecipe); // Refresh UI states
             RefreshGrid();
         }
     }

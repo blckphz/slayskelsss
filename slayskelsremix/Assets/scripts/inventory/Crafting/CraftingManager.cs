@@ -1,20 +1,20 @@
 using UnityEngine;
-using UnityEngine.InputSystem; // Added for Input Action
+using UnityEngine.InputSystem;
 
 public class CraftingManager : MonoBehaviour
 {
     public static CraftingManager Instance;
 
     [Header("UI Settings")]
-    [SerializeField] private GameObject craftingUI; // Assign your UI panel here
-    [SerializeField] private InputAction toggleCrafting; // Assign the "ToggleCrafting" action
+    [SerializeField] private GameObject craftingUI;
+    [SerializeField] private InputAction toggleCrafting;
 
     private void Awake()
     {
-        Instance = this;
+        if (Instance == null) Instance = this;
+        else Destroy(gameObject);
     }
 
-    // Enable the input action when the script starts
     private void OnEnable()
     {
         toggleCrafting.Enable();
@@ -27,12 +27,34 @@ public class CraftingManager : MonoBehaviour
         toggleCrafting.performed -= OnToggleCrafting;
     }
 
+    // This handles the Input System (Keyboard/Controller)
     private void OnToggleCrafting(InputAction.CallbackContext context)
+    {
+        ToggleCraftingUI();
+    }
+
+    // Public method for the UI Button to call
+    public void ToggleCraftingUI()
     {
         if (craftingUI != null)
         {
-            // Simple toggle: if it's active, turn it off; if off, turn it on.
-            craftingUI.SetActive(!craftingUI.activeSelf);
+            bool isActive = !craftingUI.activeSelf;
+            craftingUI.SetActive(isActive);
+
+            // Optional: Handle Mouse Cursor visibility
+            if (isActive)
+            {
+                Cursor.lockState = CursorLockMode.None;
+                Cursor.visible = true;
+
+                // Refresh the UI when opened to show latest inventory counts
+                if (CraftUIManager.Instance != null) CraftUIManager.Instance.RefreshGrid();
+            }
+            else
+            {
+                // Cursor.lockState = CursorLockMode.Locked; // Uncomment if your game is First Person
+                // Cursor.visible = false;
+            }
         }
     }
 
@@ -42,15 +64,11 @@ public class CraftingManager : MonoBehaviour
 
         if (recipe.CanCraft())
         {
-            // 1. Deduct all ingredients
             foreach (var ingredient in recipe.ingredients)
             {
-                InventoryManager.Instance.ConsumeResources(ingredient.item, ingredient.amount);
+                InventoryManager.Instance.RemoveItem(ingredient.item, ingredient.amount);
             }
-
-            // 2. Add the result
             InventoryManager.Instance.AddItem(recipe.resultItem, recipe.resultCount);
-
         }
         else
         {
