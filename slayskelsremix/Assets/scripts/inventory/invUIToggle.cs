@@ -1,11 +1,18 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class invUIToggle : MonoBehaviour
 {
     public GameObject inventoryPanel;
     [SerializeField] private PlayerAim playerAimScript;
-    [SerializeField] private PlayerAttack playerAttackScript; // Reference to your Attack script
+    [SerializeField] private PlayerAttack playerAttackScript;
+
+    [Header("Sound FX")]
+    [SerializeField] private AudioSource audioSource;
+    [SerializeField] private AudioClip openSound;
+    [SerializeField] private AudioClip closeSound;
+
+    public static bool IsInventoryOpen { get; private set; }
 
     void Update()
     {
@@ -25,22 +32,38 @@ public class invUIToggle : MonoBehaviour
 
     private void SetState(bool isOpen)
     {
+        IsInventoryOpen = isOpen;
+
         if (inventoryPanel != null)
         {
             inventoryPanel.SetActive(isOpen);
 
-            // 1. Tell Aim script to center camera
+            // 🎵 SOUND FX
+            PlaySound(isOpen);
+
             if (playerAimScript != null)
             {
                 playerAimScript.SetInventoryState(isOpen);
             }
 
-            // 2. DISABLE or ENABLE the attack script entirely
-            // If inventory is OPEN (true), enabled should be FALSE.
             if (playerAttackScript != null)
             {
                 playerAttackScript.enabled = !isOpen;
             }
+        }
+    }
+
+    private void PlaySound(bool isOpen)
+    {
+        if (audioSource == null) return;
+
+        if (isOpen && openSound != null)
+        {
+            audioSource.PlayOneShot(openSound);
+        }
+        else if (!isOpen && closeSound != null)
+        {
+            audioSource.PlayOneShot(closeSound);
         }
     }
 

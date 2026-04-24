@@ -25,6 +25,13 @@ public class InteractionManager : MonoBehaviour
 
     private void Update()
     {
+        // ✅ ADDED: block interaction unless inventory is open
+        if (!invUIToggle.IsInventoryOpen)
+        {
+            ClearHighlight();
+            return;
+        }
+
         HandleHover();
         HandleHoldDelete();
     }

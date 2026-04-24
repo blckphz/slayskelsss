@@ -19,3 +19,4 @@ MonoBehaviour:
   maxStackSize: 99
   placeablePrefab: {fileID: 7117563833271513188, guid: adeaca234b29fdd4abddbf36aa4577b7, type: 3}
   size: {x: 1, y: 1}
+  placementSound: {fileID: 0}
