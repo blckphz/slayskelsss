@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using TMPro; // Required for TextMeshPro
 
 public class CampfireUI : MonoBehaviour
 {
@@ -8,6 +9,9 @@ public class CampfireUI : MonoBehaviour
     [SerializeField] private GameObject uiPanel;
     [SerializeField] private GameObject uiBackground;
     [SerializeField] private CampfireSlotUI slotScript;
+
+    [Header("Dynamic Info Text")]
+    [SerializeField] private TextMeshProUGUI infoText;
 
     [Header("Inventory Integration")]
     [SerializeField] private invUIToggle inventorySystem;
@@ -31,34 +35,57 @@ public class CampfireUI : MonoBehaviour
         SafeSetActive(uiBackground, false);
     }
 
-    public void RefreshUI()
+    private void Update()
     {
-        if (uiPanel != null && uiPanel.activeSelf && slotScript != null)
+        // DYNAMIC UPDATE: If the panel is open and the fire is burning, 
+        // update the text every frame to show the fuel dropping smoothly.
+        if (uiPanel != null && uiPanel.activeSelf && currentCampfire != null)
         {
-            slotScript.UpdateUI();
+            if (currentCampfire.isBurning)
+            {
+                UpdateInfoText();
+            }
         }
     }
 
-    // This is the method called by the 'E' interaction
+    public void RefreshUI()
+    {
+        if (uiPanel != null && uiPanel.activeSelf)
+        {
+            if (slotScript != null) slotScript.UpdateUI();
+            UpdateInfoText();
+        }
+    }
+
+    private void UpdateInfoText()
+    {
+        if (infoText == null || currentCampfire == null) return;
+
+        // Visual status string
+        string status = currentCampfire.isBurning ?
+            "<color=#FFA500>BURNING</color>" :
+            "<color=#FF4500>EXTINGUISHED</color>";
+
+        // F2 gives you two decimal places (e.g. 5.42) for that high-detail "ticking" feel
+        infoText.text = $"<b>CAMPFIRE</b>\n" +
+                        $"Status: {status}\n" +
+                        $"Fuel: {currentCampfire.fuelAmount:F2} / {currentCampfire.maxFuel}";
+    }
+
     public void OpenCampfire(CampfireBehav campfire)
     {
         if (!campfire) return;
 
-        // CHECK: If the panel is ALREADY open...
         if (uiPanel != null && uiPanel.activeSelf)
         {
-            // ...and it's the SAME campfire, close everything and stop.
             if (currentCampfire == campfire)
             {
                 CloseCampfire();
                 return;
             }
-            // If it's a DIFFERENT campfire, we just switch the reference (rare case)
         }
 
-        // Otherwise, open it up
         currentCampfire = campfire;
-
         SafeSetActive(uiPanel, true);
         SafeSetActive(uiBackground, true);
 
@@ -70,12 +97,15 @@ public class CampfireUI : MonoBehaviour
         if (slotScript)
         {
             slotScript.campfire = campfire;
-            slotScript.UpdateUI();
         }
+
+        RefreshUI();
     }
 
     public void CloseCampfire()
     {
+        if (uiPanel == null || !uiPanel.activeSelf) return;
+
         SafeSetActive(uiPanel, false);
         SafeSetActive(uiBackground, false);
 
@@ -96,11 +126,6 @@ public class CampfireUI : MonoBehaviour
     public void HideDueToRangeExit()
     {
         CloseCampfire();
-    }
-
-    private bool ValidateReferences()
-    {
-        return uiPanel != null && slotScript != null;
     }
 
     private void SafeSetActive(GameObject obj, bool state)

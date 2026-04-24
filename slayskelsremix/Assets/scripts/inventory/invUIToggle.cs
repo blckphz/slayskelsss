@@ -32,13 +32,17 @@ public class invUIToggle : MonoBehaviour
 
     private void SetState(bool isOpen)
     {
+        // FIX: If we are already in the target state, stop here.
+        // This prevents the "Close" sound from playing if the menu is already closed.
+        if (IsInventoryOpen == isOpen) return;
+
         IsInventoryOpen = isOpen;
 
         if (inventoryPanel != null)
         {
             inventoryPanel.SetActive(isOpen);
 
-            // 🎵 SOUND FX
+            // 🎵 SOUND FX - Only plays if the state actually changed
             PlaySound(isOpen);
 
             if (playerAimScript != null)
@@ -50,6 +54,8 @@ public class invUIToggle : MonoBehaviour
             {
                 playerAttackScript.enabled = !isOpen;
             }
+
+      
         }
     }
 
