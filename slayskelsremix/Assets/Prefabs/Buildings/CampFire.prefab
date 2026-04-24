@@ -326,7 +326,7 @@ MonoBehaviour:
   fuelItem: {fileID: 11400000, guid: 49c4ddfd179fdab4c99e01539317fe5a, type: 2}
   fuelAmount: 0
   maxFuel: 10
-  burnRate: 0.1
+  burnRate: 0.06
   fireLight: {fileID: 4485107746042919945}
 --- !u!95 &640633100835888208
 Animator:

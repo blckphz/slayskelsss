@@ -104,6 +104,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CircleAnim
   playerScript: {fileID: 0}
+  stepAudioSource: {fileID: 0}
+  stepClip: {fileID: 0}
+  stepParticlePrefab: {fileID: 0}
+  particleSpawnPoint: {fileID: 0}
   pulseSpeed: 9
   pulseMagnitude: 0.04
   returnSpeed: 10
@@ -161,12 +165,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5ae86de85266c7f41ac8516f6e920ad1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
+  debug: 1
+  isAggressive: 1
+  isCollecting: 1
   detectionRange: 20
-  searchInterval: 0.5
-  attackStopDistance: 1.5
-  chestActionCooldown: 0.5
-  targetInAttackTrigger: 0
-  currentTargetID: -1
+  jobInterval: 1.5
 --- !u!212 &7450443348552350561
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -331,7 +334,7 @@ MonoBehaviour:
   rotationSpeed: 360
   slowdownDistance: 0.6
   pickNextWaypointDist: 2
-  endReachedDistance: 0.2
+  endReachedDistance: 1
   alwaysDrawGizmos: 0
   slowWhenNotFacingTarget: 1
   whenCloseToDestination: 0
@@ -348,6 +351,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 53079a9d954345c47ac76690b8049f81, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
+  npcID: 
   currentAbility: {fileID: 11400000, guid: 926c66018d0b056498826a3d6154559d, type: 2}
   attackAnchor: {fileID: 5091922913764416537}
 --- !u!70 &3874133939572215982
@@ -399,7 +403,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2e391d83d889f8d4eaa1c63242f5c78a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
+  maxCapacity: 20
   inventory: []
+  debug: 0
 --- !u!1 &1921881276973248205
 GameObject:
   m_ObjectHideFlags: 0

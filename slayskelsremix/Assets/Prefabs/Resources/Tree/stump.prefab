@@ -105,4 +105,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TreeStumpRegrow
   treeID: 
   treePrefab: {fileID: 7005833747306306358, guid: 80a2f909dc74a784e8a5d5ac5bf6d90c, type: 3}
-  regrowTime: 10
+  regrowTime: 0.4

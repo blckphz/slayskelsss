@@ -62,8 +62,6 @@ public class DamageNumber : MonoBehaviour
         // Apply velocity once. Physics engine takes it from here!
         rb.linearVelocity = launchDirection * moveSpeed;
 
-        Invoke(nameof(ReportDestruction), lifeTime);
-        Destroy(gameObject, lifeTime);
     }
 
     void Update()
@@ -87,8 +85,4 @@ public class DamageNumber : MonoBehaviour
         }
     }
 
-    private void ReportDestruction()
-    {
-        Debug.Log($"<color=white>[DamageNumber]</color> Lifetime expired: {gameObject.name}");
-    }
 }
