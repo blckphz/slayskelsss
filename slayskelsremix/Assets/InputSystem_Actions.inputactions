@@ -160,9 +160,9 @@
                     "initialStateCheck": false
                 },
                 {
-                    "name": "LayerTogglePressed",
+                    "name": "ToggleUpgrade",
                     "type": "Button",
-                    "id": "b21a27cf-7ac9-4689-b956-a0953ceeeeed",
+                    "id": "9c5c5c8d-22d0-4227-8c80-cfcc77d275e9",
                     "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
@@ -645,12 +645,12 @@
                 },
                 {
                     "name": "",
-                    "id": "e36e24a3-df6f-4c6f-a335-66fca7531f35",
-                    "path": "<Keyboard>/numpadPlus",
+                    "id": "3a977055-60ec-42a2-a4fc-c183d65d2fc7",
+                    "path": "<Keyboard>/h",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "LayerTogglePressed",
+                    "action": "ToggleUpgrade",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
