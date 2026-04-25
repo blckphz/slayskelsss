@@ -1,25 +1,75 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 public class chainController : MonoBehaviour
 {
-    public static int hitCcunter; // The "Battery"
+    public static int hitCounter;
     public static float staticBonusDmg;
+    public static bool isUnlocked;
 
     [Header("Settings")]
-    public float bonusdmg = 5f; // Extra damage per charge
+    public float bonusdmg = 5f;
 
-    [Header("Debug (View Only)")]
+    [Header("Debug")]
     [SerializeField] private int currentCharges;
 
-    void Awake()
+    private void Awake()
     {
-        staticBonusDmg = bonusdmg;
-        hitCcunter = 0;
+        LoadState();
+
+        // 🔥 SAFETY: ensure valid defaults
+        if (!PlayerPrefs.HasKey("chain_initialized"))
+        {
+            isUnlocked = false;
+            hitCounter = 0;
+            staticBonusDmg = 0f;
+
+            SaveState();
+            PlayerPrefs.SetInt("chain_initialized", 1);
+        }
     }
 
-    void Update()
+    private void Update()
     {
-        // Makes the static value visible in Inspector for debugging
-        currentCharges = hitCcunter;
+        currentCharges = hitCounter;
+    }
+
+    private void OnApplicationQuit()
+    {
+        SaveState();
+    }
+
+    private void OnDisable()
+    {
+        SaveState();
+    }
+
+    // 💾 SAVE
+    public static void SaveState()
+    {
+        PlayerPrefs.SetInt("chain_unlocked", isUnlocked ? 1 : 0);
+        PlayerPrefs.SetInt("chain_charges", hitCounter);
+        PlayerPrefs.SetFloat("chain_bonus", staticBonusDmg);
+        PlayerPrefs.Save();
+    }
+
+    // 📥 LOAD
+    public static void LoadState()
+    {
+        isUnlocked = PlayerPrefs.GetInt("chain_unlocked", 0) == 1;
+        hitCounter = PlayerPrefs.GetInt("chain_charges", 0);
+        staticBonusDmg = PlayerPrefs.GetFloat("chain_bonus", 0f);
+    }
+
+    // 🔄 RESET
+    public static void ResetState()
+    {
+        PlayerPrefs.DeleteKey("chain_unlocked");
+        PlayerPrefs.DeleteKey("chain_charges");
+        PlayerPrefs.DeleteKey("chain_bonus");
+        PlayerPrefs.DeleteKey("chain_initialized");
+
+        isUnlocked = false;
+        hitCounter = 0;
+        staticBonusDmg = 0f;
     }
 }

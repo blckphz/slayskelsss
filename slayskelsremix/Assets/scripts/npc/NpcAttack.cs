@@ -1,57 +1,64 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 public class NpcAttack : MonoBehaviour
 {
     [Header("Ability Configuration")]
-    public Ability currentAbility;
-    public Transform attackAnchor; // Where the attack originates
+    public offensivemelee currentAbility;
+    public Transform attackAnchor;
 
+    private Transform currentTarget;
+
+    [Header("Cooldown")]
+    public float globalAttackCooldown = 0.2f;
     private float nextAttackTime;
 
-    // Use a Trigger to find the enemy instead of manual range math!
-    private void OnTriggerStay(Collider other)
+    private void Awake()
     {
-        if (currentAbility == null) return;
+        if (currentAbility != null)
+            currentAbility = Instantiate(currentAbility);
+    }
 
-        // Check if the object we collided with is an Enemy or Resource
+    private void Update()
+    {
+        if (currentTarget == null || currentAbility == null)
+            return;
+
+        TryAttack(currentTarget);
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
         if (other.CompareTag("Enemy") || other.CompareTag("Resource"))
-        {
-            TryAttack(other.transform);
-        }
+            currentTarget = other.transform;
     }
 
     private void OnTriggerExit(Collider other)
     {
-        if (other.CompareTag("Enemy") || other.CompareTag("Resource"))
+        if (other.transform == currentTarget)
         {
+            currentTarget = null;
             StopAttacking();
         }
     }
 
     public void TryAttack(Transform target)
     {
-        if (Time.time < nextAttackTime) return;
+        if (Time.time < nextAttackTime)
+            return;
 
-        // Execute attack/combo step
-        bool attackFinished = currentAbility.Execute(transform, target, true);
+        if (target == null)
+            return;
 
-        // FIX: Force a failsafe cooldown so the NPC doesn't get jammed!
-        if (attackFinished)
-        {
+        bool finished = currentAbility.Execute(transform, target, true);
+
+        nextAttackTime = Time.time + globalAttackCooldown;
+
+        if (finished)
             nextAttackTime = Time.time + currentAbility.fireRate;
-        }
-        else
-        {
-            // Failsafe: If it's a combo, we still want a tiny gap so it doesn't spam frame-by-frame
-            nextAttackTime = Time.time + 0.1f;
-        }
     }
 
     public void StopAttacking()
     {
-        if (currentAbility != null)
-        {
-            currentAbility.Execute(transform, null, false);
-        }
+        currentAbility?.Execute(transform, null, false);
     }
 }

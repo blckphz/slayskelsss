@@ -1,53 +1,90 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 [CreateAssetMenu(fileName = "NewMeleeAbility", menuName = "Abilities/Melee")]
 public class offensivemelee : offensiveability
 {
+    // 🔥 Enum INSIDE the class (as requested)
+    public enum SwingOwner
+    {
+        Player,
+        NPC
+    }
+
     [Header("Melee Stats")]
     public int maxSwings = 3;
     public float swingFreq = 0.2f;
+
+    [Header("Spawn")]
     public float spawnOffset = 1.5f;
     public float rotationOffset = 0f;
 
-    private int currentSwingCount = 0;
-    private float nextSwingReadyTime = 0f;
-    private int toggleIndex = 0;
-
     public virtual float GetBonusDamage() => 0f;
+
+    // runtime state (per instance)
+    private int swingIndex;
+    private float nextSwingTime;
+    private bool isActive;
 
     public override bool Execute(Transform caster, Transform targetAnchor, bool isHolding)
     {
-        // 1. Reset combo if not holding
+        if (caster == null)
+            return false;
+
+        SwingOwner owner =
+            caster.GetComponent<PlayerAttack>() != null
+            ? SwingOwner.Player
+            : SwingOwner.NPC;
+
+        Debug.Log($"[Melee Execute] OWNER: {owner} | Holding: {isHolding}");
+
+        if (isHolding && !isActive)
+        {
+            isActive = true;
+            swingIndex = 0;
+            nextSwingTime = Time.time;
+
+            Debug.Log($"[Melee] {owner} started combo");
+        }
+
         if (!isHolding)
         {
-            currentSwingCount = 0;
-            if (Time.time > nextSwingReadyTime) nextSwingReadyTime = 0;
+            isActive = false;
+            Debug.Log($"[Melee] {owner} stopped combo");
             return false;
         }
 
-        // 2. Combo Logic
-        if (Time.time >= nextSwingReadyTime && currentSwingCount < maxSwings)
-        {
-            PerformSwing(caster, targetAnchor);
-            currentSwingCount++;
-            nextSwingReadyTime = Time.time + swingFreq;
+        if (!isActive || Time.time < nextSwingTime)
+            return false;
 
-            // 3. AUTO-COOLDOWN SIGNAL: If we reached the max, reset and tell the controller to start CD
-            if (currentSwingCount >= maxSwings)
-            {
-                currentSwingCount = 0;
-                return true;
-            }
+        PerformSwing(caster, targetAnchor, swingIndex, owner);
+
+        swingIndex++;
+        nextSwingTime = Time.time + swingFreq;
+
+        Debug.Log($"[Melee] {owner} swing {swingIndex}/{maxSwings}");
+
+        if (swingIndex >= maxSwings)
+        {
+            isActive = false;
+            Debug.Log($"[Melee] {owner} FINISHED COMBO");
+            return true;
         }
+
         return false;
     }
 
-    private void PerformSwing(Transform caster, Transform targetAnchor)
+    private void PerformSwing(Transform caster, Transform targetAnchor, int index, SwingOwner owner)
     {
-        if (prefab == null) return;
-        toggleIndex++;
+        if (prefab == null)
+        {
+            Debug.LogWarning("[Melee] Missing prefab");
+            return;
+        }
 
-        Vector3 targetPos = targetAnchor != null ? targetAnchor.position : caster.position + caster.right;
+        Vector3 targetPos = targetAnchor != null
+            ? targetAnchor.position
+            : caster.position + caster.right;
+
         Vector2 dir = ((Vector2)targetPos - (Vector2)caster.position).normalized;
 
         Vector2 snappedDir = Mathf.Abs(dir.x) > Mathf.Abs(dir.y)
@@ -55,18 +92,42 @@ public class offensivemelee : offensiveability
             : new Vector2(0, Mathf.Sign(dir.y));
 
         Vector3 spawnPos = caster.position + (Vector3)(snappedDir * spawnOffset);
-        float angle = (Mathf.Atan2(snappedDir.y, snappedDir.x) * Mathf.Rad2Deg) + rotationOffset;
+        float angle = Mathf.Atan2(snappedDir.y, snappedDir.x) * Mathf.Rad2Deg + rotationOffset;
 
-        GameObject woosh = ObjectPooler.Instance.GetPooledObject(prefab, spawnPos, Quaternion.Euler(0, 0, angle));
-        if (woosh == null) return;
+        GameObject woosh = ObjectPooler.Instance.GetPooledObject(
+            prefab,
+            spawnPos,
+            Quaternion.Euler(0, 0, angle)
+        );
+
+        if (woosh == null)
+        {
+            Debug.LogWarning("[Melee] Pool returned NULL");
+            return;
+        }
 
         woosh.transform.SetParent(caster);
         woosh.transform.localPosition = caster.InverseTransformPoint(spawnPos);
 
-        if (launchsound != null) audiomanager.Instance?.PlaySound(launchsound);
+        float bonus = 0f;
+
+        if (owner == SwingOwner.Player)
+        {
+            bonus = GetBonusDamage();
+        }
 
         var behav = woosh.GetComponent<meleebehav>();
-        if (behav != null) behav.Setup(damage, GetBonusDamage(), toggleIndex);
+        if (behav != null)
+        {
+            behav.Setup(damage, bonus, index, owner);
+        }
+
+        Debug.Log(
+            $"[SWING CONSUMED] OWNER: {owner} | " +
+            $"TARGET: {(targetAnchor != null ? targetAnchor.name : "NULL")} | " +
+            $"INDEX: {index} | " +
+            $"BONUS: {bonus}"
+        );
 
         CameraShaker.Shake(0.4f, 0.12f);
     }

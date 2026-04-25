@@ -8,13 +8,11 @@ using System.Collections.Generic;
 [RequireComponent(typeof(NpcInvBrain))]
 public class NPCBrain : MonoBehaviour
 {
-    [Header("Settings")]
     public float detectionRange = 20f;
     public float searchInterval = 0.5f;
     public float attackStopDistance = 1.5f;
     public float chestActionCooldown = 0.5f;
 
-    [Header("Status")]
     [SerializeField] private bool targetInAttackTrigger = false;
     [SerializeField] private int currentTargetID = -1;
 
@@ -42,18 +40,16 @@ public class NPCBrain : MonoBehaviour
 
     void Update()
     {
-        // FAILSAFE 1: Immediate cleanup if the target object is destroyed/collected
-        if (currentTargetID != -1 && destinationSetter.target == null)
-        {
-            ClearCurrentTarget();
-        }
+        Debug.Log($"[NPCBrain] Update | target={destinationSetter.target} trigger={targetInAttackTrigger}");
 
-        // FAILSAFE 2: Stuck check (If target exists but we aren't moving)
-        CheckIfStuck();
+        if (currentTargetID != -1 && destinationSetter.target == null)
+            Debug.Log("[NPCBrain] target missing");
 
         searchTimer += Time.deltaTime;
+
         if (searchTimer >= searchInterval)
         {
+            Debug.Log("[NPCBrain] Searching...");
             FindBestTarget();
             searchTimer = 0f;
         }
@@ -61,174 +57,145 @@ public class NPCBrain : MonoBehaviour
         HandleAction();
     }
 
-    private void CheckIfStuck()
-    {
-        if (destinationSetter.target != null && aiPath.velocity.sqrMagnitude < 0.1f)
-        {
-            stuckTimer += Time.deltaTime;
-            if (stuckTimer > 2f) // If stuck for 2 seconds
-            {
-                ClearCurrentTarget();
-                stuckTimer = 0;
-            }
-        }
-        else
-        {
-            stuckTimer = 0;
-        }
-    }
-
     private void HandleTargetDestroyed(int destroyedID)
     {
+        Debug.Log($"[NPCBrain] Target destroyed: {destroyedID}");
+
         if (currentTargetID == destroyedID)
         {
+            Debug.Log("[NPCBrain] clearing target");
             ClearCurrentTarget();
-            // Search again after a tiny delay to let the physics engine catch up
             Invoke(nameof(FindBestTarget), 0.05f);
         }
     }
 
     private void FindBestTarget()
     {
-        // 1. ⚔️ ENEMIES
-        Transform enemy = GetClosest<enemyHealth>();
-        if (enemy) { SetTarget(enemy, attackStopDistance); return; }
+        Debug.Log("[NPCBrain] FindBestTarget");
 
-        // 2. 📦 STORAGE (Priority if holding items)
-        if (IsCarryingItems())
+        Transform enemy = GetClosest<enemyHealth>();
+        if (enemy)
         {
-            Transform chest = GetClosest<ChestInventory>();
-            if (chest) { SetTarget(chest, 1.2f); return; }
+            Debug.Log("[NPCBrain] enemy found");
+            SetTarget(enemy, attackStopDistance);
+            return;
         }
 
-        // 3. ⛏ RESOURCES
         Transform resource = GetClosest<ItemHealth>();
-        if (resource) { SetTarget(resource, attackStopDistance); return; }
+        if (resource)
+        {
+            Debug.Log("[NPCBrain] resource found");
+            SetTarget(resource, attackStopDistance);
+            return;
+        }
 
-        // 4. 💰 LOOT
         Transform loot = GetClosest<PickupItem>();
-        if (loot) { SetTarget(loot, 0.1f); return; }
+        if (loot)
+        {
+            Debug.Log("[NPCBrain] loot found");
+            SetTarget(loot, 0.1f);
+            return;
+        }
 
-        // If we found nothing but still have a target, clear it
-        if (destinationSetter.target != null) ClearCurrentTarget();
+        Debug.Log("[NPCBrain] nothing found");
     }
 
     private void SetTarget(Transform target, float dist)
     {
         if (target == null)
         {
+            Debug.Log("[NPCBrain] SetTarget NULL");
             ClearCurrentTarget();
             return;
         }
 
-        if (destinationSetter.target != target)
-        {
-            destinationSetter.target = target;
-            currentTargetID = target.gameObject.GetInstanceID();
-        }
+        destinationSetter.target = target;
+        currentTargetID = target.gameObject.GetInstanceID();
 
-        if (aiPath != null) aiPath.endReachedDistance = dist;
+        Debug.Log($"[NPCBrain] target set -> {target.name}");
     }
 
     private void ClearCurrentTarget()
     {
-        if (NPCList.Instance != null) NPCList.Instance.ReleaseTarget(myID);
+        Debug.Log("[NPCBrain] ClearCurrentTarget");
         destinationSetter.target = null;
         currentTargetID = -1;
         targetInAttackTrigger = false;
-        stuckTimer = 0;
     }
 
     private void HandleAction()
     {
-        // If the target is missing, stop everything
         if (destinationSetter.target == null)
         {
+            Debug.Log("[NPCBrain] NO TARGET -> stop");
             attackModule.StopAttacking();
             targetInAttackTrigger = false;
             return;
         }
 
+        Debug.Log($"[NPCBrain] HandleAction trigger={targetInAttackTrigger}");
+
         if (targetInAttackTrigger)
         {
+            Debug.Log("[NPCBrain] in range");
+
             var damageable = destinationSetter.target.GetComponent<IDamageable>();
-            var chest = destinationSetter.target.GetComponent<ChestInventory>();
 
             if (damageable != null)
             {
+                Debug.Log("[NPCBrain] attacking");
                 attackModule.TryAttack(destinationSetter.target);
-            }
-            else if (chest != null && IsCarryingItems())
-            {
-                if (Time.time >= nextChestActionTime)
-                {
-                    StoreItems(chest);
-                    nextChestActionTime = Time.time + chestActionCooldown;
-                }
             }
         }
         else
         {
+            Debug.Log("[NPCBrain] out of range -> stop");
             attackModule.StopAttacking();
         }
     }
 
-    private bool IsCarryingItems() => inventory != null && inventory.inventory != null && inventory.inventory.Exists(s => s.count > 0);
-
-    private void StoreItems(ChestInventory chest)
+    private void OnTriggerStay2D(Collider2D other)
     {
-        for (int i = inventory.inventory.Count - 1; i >= 0; i--)
+        Debug.Log($"[NPCBrain] TriggerStay {other.name}");
+
+        if (destinationSetter.target != null && other.transform == destinationSetter.target)
         {
-            var slot = inventory.inventory[i];
-            if (slot.item != null && slot.count > 0)
-            {
-                if (chest.AddItem(slot.item, slot.count))
-                    slot.count = 0;
-            }
+            Debug.Log("[NPCBrain] ENTER ATTACK RANGE");
+            targetInAttackTrigger = true;
         }
-        inventory.inventory.RemoveAll(s => s.count <= 0);
-        ClearCurrentTarget(); // Go back to searching after storing
+    }
+
+    private void OnTriggerExit2D(Collider2D other)
+    {
+        Debug.Log($"[NPCBrain] TriggerExit {other.name}");
+
+        if (destinationSetter.target != null && other.transform == destinationSetter.target)
+        {
+            Debug.Log("[NPCBrain] EXIT ATTACK RANGE");
+            targetInAttackTrigger = false;
+        }
     }
 
     private Transform GetClosest<T>() where T : MonoBehaviour
     {
         T[] targets = Object.FindObjectsByType<T>(FindObjectsSortMode.None);
-        float closestDist = Mathf.Infinity;
+
+        float closest = Mathf.Infinity;
         Transform best = null;
 
-        foreach (T t in targets)
+        foreach (var t in targets)
         {
-            if (t == null || !t.gameObject.activeInHierarchy) continue;
-
-            // Failsafe: Check if someone else claimed this
-            if (NPCList.Instance != null && NPCList.Instance.IsTargetClaimed(t.transform, myID))
-                continue;
+            if (t == null) continue;
 
             float d = Vector2.Distance(transform.position, t.transform.position);
-            if (d < closestDist && d <= detectionRange)
+
+            if (d < closest)
             {
-                closestDist = d;
+                closest = d;
                 best = t.transform;
             }
         }
 
-        if (best != null && NPCList.Instance != null)
-        {
-            NPCList.Instance.ReleaseTarget(myID);
-            NPCList.Instance.ClaimTarget(best, myID);
-        }
         return best;
-    }
-
-    private void OnTriggerStay2D(Collider2D other)
-    {
-        if (destinationSetter.target != null && other.transform == destinationSetter.target)
-            targetInAttackTrigger = true;
-    }
-
-    private void OnTriggerExit2D(Collider2D other)
-    {
-        if (destinationSetter.target != null && other.transform == destinationSetter.target)
-            targetInAttackTrigger = false;
     }
 }

@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 public class grenadeBehav : MonoBehaviour
@@ -31,6 +31,7 @@ public class grenadeBehav : MonoBehaviour
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (hasExploded) return;
+
         if (collision.GetComponent<IDamageable>() != null)
         {
             Explode();
@@ -53,15 +54,27 @@ public class grenadeBehav : MonoBehaviour
         {
             IDamageable target = obj.GetComponent<IDamageable>();
 
-            // Only proceed if the object is "Damageable" (Enemies, Crates, etc.)
-            // This ignores gold, pickups, and regular floor tiles
             if (target != null && !uniqueEnemiesHit.Contains(target))
             {
                 uniqueEnemiesHit.Add(target);
-                chainController.hitCcunter += chargesPerEnemyHit;
-                target.TakeDamage(damage);
 
-                // --- PHYSICS HANDLING (Only for Damageables) ---
+                float finalDamage = damage;
+
+                // ⚠️ GRENADE NO LONGER AFFECTS MELEE DAMAGE DIRECTLY
+                if (chainController.isUnlocked)
+                {
+                    // OPTIONAL: grenade still generates charges (utility role)
+                    chainController.hitCounter += chargesPerEnemyHit;
+
+                    chainController.hitCounter =
+                        Mathf.Min(chainController.hitCounter, 10);
+
+                    Debug.Log($"[Grenade] +{chargesPerEnemyHit} charge | Total: {chainController.hitCounter}");
+                }
+
+                target.TakeDamage(finalDamage);
+
+                // --- PHYSICS ---
                 Rigidbody2D rb = obj.GetComponent<Rigidbody2D>();
                 if (rb != null)
                 {
@@ -70,19 +83,19 @@ public class grenadeBehav : MonoBehaviour
 
                     enemyHealth enemy = obj.GetComponent<enemyHealth>();
                     if (enemy != null)
-                    {
                         enemy.ApplyImpulse(finalForce);
-                    }
                     else
-                    {
                         rb.AddForce(finalForce, ForceMode2D.Impulse);
-                    }
                 }
             }
         }
 
-        if (explosionEffect) Instantiate(explosionEffect, transform.position, Quaternion.identity);
-        if (ActiveGrenade == this) ActiveGrenade = null;
+        if (explosionEffect)
+            Instantiate(explosionEffect, transform.position, Quaternion.identity);
+
+        if (ActiveGrenade == this)
+            ActiveGrenade = null;
+
         Destroy(gameObject);
     }
 }

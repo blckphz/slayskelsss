@@ -2,6 +2,7 @@
 using UnityEngine.UI;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 
 [System.Serializable]
 public class AbilityUI
@@ -27,43 +28,51 @@ public class charsetter : MonoBehaviour
     public float shakeDuration = 0.2f;
     public float shakeMagnitude = 5f;
 
+    [Header("Chain UI")]
+    public TextMeshProUGUI chargeText;
+
+    private int lastChargeValue = -1;
+    private Coroutine chargePopRoutine;
+    private Coroutine chargeShakeRoutine;
+
+    private bool uiInitialized = false;
+
     void Awake()
     {
-        // Singleton setup
         if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
             return;
         }
+
         Instance = this;
-
-        /*
-
-        // Save original positions
-        foreach (var ui in abilityUI)
-        {
-            if (ui.background != null)
-                ui.bgOriginalPos = ui.background.rectTransform.localPosition;
-            if (ui.fillImage != null)
-                ui.fillOriginalPos = ui.fillImage.rectTransform.localPosition;
-        }
-
-        */
+        Debug.Log("[UI] charsetter Awake");
     }
 
     void Start()
     {
         UpdateAbilityIcons();
+
+        ForceChargeUIRefresh();
+
+        uiInitialized = true;
+
+        Debug.Log("[UI] charsetter Start COMPLETE");
     }
 
     void Update()
     {
         UpdateCooldownUI();
+        UpdateChargeUI();
     }
 
     public void UpdateAbilityIcons()
     {
-        if (selectedChar == null || selectedChar.abilities == null) return;
+        if (selectedChar == null || selectedChar.abilities == null)
+        {
+            Debug.LogWarning("[UI] No character abilities assigned");
+            return;
+        }
 
         for (int i = 0; i < abilityUI.Length; i++)
         {
@@ -91,10 +100,13 @@ public class charsetter : MonoBehaviour
             {
                 if (abilityUI[i].fillImage != null)
                     abilityUI[i].fillImage.enabled = false;
+
                 if (abilityUI[i].background != null)
                     abilityUI[i].background.enabled = false;
             }
         }
+
+        Debug.Log("[UI] Ability icons updated");
     }
 
     public void TriggerAbilityUsed(Ability ability)
@@ -103,13 +115,7 @@ public class charsetter : MonoBehaviour
 
         abilityUsedTime[ability] = Time.time;
 
-        int index = System.Array.IndexOf(selectedChar.abilities, ability);
-        if (index >= 0 && index < abilityUI.Length)
-        {
-            // Stop any running shake coroutine for this UI
-           // StopCoroutine(ShakeIcon(abilityUI[index]));
-           // StartCoroutine(ShakeIcon(abilityUI[index]));
-        }
+        Debug.Log($"[UI] Ability used: {ability.name}");
     }
 
     private void UpdateCooldownUI()
@@ -120,6 +126,7 @@ public class charsetter : MonoBehaviour
         for (int i = 0; i < abilityUI.Length; i++)
         {
             if (i >= selectedChar.abilities.Length) continue;
+
             Ability ability = selectedChar.abilities[i];
             if (ability == null || abilityUI[i].fillImage == null) continue;
 
@@ -129,42 +136,149 @@ public class charsetter : MonoBehaviour
 
             float remaining = Mathf.Clamp(nextFireTime - Time.time, 0f, ability.fireRate);
 
-            // Reverse fill: 1 = just used, 0 = ready
             float fill = remaining > 0f ? remaining / ability.fireRate : 0f;
             abilityUI[i].fillImage.fillAmount = fill;
         }
     }
 
-    /*
-
-    // --- Static shake coroutine ---
-    private IEnumerator ShakeIcon(AbilityUI ui)
+    // 🔥 CHARGE UI
+    private void UpdateChargeUI()
     {
-        float timer = 0f;
+        if (chargeText == null)
+            return;
 
-        // Save positions at start
-        Vector2 bgPos = ui.background != null ? ui.background.rectTransform.anchoredPosition : Vector2.zero;
-        Vector2 fillPos = ui.fillImage != null ? ui.fillImage.rectTransform.anchoredPosition : Vector2.zero;
+        if (!uiInitialized)
+            return;
 
-        while (timer < shakeDuration)
+        if (!chainController.isUnlocked)
         {
-            timer += Time.deltaTime;
-            Vector2 offset = Random.insideUnitCircle * shakeMagnitude;
+            if (chargeText.enabled)
+            {
+                Debug.Log("[UI] Charge UI disabled (not unlocked)");
+            }
 
-            if (ui.background != null)
-                ui.background.rectTransform.anchoredPosition = bgPos + offset;
-            if (ui.fillImage != null)
-                ui.fillImage.rectTransform.anchoredPosition = fillPos + offset;
+            chargeText.enabled = false;
+            chargeText.text = "";
+            lastChargeValue = -1;
+            return;
+        }
+
+        if (!chargeText.enabled)
+        {
+            chargeText.enabled = true;
+            Debug.Log("[UI] Charge UI re-enabled");
+        }
+
+        int charges = chainController.hitCounter;
+        chargeText.text = charges.ToString();
+
+        if (charges > lastChargeValue)
+        {
+            Debug.Log($"[UI] Charge INCREASE: {lastChargeValue} → {charges}");
+
+            if (chargePopRoutine != null)
+                StopCoroutine(chargePopRoutine);
+
+            chargePopRoutine = StartCoroutine(ChargePop());
+        }
+        else if (charges < lastChargeValue)
+        {
+            Debug.Log($"[UI] Charge DECREASE: {lastChargeValue} → {charges}");
+
+            if (chargeShakeRoutine != null)
+                StopCoroutine(chargeShakeRoutine);
+
+            chargeShakeRoutine = StartCoroutine(ChargeShake());
+        }
+
+        lastChargeValue = charges;
+
+        // color feedback
+        if (charges <= 0)
+            chargeText.color = Color.gray;
+        else if (charges < 5)
+            chargeText.color = Color.white;
+        else
+            chargeText.color = Color.yellow;
+    }
+
+    // 🔥 FIXED FORCE REFRESH
+    public void ForceChargeUIRefresh()
+    {
+        Debug.Log("[UI] ForceChargeUIRefresh CALLED");
+
+        if (chargeText == null)
+        {
+            Debug.LogWarning("[UI] chargeText is NULL");
+            return;
+        }
+
+        lastChargeValue = -1;
+
+        if (chainController.isUnlocked)
+        {
+            chargeText.enabled = true;
+            chargeText.text = chainController.hitCounter.ToString();
+
+            Debug.Log($"[UI] Forced display: {chainController.hitCounter}");
+        }
+        else
+        {
+            chargeText.enabled = false;
+        }
+    }
+
+    // ⚡ POP
+    private IEnumerator ChargePop()
+    {
+        RectTransform rt = chargeText.rectTransform;
+
+        rt.localScale = Vector3.one;
+
+        float duration = 0.15f;
+        float t = 0f;
+
+        while (t < duration)
+        {
+            t += Time.deltaTime;
+            float s = Mathf.Lerp(1f, 1.4f, t / duration);
+            rt.localScale = Vector3.one * s;
+            yield return null;
+        }
+
+        t = 0f;
+
+        while (t < duration)
+        {
+            t += Time.deltaTime;
+            float s = Mathf.Lerp(1.4f, 1f, t / duration);
+            rt.localScale = Vector3.one * s;
+            yield return null;
+        }
+
+        rt.localScale = Vector3.one;
+    }
+
+    // 💥 SHAKE
+    private IEnumerator ChargeShake()
+    {
+        RectTransform rt = chargeText.rectTransform;
+        Vector2 originalPos = rt.anchoredPosition;
+
+        float time = 0f;
+
+        while (time < 0.12f)
+        {
+            time += Time.deltaTime;
+
+            float strength = Mathf.Lerp(4f, 0f, time / 0.12f);
+            Vector2 offset = Random.insideUnitCircle * strength;
+
+            rt.anchoredPosition = originalPos + offset;
 
             yield return null;
         }
 
-        // Restore original positions
-        if (ui.background != null)
-            ui.background.rectTransform.anchoredPosition = bgPos;
-        if (ui.fillImage != null)
-            ui.fillImage.rectTransform.anchoredPosition = fillPos;
+        rt.anchoredPosition = originalPos;
     }
-    */
-
-    }
+}

@@ -1,3 +1,4 @@
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -7,6 +8,7 @@ public class chainlightningBehav : MonoBehaviour
     private int bouncesRemaining;
     private float radius;
     private float rotationOffset;
+
     private bool istickdmg;
     private float slowduration, sloweffectivenes;
     private float stunDmg;
@@ -23,13 +25,16 @@ public class chainlightningBehav : MonoBehaviour
         spriteTransform = GetComponentInChildren<SpriteRenderer>().transform;
     }
 
-    public void Setup(float dmg, int bounces, float rad, Vector2 velocity, float rotOffset, float stunDur, float stunEff, bool useTick, float sDmg, float sTick)
+    public void Setup(float dmg, int bounces, float rad, Vector2 velocity, float rotOffset,
+                      float stunDur, float stunEff, bool useTick, float sDmg, float sTick)
     {
         hitEnemies.Clear();
+
         damage = dmg;
         bouncesRemaining = bounces;
         radius = rad;
         rotationOffset = rotOffset;
+
         slowduration = stunDur;
         sloweffectivenes = stunEff;
         istickdmg = useTick;
@@ -43,7 +48,7 @@ public class chainlightningBehav : MonoBehaviour
         deactivationRoutine = StartCoroutine(DeactivateAfterTime(5f));
     }
 
-    private System.Collections.IEnumerator DeactivateAfterTime(float delay)
+    private IEnumerator DeactivateAfterTime(float delay)
     {
         yield return new WaitForSeconds(delay);
         Deactivate();
@@ -59,20 +64,30 @@ public class chainlightningBehav : MonoBehaviour
     {
         IDamageable target = collision.GetComponent<IDamageable>();
 
-        // Check if it's a valid target and hasn't been hit by this specific bolt yet
         if (target != null && !hitEnemies.Contains(collision.gameObject))
         {
-            // 1. Increment the global counter in chainController
-            chainController.hitCcunter++;
+            float finalDamage = damage;
 
-            // 2. Apply damage and effects
-            target.TakeDamage(damage);
+            // ✅ Apply chain system ONLY if perk unlocked
+            if (chainController.isUnlocked)
+            {
+                // Gain charge on hit
+                chainController.hitCounter++;
+
+                // Optional cap (IMPORTANT)
+                chainController.hitCounter = Mathf.Min(chainController.hitCounter, 10);
+
+                // OPTIONAL: lightning also benefits from charges
+                float bonus = chainController.hitCounter * chainController.staticBonusDmg;
+                finalDamage += bonus * 0.5f; // scaled down so it's not OP
+            }
+
+            // Apply effects
+            target.TakeDamage(finalDamage);
             target.ApplySlow(sloweffectivenes, slowduration, stunDmg, stunTick);
 
-            // 3. Track this specific enemy to prevent infinite loops/double hits
             hitEnemies.Add(collision.gameObject);
 
-            // 4. Handle bouncing logic
             if (bouncesRemaining > 0)
                 Bounce();
             else
@@ -83,8 +98,13 @@ public class chainlightningBehav : MonoBehaviour
     void Bounce()
     {
         bouncesRemaining--;
+
         GameObject closest = FindNextTarget();
-        if (closest == null) { Deactivate(); return; }
+        if (closest == null)
+        {
+            Deactivate();
+            return;
+        }
 
         Vector2 direction = ((Vector2)closest.transform.position - (Vector2)transform.position).normalized;
         rb.linearVelocity = direction * rb.linearVelocity.magnitude;
@@ -100,6 +120,7 @@ public class chainlightningBehav : MonoBehaviour
     GameObject FindNextTarget()
     {
         Collider2D[] candidates = Physics2D.OverlapCircleAll(transform.position, radius);
+
         GameObject bestTarget = null;
         float closestDist = Mathf.Infinity;
 
@@ -115,8 +136,12 @@ public class chainlightningBehav : MonoBehaviour
                 }
             }
         }
+
         return bestTarget;
     }
 
-    void Deactivate() => gameObject.SetActive(false);
+    void Deactivate()
+    {
+        gameObject.SetActive(false);
+    }
 }

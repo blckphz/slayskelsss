@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -6,10 +6,15 @@ public class meleebehav : MonoBehaviour
 {
     private float damage;
     private float bonusDamage;
+
     private List<IDamageable> hitEnemies = new List<IDamageable>();
     private Animator anim;
     private Vector3 prefabScale;
     private Coroutine deactivationRoutine;
+
+    private bool chargeConsumedThisSwing = false;
+
+    private offensivemelee.SwingOwner owner;
 
     private void Awake()
     {
@@ -17,20 +22,49 @@ public class meleebehav : MonoBehaviour
         prefabScale = transform.localScale;
     }
 
-    public void Setup(float dmg, float bDmg, int swingIndex)
+    // 🔥 NOW RECEIVES OWNER
+    public void Setup(float dmg, float bDmg, int swingIndex, offensivemelee.SwingOwner swingOwner)
     {
         damage = dmg;
         bonusDamage = bDmg;
-        hitEnemies.Clear();
+        owner = swingOwner;
 
-        if (chainController.hitCcunter > 0)
+        hitEnemies.Clear();
+        chargeConsumedThisSwing = false;
+
+        Debug.Log($"[Melee Setup] OWNER: {owner} | Damage: {damage}");
+
+        // ⚔️ CHARGE CONSUMPTION ONLY FOR PLAYER
+        if (owner == offensivemelee.SwingOwner.Player)
         {
-            chainController.hitCcunter--;
+            if (chainController.isUnlocked)
+            {
+                if (chainController.hitCounter > 0)
+                {
+                    chainController.hitCounter--;
+
+                    Debug.Log(
+                        $"[Melee Swing] Consumed 1 charge by PLAYER. Remaining: {chainController.hitCounter}"
+                    );
+
+                    chargeConsumedThisSwing = true;
+                }
+                else
+                {
+                    Debug.Log("[Melee Swing] PLAYER has no charges.");
+                }
+            }
+        }
+        else
+        {
+            Debug.Log("[Melee Swing] NPC swing detected → NO charge consumed.");
         }
 
-        if (deactivationRoutine != null) StopCoroutine(deactivationRoutine);
+        if (deactivationRoutine != null)
+            StopCoroutine(deactivationRoutine);
 
         bool isEven = (swingIndex % 2 == 0);
+
         transform.localScale = new Vector3(
             isEven ? -prefabScale.x : prefabScale.x,
             prefabScale.y,
@@ -52,15 +86,27 @@ public class meleebehav : MonoBehaviour
     private void OnTriggerEnter2D(Collider2D collision)
     {
         IDamageable target = collision.GetComponent<IDamageable>();
+
         if (target != null && !hitEnemies.Contains(target))
         {
-            float chargeBonus = chainController.hitCcunter * chainController.staticBonusDmg;
-            float finalDamage = damage + chargeBonus;
+            float finalDamage = damage;
 
-            if (target.IsSlowed) finalDamage += bonusDamage;
+            // ⚔️ BONUS DAMAGE LOGIC
+            if (chainController.isUnlocked)
+            {
+                finalDamage += chainController.staticBonusDmg;
+            }
+
+            if (target.IsSlowed)
+                finalDamage += bonusDamage;
 
             target.TakeDamage(finalDamage);
             hitEnemies.Add(target);
+
+            Debug.Log(
+                $"[Hit] OWNER: {owner} | Target: {collision.name} | Damage: {finalDamage}"
+            );
+
             CameraShaker.Shake(0.35f, 0.12f);
         }
     }
@@ -68,11 +114,13 @@ public class meleebehav : MonoBehaviour
     private IEnumerator DeactivateAfterAnimation()
     {
         yield return new WaitForEndOfFrame();
+
         if (anim != null)
         {
             float duration = anim.GetCurrentAnimatorStateInfo(0).length;
             yield return new WaitForSeconds(duration);
         }
+
         Deactivate();
     }
 

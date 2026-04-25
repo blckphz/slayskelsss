@@ -17,9 +17,9 @@ MonoBehaviour:
   icon: {fileID: 21300000, guid: d046d1f4463bda64fbbe0455001d0b39, type: 3}
   launchsound: {fileID: 0}
   customAudioLogic: 0
-  damage: 10
+  damage: 5
   maxSwings: 2
-  swingFreq: 0.3
+  swingFreq: 0.27
   spawnOffset: 1.5
   rotationOffset: 90
-  bonusdmg: 10
+  bonusdmg: 0
