@@ -115,7 +115,6 @@ public class charsetter : MonoBehaviour
 
         abilityUsedTime[ability] = Time.time;
 
-        Debug.Log($"[UI] Ability used: {ability.name}");
     }
 
     private void UpdateCooldownUI()

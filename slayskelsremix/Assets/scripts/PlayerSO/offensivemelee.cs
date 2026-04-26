@@ -35,7 +35,6 @@ public class offensivemelee : offensiveability
             ? SwingOwner.Player
             : SwingOwner.NPC;
 
-        Debug.Log($"[Melee Execute] OWNER: {owner} | Holding: {isHolding}");
 
         if (isHolding && !isActive)
         {
@@ -43,13 +42,11 @@ public class offensivemelee : offensiveability
             swingIndex = 0;
             nextSwingTime = Time.time;
 
-            Debug.Log($"[Melee] {owner} started combo");
         }
 
         if (!isHolding)
         {
             isActive = false;
-            Debug.Log($"[Melee] {owner} stopped combo");
             return false;
         }
 
@@ -61,12 +58,10 @@ public class offensivemelee : offensiveability
         swingIndex++;
         nextSwingTime = Time.time + swingFreq;
 
-        Debug.Log($"[Melee] {owner} swing {swingIndex}/{maxSwings}");
 
         if (swingIndex >= maxSwings)
         {
             isActive = false;
-            Debug.Log($"[Melee] {owner} FINISHED COMBO");
             return true;
         }
 

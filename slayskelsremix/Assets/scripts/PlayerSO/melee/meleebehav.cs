@@ -32,7 +32,6 @@ public class meleebehav : MonoBehaviour
         hitEnemies.Clear();
         chargeConsumedThisSwing = false;
 
-        Debug.Log($"[Melee Setup] OWNER: {owner} | Damage: {damage}");
 
         // ⚔️ CHARGE CONSUMPTION ONLY FOR PLAYER
         if (owner == offensivemelee.SwingOwner.Player)
@@ -43,9 +42,6 @@ public class meleebehav : MonoBehaviour
                 {
                     chainController.hitCounter--;
 
-                    Debug.Log(
-                        $"[Melee Swing] Consumed 1 charge by PLAYER. Remaining: {chainController.hitCounter}"
-                    );
 
                     chargeConsumedThisSwing = true;
                 }

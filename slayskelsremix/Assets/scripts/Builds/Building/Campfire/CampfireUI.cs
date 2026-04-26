@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
-using TMPro; // Required for TextMeshPro
+using UnityEngine.UI;
+using TMPro;
+using System.Text; // Added for StringBuilder
 
 public class CampfireUI : MonoBehaviour
 {
@@ -10,6 +12,9 @@ public class CampfireUI : MonoBehaviour
     [SerializeField] private GameObject uiBackground;
     [SerializeField] private CampfireSlotUI slotScript;
 
+    [Header("Waypoints")]
+    [SerializeField] private Toggle waypointToggle;
+
     [Header("Dynamic Info Text")]
     [SerializeField] private TextMeshProUGUI infoText;
 
@@ -19,17 +24,22 @@ public class CampfireUI : MonoBehaviour
     public CampfireBehav CurrentCampfire => currentCampfire;
     private CampfireBehav currentCampfire;
 
+    // String Optimization: Cache tags and use StringBuilder to avoid GC pressure
+    private StringBuilder infoBuilder = new StringBuilder(128);
+    private const string STATUS_BURNING = "<color=#FFA500>BURNING</color>";
+    private const string STATUS_OFF = "<color=#FF4500>EXTINGUISHED</color>";
+
     private void Awake()
     {
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
+        if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
 
+        // Use cached finding logic
         if (inventorySystem == null)
             inventorySystem = Object.FindFirstObjectByType<invUIToggle>();
+
+        if (waypointToggle != null)
+            waypointToggle.onValueChanged.AddListener(OnWaypointToggleChanged);
 
         SafeSetActive(uiPanel, false);
         SafeSetActive(uiBackground, false);
@@ -37,69 +47,74 @@ public class CampfireUI : MonoBehaviour
 
     private void Update()
     {
-        // DYNAMIC UPDATE: If the panel is open and the fire is burning, 
-        // update the text every frame to show the fuel dropping smoothly.
-        if (uiPanel != null && uiPanel.activeSelf && currentCampfire != null)
+        // Only update if panel is visible AND campfire is actually burning/changing
+        if (currentCampfire != null && uiPanel.activeSelf)
         {
-            if (currentCampfire.isBurning)
-            {
-                UpdateInfoText();
-            }
-        }
-    }
-
-    public void RefreshUI()
-    {
-        if (uiPanel != null && uiPanel.activeSelf)
-        {
-            if (slotScript != null) slotScript.UpdateUI();
+            // Performance: Only update text if the value has changed significantly 
+            // or use a timer (e.g., every 0.1s) to avoid updating 60+ times per second.
             UpdateInfoText();
         }
     }
 
-    private void UpdateInfoText()
+    private void OnWaypointToggleChanged(bool isOn)
     {
-        if (infoText == null || currentCampfire == null) return;
+        if (currentCampfire == null) return;
 
-        // Visual status string
-        string status = currentCampfire.isBurning ?
-            "<color=#FFA500>BURNING</color>" :
-            "<color=#FF4500>EXTINGUISHED</color>";
-
-        // F2 gives you two decimal places (e.g. 5.42) for that high-detail "ticking" feel
-        infoText.text = $"<b>CAMPFIRE</b>\n" +
-                        $"Status: {status}\n" +
-                        $"Fuel: {currentCampfire.fuelAmount:F2} / {currentCampfire.maxFuel}";
+        // Direct call to manager - ensured to only trigger on manual toggle or logic change
+        MapPointerManager.Instance.SetLandmark("Campfire", isOn ? currentCampfire.gameObject : null, MapPointerManager.Instance.campfireIcon);
     }
 
     public void OpenCampfire(CampfireBehav campfire)
     {
         if (!campfire) return;
 
-        if (uiPanel != null && uiPanel.activeSelf)
+        // Toggle behavior if clicking the same fire
+        if (currentCampfire == campfire && uiPanel.activeSelf)
         {
-            if (currentCampfire == campfire)
-            {
-                CloseCampfire();
-                return;
-            }
+            CloseCampfire();
+            return;
         }
 
         currentCampfire = campfire;
+
+        // Sync UI State
+        if (waypointToggle != null)
+        {
+            bool isAlreadyTracked = MapPointerManager.Instance.IsTrackingObject("Campfire", currentCampfire.transform);
+            waypointToggle.SetIsOnWithoutNotify(isAlreadyTracked);
+        }
+
         SafeSetActive(uiPanel, true);
         SafeSetActive(uiBackground, true);
 
-        if (inventorySystem != null)
-        {
-            inventorySystem.ForceOpenInventory();
-        }
-
-        if (slotScript)
-        {
-            slotScript.campfire = campfire;
-        }
+        if (inventorySystem != null) inventorySystem.ForceOpenInventory();
+        if (slotScript) slotScript.campfire = campfire;
 
         RefreshUI();
+    }
+
+    public void RefreshUI()
+    {
+        if (uiPanel == null || !uiPanel.activeSelf) return;
+
+        if (slotScript != null) slotScript.UpdateUI();
+        UpdateInfoText();
+    }
+
+    private void UpdateInfoText()
+    {
+        if (infoText == null || currentCampfire == null) return;
+
+        // Optimization: Use StringBuilder to prevent "string + string" garbage allocation
+        infoBuilder.Clear();
+        infoBuilder.Append("<b>CAMPFIRE</b>\nStatus: ");
+        infoBuilder.Append(currentCampfire.isBurning ? STATUS_BURNING : STATUS_OFF);
+        infoBuilder.Append("\nFuel: ");
+        infoBuilder.Append(currentCampfire.fuelAmount.ToString("F1")); // Reduced precision for cleaner UI
+        infoBuilder.Append(" / ");
+        infoBuilder.Append(currentCampfire.maxFuel);
+
+        infoText.SetText(infoBuilder);
     }
 
     public void CloseCampfire()
@@ -109,13 +124,9 @@ public class CampfireUI : MonoBehaviour
         SafeSetActive(uiPanel, false);
         SafeSetActive(uiBackground, false);
 
-        if (inventorySystem != null)
-        {
-            inventorySystem.ForceCloseInventory();
-        }
+        if (inventorySystem != null) inventorySystem.ForceCloseInventory();
 
         currentCampfire = null;
-
         if (slotScript)
         {
             slotScript.ResetSlot();
@@ -123,13 +134,8 @@ public class CampfireUI : MonoBehaviour
         }
     }
 
-    public void HideDueToRangeExit()
-    {
-        CloseCampfire();
-    }
-
     private void SafeSetActive(GameObject obj, bool state)
     {
-        if (obj != null) obj.SetActive(state);
+        if (obj != null && obj.activeSelf != state) obj.SetActive(state);
     }
 }

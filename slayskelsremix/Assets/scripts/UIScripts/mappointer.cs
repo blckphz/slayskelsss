@@ -8,24 +8,26 @@ public class MapPointer : MonoBehaviour
     private Vector3 offset = new Vector3(0, 1.25f, 0);
     private float margin = 50f;
 
-    [Header("Visual References")]
-    [SerializeField] private Image pointerImage; // Drag the child icon here
-    [SerializeField] private TextMeshProUGUI distanceText; // Drag the child text here
+    [SerializeField] private Image pointerImage;
+    [SerializeField] private TextMeshProUGUI distanceText;
 
     private Camera mainCam;
+    private CanvasGroup canvasGroup; // Smoother fading than color swapping
 
     public void Initialize(Transform targetTransform, Camera cam, Sprite icon)
     {
         target = targetTransform;
         mainCam = cam;
+        canvasGroup = GetComponent<CanvasGroup>();
 
-        // Fallback: If not assigned in inspector, try to find in children
         if (pointerImage == null) pointerImage = GetComponentInChildren<Image>();
         if (distanceText == null) distanceText = GetComponentInChildren<TextMeshProUGUI>();
 
         if (icon != null && pointerImage != null)
             pointerImage.sprite = icon;
     }
+
+    public Transform GetTarget() => target;
 
     void LateUpdate()
     {
@@ -35,57 +37,56 @@ public class MapPointer : MonoBehaviour
             return;
         }
 
-        // 1. Get positions
-        Vector3 screenPos = mainCam.WorldToScreenPoint(target.position + offset);
+        // 1. Calculate basic screen position
+        Vector3 targetWorldPos = target.position + offset;
+        Vector3 screenPos = mainCam.WorldToScreenPoint(targetWorldPos);
+
+        // 2. Handle objects behind the camera
         bool isBehind = screenPos.z < 0;
+        if (isBehind)
+        {
+            screenPos *= -1;
+        }
 
-        if (isBehind) screenPos *= -1;
-
-        // 2. Handle distance display
+        // 3. Update Distance Text (Cached check)
         if (distanceText != null)
         {
             float dist = Vector3.Distance(mainCam.transform.position, target.position);
-            distanceText.text = Mathf.Round(dist) + "m";
+            distanceText.text = $"{Mathf.RoundToInt(dist)}m";
         }
 
-        // 3. Screen Clamping Logic
-        float minX = margin;
-        float maxX = Screen.width - margin;
-        float minY = margin;
-        float maxY = Screen.height - margin;
+        // 4. Edge Clamping Logic (Vector-based instead of Trig-based)
+        Vector3 screenCenter = new Vector3(Screen.width, Screen.height, 0) * 0.5f;
+        screenPos -= screenCenter;
 
-        if (isBehind || screenPos.x < minX || screenPos.x > maxX || screenPos.y < minY || screenPos.y > maxY)
+        float angle = Mathf.Atan2(screenPos.y, screenPos.x);
+        float slope = screenPos.y / screenPos.x;
+
+        Vector3 bounds = screenCenter - new Vector3(margin, margin, 0);
+
+        if (isBehind || Mathf.Abs(screenPos.x) > bounds.x || Mathf.Abs(screenPos.y) > bounds.y)
         {
-            Vector3 cappedScreenPos = screenPos;
-            cappedScreenPos.x -= Screen.width / 2;
-            cappedScreenPos.y -= Screen.height / 2;
-
-            float angle = Mathf.Atan2(cappedScreenPos.y, cappedScreenPos.x);
-            float m = Mathf.Sin(angle) / Mathf.Cos(angle);
-            float screenAspect = (float)Screen.height / Screen.width;
-
-            if (Mathf.Abs(m) <= screenAspect)
+            // Clamp to screen edges
+            if (Mathf.Abs(screenPos.x * bounds.y) > Mathf.Abs(screenPos.y * bounds.x))
             {
-                float x = Mathf.Cos(angle) > 0 ? Screen.width / 2 - margin : -Screen.width / 2 + margin;
-                float y = m * x;
-                screenPos = new Vector3(x + Screen.width / 2, y + Screen.height / 2, 0);
+                // Hit left/right
+                float xSign = screenPos.x > 0 ? 1 : -1;
+                screenPos = new Vector3(xSign * bounds.x, xSign * bounds.x * slope, 0);
             }
             else
             {
-                float y = Mathf.Sin(angle) > 0 ? Screen.height / 2 - margin : -Screen.height / 2 + margin;
-                float x = y / m;
-                screenPos = new Vector3(x + Screen.width / 2, y + Screen.height / 2, 0);
+                // Hit top/bottom
+                float ySign = screenPos.y > 0 ? 1 : -1;
+                screenPos = new Vector3(ySign * bounds.y / slope, ySign * bounds.y, 0);
             }
 
-            // Apply fade to the ICON specifically
-            if (pointerImage != null) pointerImage.color = new Color(1, 1, 1, 0.6f);
+            if (canvasGroup != null) canvasGroup.alpha = 0.6f;
         }
         else
         {
-            // Fully visible
-            if (pointerImage != null) pointerImage.color = new Color(1, 1, 1, 1f);
+            if (canvasGroup != null) canvasGroup.alpha = 1.0f;
         }
 
-        transform.position = screenPos;
+        transform.position = screenPos + screenCenter;
     }
 }

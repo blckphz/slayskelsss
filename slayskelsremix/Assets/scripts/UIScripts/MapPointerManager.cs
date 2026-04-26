@@ -13,17 +13,8 @@ public class MapPointerManager : MonoBehaviour
     public Sprite tentIcon;
     public Sprite campfireIcon;
 
-    [Header("Inspector Testing (Drag objects here)")]
-    public GameObject testTentObject;
-    public GameObject testCampfireObject;
-
-    private List<MapPointer> questPointers = new List<MapPointer>();
     private Dictionary<string, MapPointer> permanentPointers = new Dictionary<string, MapPointer>();
     private Camera mainCam;
-
-    // We use these to track if the inspector reference changed
-    private GameObject lastTent;
-    private GameObject lastCampfire;
 
     void Awake()
     {
@@ -31,56 +22,49 @@ public class MapPointerManager : MonoBehaviour
         mainCam = Camera.main;
     }
 
-    void Update()
-    {
-        // TESTING LOGIC: 
-        // This checks if you've dragged a new object into the inspector slots during runtime.
-        if (testTentObject != lastTent)
-        {
-            SetLandmark("Tent", testTentObject, tentIcon);
-            lastTent = testTentObject;
-        }
+    // REMOVED: The Update() loop polling. 
+    // Instead, call SetLandmark only when the target actually changes in your game logic.
 
-        if (testCampfireObject != lastCampfire)
-        {
-            SetLandmark("Campfire", testCampfireObject, campfireIcon);
-            lastCampfire = testCampfireObject;
-        }
-    }
-
-    // --- LANDMARK SYSTEM ---
     public void SetLandmark(string landmarkID, GameObject target, Sprite icon)
     {
-        // 1. Remove old pointer for this ID if it exists
-        if (permanentPointers.ContainsKey(landmarkID))
+        // 1. Clean up existing pointer for this ID
+        if (permanentPointers.TryGetValue(landmarkID, out MapPointer existing))
         {
-            if (permanentPointers[landmarkID] != null)
-                Destroy(permanentPointers[landmarkID].gameObject);
+            if (existing != null) Destroy(existing.gameObject);
             permanentPointers.Remove(landmarkID);
         }
 
-        // 2. Create the new pointer
+        // 2. If target is null, we just wanted to remove it. If not, create new.
         if (target != null)
         {
             GameObject go = Instantiate(pointerPrefab, canvasParent);
             MapPointer pointer = go.GetComponent<MapPointer>();
             pointer.Initialize(target.transform, mainCam, icon);
-
             permanentPointers.Add(landmarkID, pointer);
-            Debug.Log($"<color=lime>[MapPointer]</color> Landmark {landmarkID} set to {target.name}");
         }
     }
 
-    // --- QUEST SYSTEM ---
-    public void AddPointersToGroup(GameObject[] targets, Sprite icon = null)
+    // Optimized Group Adder (e.g. for Quest objectives)
+    public void AddPointersToGroup(IEnumerable<GameObject> targets, Sprite icon = null)
     {
         foreach (GameObject t in targets)
         {
             if (t == null) continue;
             GameObject go = Instantiate(pointerPrefab, canvasParent);
-            MapPointer pointer = go.GetComponent<MapPointer>();
-            pointer.Initialize(t.transform, mainCam, icon);
-            questPointers.Add(pointer);
+            go.GetComponent<MapPointer>().Initialize(t.transform, mainCam, icon);
         }
     }
+
+    // Add this to MapPointerManager.cs
+    public bool IsTrackingObject(string landmarkID, Transform targetTransform)
+    {
+        // Try to get the pointer from the dictionary
+        if (permanentPointers.TryGetValue(landmarkID, out MapPointer pointer))
+        {
+            // Check if the pointer exists and is looking at the correct transform
+            return pointer != null && pointer.GetTarget() == targetTransform;
+        }
+        return false;
+    }
+
 }
