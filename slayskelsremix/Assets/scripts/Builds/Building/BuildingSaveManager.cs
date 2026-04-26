@@ -13,10 +13,13 @@ public class BuildingSaveManager : MonoBehaviour
         public string uniqueID;
         public Vector3 position;
 
-        // 🔥 Campfire data
+        // Campfire data
         public float fuelAmount;
         public bool isBurning;
         public int fuelItemID;
+
+        // Turret data
+        public int currentAmmo;
     }
 
     [System.Serializable]
@@ -28,9 +31,6 @@ public class BuildingSaveManager : MonoBehaviour
     [Header("References")]
     public ItemDatabase database;
 
-    [Header("Layers")]
-    public string bigBuildablesLayerName = "bigbuildables";
-
     private List<GameObject> placedBuildings = new List<GameObject>();
     private string savePath;
 
@@ -40,14 +40,9 @@ public class BuildingSaveManager : MonoBehaviour
         else { Destroy(gameObject); return; }
 
         savePath = Application.persistentDataPath + "/buildings.json";
-
         LoadBuildings();
         AutoRegisterSceneBuildings();
     }
-
-    // =========================
-    // REGISTER
-    // =========================
 
     public void RegisterBuilding(GameObject obj)
     {
@@ -61,9 +56,8 @@ public class BuildingSaveManager : MonoBehaviour
             placedBuildings.Remove(obj);
     }
 
-    // =========================
-    // SAVE
-    // =========================
+    // 🔥 FIXED: Added this back for your other scripts
+    public void SaveAfterChange() => SaveNow();
 
     public void SaveNow()
     {
@@ -82,20 +76,20 @@ public class BuildingSaveManager : MonoBehaviour
                 position = obj.transform.position
             };
 
-            // 🔥 Unique ID
-            tableBehav table = obj.GetComponent<tableBehav>();
-            if (table != null)
-                b.uniqueID = table.ID;
+            // Save Turret Data
+            if (obj.TryGetComponent(out buildableTurret turret))
+            {
+                b.currentAmmo = turret.currentAmmo;
+                if (obj.TryGetComponent(out turretsave tSave))
+                    b.uniqueID = tSave.turretID;
+            }
 
-            // 🔥 Campfire SAVE
-            CampfireBehav campfire = obj.GetComponent<CampfireBehav>();
-            if (campfire != null)
+            // Save Campfire Data
+            if (obj.TryGetComponent(out CampfireBehav campfire))
             {
                 b.fuelAmount = campfire.fuelAmount;
                 b.isBurning = campfire.isBurning;
                 b.fuelItemID = campfire.fuelItem != null ? campfire.fuelItem.itemID : -1;
-
-                Debug.Log($"<color=cyan>[SAVE]</color> Campfire [{b.uniqueID}] Fuel:{b.fuelAmount} Burning:{b.isBurning}");
             }
 
             data.buildings.Add(b);
@@ -105,19 +99,9 @@ public class BuildingSaveManager : MonoBehaviour
         Debug.Log($"<color=cyan>[SAVE]</color> Saved {data.buildings.Count} buildings.");
     }
 
-    public void SaveAfterChange() => SaveNow();
-
-    // =========================
-    // LOAD
-    // =========================
-
     public void LoadBuildings()
     {
-        if (!File.Exists(savePath))
-        {
-            Debug.Log("<color=yellow>[LOAD]</color> No save file found.");
-            return;
-        }
+        if (!File.Exists(savePath)) return;
 
         string json = File.ReadAllText(savePath);
         SaveData data = JsonUtility.FromJson<SaveData>(json);
@@ -125,47 +109,33 @@ public class BuildingSaveManager : MonoBehaviour
         foreach (var b in data.buildings)
         {
             ItemData item = database.GetItemByID(b.itemID);
-            if (item == null) continue;
-
-            buildSO buildItem = item as buildSO;
-            if (buildItem == null || buildItem.placeablePrefab == null) continue;
+            if (item == null || item is not buildSO buildItem) continue;
 
             GameObject obj = Instantiate(buildItem.placeablePrefab, b.position, Quaternion.identity);
 
-            // 🔥 Restore Unique ID
-            tableBehav table = obj.GetComponent<tableBehav>();
-            if (table != null && !string.IsNullOrEmpty(b.uniqueID))
+            // Restore Turret
+            if (obj.TryGetComponent(out buildableTurret turret))
             {
-                table.LoadPersistentID(b.uniqueID);
+                turret.currentAmmo = b.currentAmmo;
+                if (obj.TryGetComponent(out turretsave tSave)) tSave.turretID = b.uniqueID;
+                if (obj.TryGetComponent(out TurretBehaviour brain))
+                    brain.SetFiringPermission(turret.currentAmmo > 0);
+            }
+
+            // Restore Campfire
+            if (obj.TryGetComponent(out CampfireBehav campfire))
+            {
+                campfire.fuelAmount = b.fuelAmount;
+                campfire.isBurning = b.isBurning;
+                if (b.fuelItemID != -1) campfire.fuelItem = database.GetItemByID(b.fuelItemID);
+                campfire.SendMessage("UpdateVisuals", SendMessageOptions.DontRequireReceiver);
             }
 
             BuildIdentity id = obj.GetComponent<BuildIdentity>() ?? obj.AddComponent<BuildIdentity>();
             id.item = buildItem;
-
-            // 🔥 LOAD CAMPFIRE DATA
-            CampfireBehav campfire = obj.GetComponent<CampfireBehav>();
-            if (campfire != null)
-            {
-                campfire.fuelAmount = b.fuelAmount;
-                campfire.isBurning = b.isBurning;
-
-                if (b.fuelItemID != -1)
-                    campfire.fuelItem = database.GetItemByID(b.fuelItemID);
-
-
-                // IMPORTANT → update visuals AFTER loading
-                campfire.SendMessage("UpdateVisuals", SendMessageOptions.DontRequireReceiver);
-            }
-
             RegisterBuilding(obj);
         }
-
-        Debug.Log($"<color=green>[LOAD]</color> Loaded {data.buildings.Count} buildings.");
     }
-
-    // =========================
-    // AUTO REGISTER
-    // =========================
 
     void AutoRegisterSceneBuildings()
     {

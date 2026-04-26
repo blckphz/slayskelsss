@@ -3,9 +3,11 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "turret", menuName = "Abilities/Turret")]
 public class turretSO : defensiveAbilities
 {
+    [Header("Ability Settings")]
     public float lifetime = 10f;
     public float turretdmg;
     public float shootfreq;
+    public int pierceCount; // New pierce stat
     public int maxturretcount = 3;
 
     // Updated return type to bool and added the return handshake
@@ -42,8 +44,9 @@ public class turretSO : defensiveAbilities
         var turret = turretObj.GetComponent<TurretBehaviour>();
         if (turret != null)
         {
+            // Set stats including the new pierceCount
             turret.Setup(hp, lifetime, caster);
-            turret.SetCombatStats(turretdmg, shootfreq);
+            turret.SetCombatStats(turretdmg, shootfreq, pierceCount);
         }
 
         // Return true to trigger the cooldown in PlayerAttack immediately

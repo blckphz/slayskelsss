@@ -1,6 +1,6 @@
 using UnityEngine;
 
-[CreateAssetMenu(menuName = "Inventory/Build Item")]
+[CreateAssetMenu(menuName = "Inventory/Build Item/BasicBuildItem")]
 public class buildSO : ItemData
 {
     [Header("Building")]
@@ -10,4 +10,5 @@ public class buildSO : ItemData
     public Vector2Int size = Vector2Int.one;
 
     public AudioClip placementSound;
+
 }
