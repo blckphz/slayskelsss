@@ -6,8 +6,6 @@ public class treeItemBehav : ItemHealth, IDamageable
     [Header("Tree Identity")]
     public string treeID;
 
-    [Header("Health Settings")]
-    public float health = 10f; // Ensure this matches your ItemHealth logic
 
     [Header("Loot")]
     public GameObject woodPrefab;
@@ -29,12 +27,8 @@ public class treeItemBehav : ItemHealth, IDamageable
 
     [Header("VFX & UI")]
     public GameObject leafParticlePrefab;
-    public GameObject damageTextPrefab;
     public Vector3 damageTextOffset = new Vector3(0, 1.5f, 0);
 
-    [Header("Flash Settings")]
-    public string hitIntensityName = "_Intensity";
-    public float flashDuration = 0.2f;
 
     private bool isDead = false;
     private SpriteRenderer spriteRenderer;
@@ -68,22 +62,6 @@ public class treeItemBehav : ItemHealth, IDamageable
         }
     }
 
-    public void TakeDamage(float damage)
-    {
-        if (isDead) return;
-        health -= damage;
-
-        if (damageTextPrefab != null && damage > 0)
-        {
-            GameObject dmgObj = Instantiate(damageTextPrefab, transform.position + damageTextOffset, Quaternion.identity);
-            if (dmgObj.TryGetComponent<DamageNumber>(out DamageNumber dn)) dn.Setup(damage);
-        }
-
-        if (_flashCoroutine != null) StopCoroutine(_flashCoroutine);
-        _flashCoroutine = StartCoroutine(FlashEffect());
-
-        if (health <= 0) Die();
-    }
 
     private void Die()
     {

@@ -16,8 +16,6 @@ public class InventoryManager : MonoBehaviour
 
     [Header("Inventory Data")]
     public List<InventorySlot> inventory = new List<InventorySlot>();
-
-    [Header("Hotbar Data")]
     public List<HotbarSlotData> hotbarData = new List<HotbarSlotData>();
     public int hotbarSize = 9;
 
@@ -42,46 +40,37 @@ public class InventoryManager : MonoBehaviour
         LoadInventory();
     }
 
-    // --- ADD ITEM LOGIC ---
     public void AddItem(ItemData data, int amount)
     {
         if (data == null) return;
-
-        // 1. FIRST: Check if the item exists in the HOTBAR
         foreach (var hSlot in hotbarData)
         {
             if (hSlot.item != null && hSlot.item.itemID == data.itemID)
             {
                 hSlot.count += amount;
-                Debug.Log($"<color=cyan>[Pickup]</color> Added {amount} to Hotbar stack of {data.itemName}.");
                 RefreshAll();
                 return;
             }
         }
-
-        // 2. SECOND: Check if the item exists in the MAIN INVENTORY
         foreach (var slot in inventory)
         {
             if (slot.item != null && slot.item.itemID == data.itemID)
             {
                 slot.count += amount;
-                Debug.Log($"<color=green>[Pickup]</color> Added {amount} to Inventory stack of {data.itemName}.");
                 RefreshAll();
                 return;
             }
         }
-
-        // 3. THIRD: If it doesn't exist anywhere, add as a new stack in the inventory
         inventory.Add(new InventorySlot(data, amount));
         RefreshAll();
     }
 
+    // FIXED: Added back the RemoveItem definition
     public bool RemoveItem(ItemData data, int amount)
     {
         if (data == null) return false;
         bool changed = false;
 
-        // Check Inventory
         for (int i = 0; i < inventory.Count; i++)
         {
             if (inventory[i].item != null && inventory[i].item.itemID == data.itemID)
@@ -93,7 +82,6 @@ public class InventoryManager : MonoBehaviour
             }
         }
 
-        // Check Hotbar
         if (!changed)
         {
             foreach (var hSlot in hotbarData)
@@ -108,81 +96,48 @@ public class InventoryManager : MonoBehaviour
             }
         }
 
-        if (changed)
-        {
-            RefreshAll();
-            return true;
-        }
-        return false;
+        if (changed) RefreshAll();
+        return changed;
     }
 
-    // --- CRAFTING HELPERS ---
-
-    /// <summary>
-    /// Checks the combined total of an item in both Inventory and Hotbar.
-    /// Used by RecipeSO to see if crafting is possible.
-    /// </summary>
-    public int GetTotalCount(ItemData data)
-    {
-        int total = 0;
-        foreach (var slot in inventory)
-        {
-            if (slot.item != null && slot.item.itemID == data.itemID)
-                total += slot.count;
-        }
-
-        foreach (var hSlot in hotbarData)
-        {
-            if (hSlot.item != null && hSlot.item.itemID == data.itemID)
-                total += hSlot.count;
-        }
-
-        return total;
-    }
-
-    /// <summary>
-    /// Removes a specific amount of resources globally (Inv first, then Hotbar).
-    /// Used when a craft is successful.
-    /// </summary>
     public void ConsumeResources(ItemData data, int amount)
     {
-        int remainingToRemove = amount;
-
-        // 1. Take from Main Inventory first
+        int remaining = amount;
         for (int i = inventory.Count - 1; i >= 0; i--)
         {
             if (inventory[i].item != null && inventory[i].item.itemID == data.itemID)
             {
-                int take = Mathf.Min(inventory[i].count, remainingToRemove);
+                int take = Mathf.Min(inventory[i].count, remaining);
                 inventory[i].count -= take;
-                remainingToRemove -= take;
-
+                remaining -= take;
                 if (inventory[i].count <= 0) inventory.RemoveAt(i);
             }
-            if (remainingToRemove <= 0) break;
+            if (remaining <= 0) break;
         }
-
-        // 2. Take from Hotbar if still needed
-        if (remainingToRemove > 0)
+        if (remaining > 0)
         {
             foreach (var hSlot in hotbarData)
             {
                 if (hSlot.item != null && hSlot.item.itemID == data.itemID)
                 {
-                    int take = Mathf.Min(hSlot.count, remainingToRemove);
+                    int take = Mathf.Min(hSlot.count, remaining);
                     hSlot.count -= take;
-                    remainingToRemove -= take;
-
+                    remaining -= take;
                     if (hSlot.count <= 0) hSlot.Clear();
                 }
-                if (remainingToRemove <= 0) break;
+                if (remaining <= 0) break;
             }
         }
-
         RefreshAll();
     }
 
-    // --- REFRESH AND UI ---
+    public int GetTotalCount(ItemData data)
+    {
+        int total = 0;
+        foreach (var slot in inventory) if (slot.item != null && slot.item.itemID == data.itemID) total += slot.count;
+        foreach (var hSlot in hotbarData) if (hSlot.item != null && hSlot.item.itemID == data.itemID) total += hSlot.count;
+        return total;
+    }
 
     public void RefreshAll()
     {
@@ -191,72 +146,44 @@ public class InventoryManager : MonoBehaviour
         PlayerHotbarManager.Instance?.RefreshHotbar();
     }
 
-    [ContextMenu("Save Inventory")]
     public void SaveInventory()
     {
-        InventorySaveData dataToSave = new InventorySaveData();
-
-        foreach (var slot in inventory)
+        InventorySaveData data = new InventorySaveData();
+        foreach (var slot in inventory) if (slot.item != null) data.savedItems.Add(new SaveSlot { itemId = slot.item.itemID, count = slot.count });
+        foreach (var hSlot in hotbarData) data.hotbarItems.Add(new HotbarSaveSlot
         {
-            if (slot.item != null)
-                dataToSave.savedItems.Add(new SaveSlot { itemId = slot.item.itemID, count = slot.count });
-        }
-
-        foreach (var hSlot in hotbarData)
-        {
-            dataToSave.hotbarItems.Add(new HotbarSaveSlot
-            {
-                itemId = hSlot.item != null ? hSlot.item.itemID : -1,
-                abilityName = hSlot.ability != null ? hSlot.ability.name : "",
-                count = hSlot.count
-            });
-        }
-
-        File.WriteAllText(savePath, JsonUtility.ToJson(dataToSave, true));
+            itemId = hSlot.item != null ? hSlot.item.itemID : -1,
+            abilityName = hSlot.ability != null ? hSlot.ability.name : "",
+            count = hSlot.count
+        });
+        File.WriteAllText(savePath, JsonUtility.ToJson(data, true));
     }
 
-    [ContextMenu("Load Inventory")]
     public void LoadInventory()
     {
         if (!File.Exists(savePath)) return;
-
-        string json = File.ReadAllText(savePath);
-        InventorySaveData loadedData = JsonUtility.FromJson<InventorySaveData>(json);
-
-        if (loadedData == null) return;
-
+        InventorySaveData data = JsonUtility.FromJson<InventorySaveData>(File.ReadAllText(savePath));
         inventory.Clear();
-        foreach (var savedSlot in loadedData.savedItems)
+        foreach (var s in data.savedItems)
         {
-            ItemData item = database.GetItemByID(savedSlot.itemId);
-            if (item != null) inventory.Add(new InventorySlot(item, savedSlot.count));
+            ItemData item = database.GetItemByID(s.itemId);
+            if (item != null) inventory.Add(new InventorySlot(item, s.count));
         }
-
         for (int i = 0; i < hotbarSize; i++)
         {
-            if (i < loadedData.hotbarItems.Count)
+            if (i < data.hotbarItems.Count)
             {
-                var hSaved = loadedData.hotbarItems[i];
+                var h = data.hotbarItems[i];
                 hotbarData[i].Clear();
-                hotbarData[i].count = hSaved.count;
-                if (hSaved.itemId != -1) hotbarData[i].item = database.GetItemByID(hSaved.itemId);
-                if (!string.IsNullOrEmpty(hSaved.abilityName))
-                    hotbarData[i].ability = abilityDatabase.GetAbilityByName(hSaved.abilityName);
+                hotbarData[i].count = h.count;
+                if (h.itemId != -1) hotbarData[i].item = database.GetItemByID(h.itemId);
+                if (!string.IsNullOrEmpty(h.abilityName)) hotbarData[i].ability = abilityDatabase.GetAbilityByName(h.abilityName);
             }
         }
-
-        Invoke(nameof(RefreshUIOnly), 0.1f);
-    }
-
-    private void RefreshUIOnly()
-    {
-        InvUI.Instance?.RefreshUI();
-        PlayerHotbarManager.Instance?.RefreshHotbar();
     }
 }
 
-// --- DATA PERSISTENCE CLASSES ---
-
+// FIXED: Added missing data classes back so they are globally accessible
 [System.Serializable]
 public class SaveSlot { public int itemId; public int count; }
 

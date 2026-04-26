@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2e0351e2672834f42bfde66072954537, type: 3}
+  m_Name: bigflowerpot
+  m_EditorClassIdentifier: Assembly-CSharp::buildSO
+  itemID: 106
+  itemName: 
+  icon: {fileID: 21300000, guid: 201d19246c5642e468df8a3fd2e739ef, type: 3}
+  itemType: 1
+  maxStackSize: 99
+  placeablePrefab: {fileID: 1161143433513852086, guid: 9ea2bdc9b15607f48b6fac3d71171359, type: 3}
+  size: {x: 1, y: 1}
+  placementSound: {fileID: 0}
