@@ -14,7 +14,7 @@ public class CraftingManager : MonoBehaviour
     [Header("Recipe Data")]
     public List<CraftingSO> startingRecipes = new List<CraftingSO>();
     public List<CraftingSO> knownRecipes = new List<CraftingSO>();
-    public CraftingDatabase recipeDatabase; // Assign your database here
+    public CraftingDatabase recipeDatabase;
 
     private string savePath;
 
@@ -28,19 +28,20 @@ public class CraftingManager : MonoBehaviour
 
     private void Start()
     {
-        // Load known recipes or give starting ones if new game
         if (File.Exists(savePath))
         {
             LoadRecipes();
         }
         else
         {
-            Debug.Log("<color=yellow>[Crafting]</color> No save found. Giving starting recipes.");
+            Debug.Log("<color=yellow>[Crafting]</color> No save found. Loading starter recipes.");
+
             foreach (var recipe in startingRecipes)
             {
                 if (recipe != null && !knownRecipes.Contains(recipe))
                     knownRecipes.Add(recipe);
             }
+
             SaveRecipes();
         }
     }
@@ -53,79 +54,106 @@ public class CraftingManager : MonoBehaviour
 
     private void OnDisable()
     {
-        toggleCrafting.Disable();
         toggleCrafting.performed -= OnToggleCrafting;
+        toggleCrafting.Disable();
     }
 
-    private void OnToggleCrafting(InputAction.CallbackContext context) => ToggleCraftingUI();
+    private void OnToggleCrafting(InputAction.CallbackContext context)
+    {
+        ToggleCraftingUI();
+    }
 
     public void ToggleCraftingUI()
     {
-        if (craftingUI != null)
-        {
-            bool isActive = !craftingUI.activeSelf;
-            craftingUI.SetActive(isActive);
+        if (craftingUI == null) return;
 
-            if (isActive)
-            {
-                Cursor.lockState = CursorLockMode.None;
-                Cursor.visible = true;
-                CraftUIManager.Instance?.RefreshGrid();
-                Debug.Log("<color=white>[Crafting]</color> Menu Opened.");
-            }
+        bool isActive = !craftingUI.activeSelf;
+        craftingUI.SetActive(isActive);
+
+        if (isActive)
+        {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+
+            CraftUIManager.Instance?.RefreshGrid();
+            Debug.Log("<color=white>[Crafting]</color> Opened.");
+        }
+        else
+        {
+            Cursor.lockState = CursorLockMode.Locked;
+            Cursor.visible = false;
         }
     }
 
+    // =====================================================
+    // LEARN RECIPE
+    // =====================================================
     public bool LearnRecipe(CraftingSO recipe)
     {
         if (recipe == null) return false;
 
-        if (!knownRecipes.Contains(recipe))
+        if (knownRecipes.Contains(recipe))
         {
-            knownRecipes.Add(recipe);
-            Debug.Log($"<color=green>[Crafting]</color> Learned: {recipe.name}");
-            SaveRecipes();
-            CraftUIManager.Instance?.RefreshGrid();
-            return true;
+            Debug.Log("<color=white>[Crafting]</color> Already known.");
+            return false;
         }
-        Debug.Log("<color=white>[Crafting]</color> Recipe already known.");
-        return false;
+
+        knownRecipes.Add(recipe);
+        SaveRecipes();
+
+        Debug.Log($"<color=green>[Crafting]</color> Learned {recipe.name}");
+
+        CraftUIManager.Instance?.RefreshGrid();
+        return true;
     }
 
+    // =====================================================
+    // CRAFT ITEM
+    // =====================================================
     public void CraftItem(CraftingSO recipe)
     {
         if (recipe == null) return;
 
-        if (recipe.CanCraft())
+        if (!recipe.CanCraft())
         {
-            foreach (var ingredient in recipe.ingredients)
-            {
-                // Take resources from the Inventory
-                InventoryManager.Instance.ConsumeResources(ingredient.item, ingredient.amount);
-            }
-            InventoryManager.Instance.AddItem(recipe.resultItem, recipe.resultCount);
-            Debug.Log($"<color=lime>[Crafting]</color> Successfully crafted {recipe.resultItem.itemName}.");
-            CraftUIManager.Instance?.RefreshGrid();
+            Debug.Log("<color=red>[Crafting]</color> Missing materials.");
+            return;
         }
-        else
+
+        // consume ingredients
+        foreach (var ingredient in recipe.ingredients)
         {
-            Debug.Log("<color=red>[Crafting]</color> Missing materials for " + recipe.resultItem.itemName);
+            InventoryManager.Instance.RemoveItem(ingredient.item, ingredient.amount);
         }
+
+        InventoryManager.Instance.AddItem(recipe.resultItem, recipe.resultCount);
+
+        Debug.Log($"<color=lime>[Crafting]</color> Crafted {recipe.resultItem.itemName}");
+
+        CraftUIManager.Instance?.RefreshGrid();
     }
 
-    // --- JSON PERSISTENCE ---
-
+    // =====================================================
+    // SAVE
+    // =====================================================
     public void SaveRecipes()
     {
         RecipeSaveData data = new RecipeSaveData();
+
         foreach (var r in knownRecipes)
         {
-            if (r != null) data.learnedRecipeNames.Add(r.name);
+            if (r != null)
+                data.learnedRecipeNames.Add(r.name);
         }
+
         File.WriteAllText(savePath, JsonUtility.ToJson(data, true));
-        Debug.Log("<color=grey>[System]</color> Recipes saved to " + savePath);
+
+        Debug.Log("<color=grey>[Crafting]</color> Saved recipes.");
     }
 
+    // =====================================================
+    // LOAD
+    // =====================================================
     public void LoadRecipes()
     {
         if (!File.Exists(savePath)) return;
@@ -134,20 +162,21 @@ public class CraftingManager : MonoBehaviour
         RecipeSaveData data = JsonUtility.FromJson<RecipeSaveData>(json);
 
         knownRecipes.Clear();
-        if (recipeDatabase != null)
+
+        if (recipeDatabase == null)
         {
-            foreach (string rName in data.learnedRecipeNames)
-            {
-                // Find recipe in your database by name
-                CraftingSO found = recipeDatabase.GetRecipeByName(rName);
-                if (found != null) knownRecipes.Add(found);
-            }
-            Debug.Log($"<color=grey>[System]</color> Loaded {knownRecipes.Count} recipes.");
+            Debug.LogError("<color=red>[Crafting]</color> Missing database!");
+            return;
         }
-        else
+
+        foreach (string recipeName in data.learnedRecipeNames)
         {
-            Debug.LogError("<color=red>[Crafting]</color> RecipeDatabase is missing on CraftingManager!");
+            CraftingSO found = recipeDatabase.GetRecipeByName(recipeName);
+
+            if (found != null)
+                knownRecipes.Add(found);
         }
+
     }
 }
 

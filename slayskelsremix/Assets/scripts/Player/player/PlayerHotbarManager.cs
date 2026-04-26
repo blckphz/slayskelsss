@@ -16,15 +16,11 @@ public class PlayerHotbarManager : MonoBehaviour
     public Transform caster;
     public Transform targetAnchor;
 
-    [Header("Cooldown State")]
+    private int selectedIndex = 0;
     private float nextFireTime = 0f;
 
-    private int selectedIndex = 0;
     private PlayerControls controls;
 
-    // =========================
-    // EVENT (NEW SYSTEM)
-    // =========================
     public event Action<ItemData> OnSelectedItemChanged;
 
     private void Awake()
@@ -40,9 +36,8 @@ public class PlayerHotbarManager : MonoBehaviour
         selectedIndex = 0;
         yield return null;
 
-        RefreshHotbar();   // ✅ RESTORED (fix error)
+        RefreshHotbar();
         UpdateSelector();
-
         NotifySelectionChanged();
     }
 
@@ -66,45 +61,40 @@ public class PlayerHotbarManager : MonoBehaviour
         }
 
         if (Keyboard.current.eKey.wasPressedThisFrame)
-        {
-            ExecuteActiveSlot(); // ✅ RESTORED
-        }
+            ExecuteActiveSlot();
     }
 
+    // =========================
+    // SELECTION
+    // =========================
     private void SelectSlot(int index)
     {
-        if (index < 0 || index >= hotbarSlots.Count) return;
-
-        if (selectedIndex == index) return;
+        if (index == selectedIndex) return;
 
         selectedIndex = index;
         UpdateSelector();
-
         NotifySelectionChanged();
     }
 
-    private void HandleScroll(Vector2 scrollVector)
+    private void HandleScroll(Vector2 scroll)
     {
-        int count = hotbarSlots.Count;
-        if (count == 0) return;
+        if (hotbarSlots.Count == 0) return;
 
-        int oldIndex = selectedIndex;
+        if (scroll.y > 0)
+            selectedIndex = (selectedIndex - 1 + hotbarSlots.Count) % hotbarSlots.Count;
+        else if (scroll.y < 0)
+            selectedIndex = (selectedIndex + 1) % hotbarSlots.Count;
 
-        if (scrollVector.y > 0)
-            selectedIndex = (selectedIndex - 1 + count) % count;
-        else if (scrollVector.y < 0)
-            selectedIndex = (selectedIndex + 1) % count;
-
-        if (oldIndex != selectedIndex)
-        {
-            UpdateSelector();
-            NotifySelectionChanged();
-        }
+        UpdateSelector();
+        NotifySelectionChanged();
     }
 
-    // =========================
-    // EVENT DISPATCH
-    // =========================
+    private void UpdateSelector()
+    {
+        if (selector != null && selectedIndex < hotbarSlots.Count)
+            selector.position = hotbarSlots[selectedIndex].transform.position;
+    }
+
     private void NotifySelectionChanged()
     {
         OnSelectedItemChanged?.Invoke(GetSelectedItem());
@@ -112,26 +102,13 @@ public class PlayerHotbarManager : MonoBehaviour
 
     public ItemData GetSelectedItem()
     {
-        if (hotbarSlots.Count <= selectedIndex) return null;
+        if (selectedIndex >= hotbarSlots.Count) return null;
         return hotbarSlots[selectedIndex].GetItem();
     }
 
-    public int GetSelectedCount()
-    {
-        if (hotbarSlots.Count <= selectedIndex) return 0;
-        return hotbarSlots[selectedIndex].GetCount();
-    }
-
-    public void UpdateSelector()
-    {
-        if (selector == null || hotbarSlots.Count <= selectedIndex) return;
-        selector.position = hotbarSlots[selectedIndex].transform.position;
-    }
-
-    // ======================================================
-    // 🔧 LEGACY FUNCTIONS (RESTORED FOR COMPILATION SAFETY)
-    // ======================================================
-
+    // =========================
+    // HOTBAR REFRESH (IMPORTANT FIX)
+    // =========================
     public void RefreshHotbar()
     {
         if (InventoryManager.Instance == null) return;
@@ -141,26 +118,32 @@ public class PlayerHotbarManager : MonoBehaviour
         for (int i = 0; i < hotbarSlots.Count; i++)
         {
             if (i < data.Count)
+            {
                 hotbarSlots[i].SetSlot(data[i].item, data[i].ability, data[i].count);
+            }
             else
+            {
                 hotbarSlots[i].ClearSlot();
+            }
         }
     }
 
+    // =========================
+    // EXECUTION
+    // =========================
     public void ExecuteActiveSlot()
     {
-        if (hotbarSlots.Count <= selectedIndex) return;
+        if (selectedIndex >= hotbarSlots.Count) return;
+        if (Time.time < nextFireTime) return;
 
-        if (Time.time < nextFireTime)
-            return;
-
-        InventorySlotUI slot = hotbarSlots[selectedIndex];
+        var slot = hotbarSlots[selectedIndex];
 
         if (slot.GetAbility() != null)
         {
             Ability ability = slot.GetAbility();
-            bool success = ability.Execute(caster, targetAnchor, true);
-            if (success) SetCooldown(ability.fireRate);
+
+            if (ability.Execute(caster, targetAnchor, true))
+                nextFireTime = Time.time + ability.fireRate;
         }
         else if (slot.GetItem() != null)
         {
@@ -168,27 +151,20 @@ public class PlayerHotbarManager : MonoBehaviour
 
             if (!(item is buildSO))
             {
-                float cooldown = 0.2f;
-
-                if (item is UseableItem useable && useable.abilityToExecute != null)
-                    cooldown = useable.abilityToExecute.fireRate;
-
                 item.Use(caster, targetAnchor);
-                SetCooldown(cooldown);
+                nextFireTime = Time.time + 0.2f;
             }
         }
     }
 
-    private void SetCooldown(float duration)
-    {
-        nextFireTime = Time.time + duration;
-    }
-
+    // =========================
+    // STACK USAGE (🔥 FIXED CORE ISSUE)
+    // =========================
     public void UseSelectedStack(int amount)
     {
-        if (hotbarSlots.Count <= selectedIndex) return;
+        if (selectedIndex >= hotbarSlots.Count) return;
 
-        InventorySlotUI slot = hotbarSlots[selectedIndex];
+        var slot = hotbarSlots[selectedIndex];
 
         slot.UpdateCount(-amount);
 
@@ -196,24 +172,32 @@ public class PlayerHotbarManager : MonoBehaviour
             slot.ClearSlot();
 
         SyncHotbarToData();
+        InventoryManager.Instance?.SaveInventory();
     }
 
+    // =========================
+    // 🔥 SINGLE SOURCE OF TRUTH FIX
+    // =========================
     public void SyncHotbarToData()
     {
         if (InventoryManager.Instance == null) return;
 
-        var dataList = InventoryManager.Instance.hotbarData;
+        var data = InventoryManager.Instance.hotbarData;
 
         for (int i = 0; i < hotbarSlots.Count; i++)
         {
-            while (dataList.Count <= i)
-                dataList.Add(new HotbarSlotData());
+            while (data.Count <= i)
+                data.Add(new HotbarSlotData());
 
-            dataList[i].item = hotbarSlots[i].GetItem();
-            dataList[i].ability = hotbarSlots[i].GetAbility();
-            dataList[i].count = hotbarSlots[i].GetCount();
+            data[i].item = hotbarSlots[i].GetItem();
+            data[i].ability = hotbarSlots[i].GetAbility();
+            data[i].count = hotbarSlots[i].GetCount();
         }
+    }
 
-        InventoryManager.Instance.SaveInventory();
+    public void ForceSyncAndSave()
+    {
+        SyncHotbarToData();
+        InventoryManager.Instance?.SaveInventory();
     }
 }

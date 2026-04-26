@@ -33,17 +33,20 @@ public class CampfireBehav : MonoBehaviour, IInteractable, IBuildPreview
     private void Update()
     {
         if (isBurning)
-        {
             ConsumeFuel();
-        }
     }
 
-    public void InitializeFromSave()
+    // =========================
+    // SAVE HELPER (IMPORTANT)
+    // =========================
+    private void Save()
     {
-        lastFuelInt = Mathf.CeilToInt(fuelAmount);
-        UpdateVisuals();
+        BuildingSaveManager.Instance?.SaveAfterChange();
     }
 
+    // =========================
+    // FUEL CONSUMPTION
+    // =========================
     private void ConsumeFuel()
     {
         if (fuelAmount > 0)
@@ -54,12 +57,12 @@ public class CampfireBehav : MonoBehaviour, IInteractable, IBuildPreview
             if (currentFuelInt != lastFuelInt)
             {
                 lastFuelInt = currentFuelInt;
-                NotifyUI();
             }
 
             if (fuelAmount <= 0)
             {
                 fuelAmount = 0;
+                Debug.Log($"<color=orange>[Campfire]</color> {gameObject.name} ran out of fuel.");
                 Extinguish();
             }
         }
@@ -69,74 +72,110 @@ public class CampfireBehav : MonoBehaviour, IInteractable, IBuildPreview
         }
     }
 
+    // =========================
+    // ADD FUEL
+    // =========================
+    public int AddFuel(ItemData item, int amount)
+    {
+        if (fuelItem == null)
+            fuelItem = item;
+
+        if (fuelItem.itemID != item.itemID)
+            return 0;
+
+        int amountToAdd = Mathf.Min((int)(maxFuel - fuelAmount), amount);
+        fuelAmount += amountToAdd;
+
+        lastFuelInt = Mathf.CeilToInt(fuelAmount);
+
+        Debug.Log($"<color=orange>[Campfire]</color> Added {amountToAdd} fuel. Total: {fuelAmount}");
+
+        UpdateVisuals();
+        Save(); // 🔥 SAVE HERE
+
+        return amountToAdd;
+    }
+
+    // =========================
+    // REMOVE FUEL
+    // =========================
     public int RemoveFuel(int amount)
     {
         if (fuelAmount < 1f) return 0;
 
-        int available = Mathf.FloorToInt(fuelAmount);
-        int toRemove = Mathf.Min(amount, available);
-
+        int toRemove = Mathf.Min(amount, Mathf.FloorToInt(fuelAmount));
         fuelAmount -= toRemove;
+
         lastFuelInt = Mathf.CeilToInt(fuelAmount);
 
-        if (fuelAmount <= 0) Extinguish();
+        Debug.Log($"<color=orange>[Campfire]</color> Removed {toRemove} fuel. Left: {fuelAmount}");
 
-        NotifyUI();
-        BuildingSaveManager.Instance?.SaveNow();
+        if (fuelAmount <= 0)
+            Extinguish();
+
+        UpdateVisuals();
+        Save(); // 🔥 SAVE HERE
+
         return toRemove;
     }
 
+    // =========================
+    // IGNITE
+    // =========================
     public void Ignite()
     {
         if (fuelAmount > 0)
         {
             isBurning = true;
+
+            Debug.Log($"<color=orange>[Campfire]</color> Ignited.");
+
             UpdateVisuals();
-            NotifyUI();
-            BuildingSaveManager.Instance?.SaveNow();
+            Save(); // 🔥 SAVE HERE
         }
     }
 
+    // =========================
+    // EXTINGUISH
+    // =========================
     public void Extinguish()
     {
+        if (!isBurning) return;
+
         isBurning = false;
+
+        Debug.Log($"<color=orange>[Campfire]</color> Extinguished.");
+
         UpdateVisuals();
-        NotifyUI();
-        BuildingSaveManager.Instance?.SaveNow();
+        Save(); // 🔥 SAVE HERE
     }
 
-    public int AddFuel(ItemData item, int amount)
-    {
-        if (fuelItem == null) fuelItem = item;
-        if (fuelItem.itemID != item.itemID) return 0;
-
-        float spaceLeft = maxFuel - fuelAmount;
-        int amountToAdd = Mathf.Min((int)spaceLeft, amount);
-
-        fuelAmount += amountToAdd;
-        lastFuelInt = Mathf.CeilToInt(fuelAmount);
-
-        NotifyUI();
-        return amountToAdd;
-    }
-
-    private void NotifyUI()
-    {
-        if (CampfireUI.Instance != null && CampfireUI.Instance.CurrentCampfire == this)
-        {
-            CampfireUI.Instance.RefreshUI();
-        }
-    }
-
+    // =========================
+    // VISUALS
+    // =========================
     private void UpdateVisuals()
     {
-        if (anim != null) anim.SetBool("Burning", isBurning);
-        if (fireLight != null) fireLight.enabled = isBurning;
+        if (anim != null)
+            anim.SetBool("Burning", isBurning);
+
+        if (fireLight != null)
+            fireLight.enabled = isBurning;
     }
 
-    public void Interact(InventoryManager playerInventory) => CampfireUI.Instance?.OpenCampfire(this);
-    public void OnFocus() => highlight?.SetHighlighted(true);
-    public void OnLoseFocus() => highlight?.SetHighlighted(false);
-    public string GetPrompt() => isBurning ? "Manage Campfire" : "Light Campfire";
+    // =========================
+    // INTERACTION
+    // =========================
+    public void Interact(InventoryManager playerInventory)
+        => CampfireUI.Instance?.OpenCampfire(this);
+
+    public void OnFocus()
+        => highlight?.SetHighlighted(true);
+
+    public void OnLoseFocus()
+        => highlight?.SetHighlighted(false);
+
+    public string GetPrompt()
+        => isBurning ? "Manage Campfire" : "Light Campfire";
+
     public void OnPreviewUpdate() { }
 }

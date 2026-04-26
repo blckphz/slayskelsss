@@ -14,47 +14,124 @@ public class CampfireSlotUI : MonoBehaviour, IDropHandler, IPointerClickHandler
     [SerializeField] private Sprite emptySprite;
     [SerializeField] private TextMeshProUGUI amountText;
 
-    // LEFT CLICK TO REMOVE WOOD
+    // =========================
+    // LEFT CLICK REMOVE FUEL
+    // =========================
     public void OnPointerClick(PointerEventData eventData)
     {
-        if (campfire == null || campfire.fuelItem == null || campfire.fuelAmount < 1f)
+        if (campfire == null)
+        {
+            Debug.LogError("[CampfireUI] Campfire is NULL on click!");
             return;
+        }
+
+        if (campfire.fuelItem == null)
+        {
+            Debug.LogWarning("[CampfireUI] fuelItem is NULL on click!");
+            return;
+        }
+
+        if (campfire.fuelAmount < 1f)
+        {
+            Debug.Log("[CampfireUI] No fuel to remove.");
+            return;
+        }
 
         if (eventData.button == PointerEventData.InputButton.Left)
         {
             int removed = campfire.RemoveFuel(1);
+
+            Debug.Log($"[CampfireUI] Removed {removed} fuel");
+
             if (removed > 0)
             {
                 InventoryManager.Instance.AddItem(campfire.fuelItem, removed);
+
+                PlayerHotbarManager.Instance?.SyncHotbarToData();
+                InventoryManager.Instance.SaveInventory();
+                BuildingSaveManager.Instance?.SaveNow();
+
                 UpdateUI();
                 InvUI.Instance?.RefreshUI();
             }
         }
     }
 
+    // =========================
+    // DROP INTO CAMPFIRE
+    // =========================
     public void OnDrop(PointerEventData eventData)
     {
+        if (campfire == null)
+        {
+            Debug.LogError("[CampfireUI] Campfire is NULL on drop!");
+            return;
+        }
+
         InventorySlotUI draggedSlot = eventData.pointerDrag?.GetComponent<InventorySlotUI>();
-        if (draggedSlot == null) return;
+        if (draggedSlot == null)
+        {
+            Debug.LogWarning("[CampfireUI] Dragged slot is NULL");
+            return;
+        }
 
         ItemData item = draggedSlot.GetItem();
-        if (item == null || item.itemID != woodID || campfire == null) return;
+        if (item == null)
+        {
+            Debug.LogWarning("[CampfireUI] Dropped item is NULL");
+            return;
+        }
+
+        if (item.itemID != woodID)
+        {
+            Debug.Log("[CampfireUI] Wrong item dropped into campfire");
+            return;
+        }
 
         int added = campfire.AddFuel(item, draggedSlot.GetCount());
+
+        Debug.Log($"[CampfireUI] Added fuel: {added}");
+
         if (added > 0)
         {
             InventoryManager.Instance.RemoveItem(item, added);
-            if (!campfire.isBurning) campfire.Ignite();
+
+            if (!campfire.isBurning)
+                campfire.Ignite();
+
+            PlayerHotbarManager.Instance?.SyncHotbarToData();
+            InventoryManager.Instance.SaveInventory();
+            BuildingSaveManager.Instance?.SaveNow();
+
             UpdateUI();
             InvUI.Instance?.RefreshUI();
-            BuildingSaveManager.Instance?.SaveNow();
         }
     }
 
+    // =========================
+    // UI UPDATE
+    // =========================
     public void UpdateUI()
     {
-        if (campfire == null || campfire.fuelAmount <= 0)
+        if (campfire == null)
         {
+            Debug.LogError("[CampfireUI] UpdateUI aborted: campfire NULL");
+            ResetSlot();
+            return;
+        }
+
+        Debug.Log($"[CampfireUI] UpdateUI → Fuel: {campfire.fuelAmount}, Item: {(campfire.fuelItem ? campfire.fuelItem.name : "NULL")}");
+
+        if (campfire.fuelAmount <= 0)
+        {
+            Debug.Log("[CampfireUI] Fuel is 0 → Reset UI");
+            ResetSlot();
+            return;
+        }
+
+        if (campfire.fuelItem == null)
+        {
+            Debug.LogError("[CampfireUI] fuelItem is NULL but fuel exists!");
             ResetSlot();
             return;
         }
@@ -62,24 +139,30 @@ public class CampfireSlotUI : MonoBehaviour, IDropHandler, IPointerClickHandler
         if (itemIconImage != null)
         {
             itemIconImage.sprite = campfire.fuelItem.icon;
-            itemIconImage.color = new Color(1, 1, 1, 1); // Opacity 100%
+            itemIconImage.color = Color.white;
             itemIconImage.enabled = true;
         }
 
         if (amountText != null)
         {
             int displayFuel = Mathf.CeilToInt(campfire.fuelAmount);
-            amountText.gameObject.SetActive(displayFuel > 0);
+            amountText.gameObject.SetActive(true);
             amountText.text = displayFuel.ToString();
+
+            Debug.Log($"[CampfireUI] Display Fuel: {displayFuel}");
         }
     }
 
+    // =========================
+    // RESET SLOT
+    // =========================
     public void ResetSlot()
     {
+        Debug.Log("[CampfireUI] ResetSlot called");
+
         if (itemIconImage != null)
         {
             itemIconImage.sprite = emptySprite;
-            // If no item and no empty sprite, hide it (Opacity 0)
             itemIconImage.color = emptySprite != null ? Color.white : new Color(1, 1, 1, 0);
         }
 
@@ -87,6 +170,9 @@ public class CampfireSlotUI : MonoBehaviour, IDropHandler, IPointerClickHandler
             amountText.gameObject.SetActive(false);
     }
 
+    // =========================
+    // HIDE
+    // =========================
     public void HideOutsideRange()
     {
         if (itemIconImage != null)

@@ -15,80 +15,72 @@ public class InventorySlotUI : MonoBehaviour,
     private Ability currentAbility;
     private int currentCount;
 
-    // ---------------------------------------------------
-    // INTERACTION: CLICK TO DEPOSIT (CAMPFIRE OR CHEST)
-    // ---------------------------------------------------
+    // =========================
+    // CLICK INTERACTION (CAMPFIRE + CHEST RESTORED)
+    // =========================
     public void OnPointerClick(PointerEventData eventData)
     {
         if (currentItem == null || eventData.dragging) return;
 
-        // --- 1. HANDLE CAMPFIRE INTERACTION ---
+        // =========================
+        // 1. CAMPFIRE DEPOSIT
+        // =========================
         if (CampfireUI.Instance != null && CampfireUI.Instance.CurrentCampfire != null)
         {
-            CampfireBehav activeFire = CampfireUI.Instance.CurrentCampfire;
+            CampfireBehav fire = CampfireUI.Instance.CurrentCampfire;
 
-            // Check if item is valid fuel
-            if (activeFire.fuelItem == null || currentItem.itemID == activeFire.fuelItem.itemID)
+            if (fire.fuelItem == null || fire.fuelItem.itemID == currentItem.itemID)
             {
-                int amountToDeposit = 0;
+                int amount = 0;
 
-                // LEFT CLICK: Deposit 1 (Standard for Campfire)
                 if (eventData.button == PointerEventData.InputButton.Left)
-                {
-                    amountToDeposit = 1;
-                }
-                // RIGHT CLICK: Deposit All (Standard for Campfire)
+                    amount = 1;
                 else if (eventData.button == PointerEventData.InputButton.Right)
-                {
-                    amountToDeposit = currentCount;
-                }
+                    amount = currentCount;
 
-                if (amountToDeposit > 0)
-                {
-                    int added = activeFire.AddFuel(currentItem, amountToDeposit);
+                int added = fire.AddFuel(currentItem, amount);
 
-                    if (added > 0)
-                    {
-                        UpdateCount(-added);
-                        if (!activeFire.isBurning) activeFire.Ignite();
-                        InvUI.Instance?.SyncToInventory();
-                        return; // Exit so we don't trigger chest logic
-                    }
+                if (added > 0)
+                {
+                    UpdateCount(-added);
+
+                    if (!fire.isBurning)
+                        fire.Ignite();
+
+                    InvUI.Instance?.SyncToInventory();
+                    PlayerHotbarManager.Instance?.SyncHotbarToData();
+                    return;
                 }
             }
         }
 
-        // --- 2. HANDLE CHEST INTERACTION ---
-        ChestInventory openChest = ChestUI.Instance != null ? ChestUI.Instance.GetCurrentChest() : null;
-        if (openChest != null)
+        // =========================
+        // 2. CHEST INTERACTION
+        // =========================
+        ChestInventory chest = ChestUI.Instance != null ? ChestUI.Instance.GetCurrentChest() : null;
+
+        if (chest != null)
         {
-            int amountToMove = 0;
+            int amountToMove = (eventData.button == PointerEventData.InputButton.Left)
+                ? currentCount
+                : 1;
 
-            // LEFT CLICK: Transfer All
-            if (eventData.button == PointerEventData.InputButton.Left)
-            {
-                amountToMove = currentCount;
-            }
-            // RIGHT CLICK: Transfer 1
-            else if (eventData.button == PointerEventData.InputButton.Right)
-            {
-                amountToMove = 1;
-            }
+            int actual = Mathf.Min(amountToMove, currentCount);
 
-            if (amountToMove > 0)
+            if (chest.AddItem(currentItem, actual))
             {
-                int actualToMove = Mathf.Min(amountToMove, currentCount);
+                UpdateCount(-actual);
+                ChestUI.Instance.Refresh();
 
-                if (openChest.AddItem(currentItem, actualToMove))
-                {
-                    UpdateCount(-actualToMove);
-                    ChestUI.Instance.Refresh();
-                    InvUI.Instance?.SyncToInventory();
-                }
+                InvUI.Instance?.SyncToInventory();
+                PlayerHotbarManager.Instance?.SyncHotbarToData();
             }
         }
     }
 
+    // =========================
+    // SET SLOT
+    // =========================
     public void SetSlot(ItemData item, Ability ability, int count)
     {
         currentItem = item;
@@ -105,12 +97,15 @@ public class InventorySlotUI : MonoBehaviour,
         {
             icon.sprite = item != null ? item.icon : ability.icon;
             icon.enabled = true;
-            icon.color = new Color(1, 1, 1, 1); // Opacity 100%
+            icon.color = Color.white;
         }
 
         RefreshUI();
     }
 
+    // =========================
+    // COUNT UPDATE (🔥 FIXED SYNC)
+    // =========================
     public void UpdateCount(int amount)
     {
         currentCount += amount;
@@ -123,8 +118,14 @@ public class InventorySlotUI : MonoBehaviour,
         {
             RefreshUI();
         }
+
+        // 🔥 ALWAYS SYNC HOTBAR AFTER CHANGE
+        PlayerHotbarManager.Instance?.SyncHotbarToData();
     }
 
+    // =========================
+    // UI
+    // =========================
     private void RefreshUI()
     {
         if (amountText != null)
@@ -135,11 +136,10 @@ public class InventorySlotUI : MonoBehaviour,
                 : "";
         }
 
-        // Safety check for opacity
         if (icon != null)
         {
             icon.color = (currentItem != null || currentAbility != null)
-                ? new Color(1, 1, 1, 1)
+                ? Color.white
                 : new Color(1, 1, 1, 0);
         }
     }
@@ -153,27 +153,31 @@ public class InventorySlotUI : MonoBehaviour,
         if (icon != null)
         {
             icon.enabled = false;
-            icon.color = new Color(1, 1, 1, 0); // Opacity 0%
+            icon.color = new Color(1, 1, 1, 0);
         }
 
         if (amountText != null)
             amountText.text = "";
     }
 
+    // =========================
+    // GETTERS
+    // =========================
     public ItemData GetItem() => currentItem;
     public Ability GetAbility() => currentAbility;
     public int GetCount() => currentCount;
 
+    // =========================
+    // DRAG SYSTEM
+    // =========================
     public void OnBeginDrag(PointerEventData eventData)
     {
-        if (currentItem == null && currentAbility == null)
-            return;
+        if (currentItem == null && currentAbility == null) return;
 
         if (dragPreviewIcon != null)
         {
             dragPreviewIcon.sprite = icon.sprite;
             dragPreviewIcon.enabled = true;
-            dragPreviewIcon.raycastTarget = false;
         }
 
         if (icon != null)
@@ -192,57 +196,24 @@ public class InventorySlotUI : MonoBehaviour,
             dragPreviewIcon.enabled = false;
 
         if (icon != null)
-            icon.color = currentItem != null ? Color.white : new Color(1, 1, 1, 0);
+            icon.color = Color.white;
     }
 
     public void OnDrop(PointerEventData eventData)
     {
-        InventorySlotUI draggedPlayerSlot = eventData.pointerDrag?.GetComponent<InventorySlotUI>();
-        if (draggedPlayerSlot != null && draggedPlayerSlot != this)
-        {
-            HandlePlayerToPlayerSwap(draggedPlayerSlot);
-            return;
-        }
+        InventorySlotUI dragged = eventData.pointerDrag?.GetComponent<InventorySlotUI>();
 
-        ChestSlotUI draggedChestSlot = eventData.pointerDrag?.GetComponent<ChestSlotUI>();
-        if (draggedChestSlot != null)
-        {
-            ItemData item = draggedChestSlot.GetItem();
-            int count = draggedChestSlot.GetCount();
-            ChestInventory chest = ChestUI.Instance.GetCurrentChest();
-
-            if (chest != null && item != null)
-            {
-                // Remove from chest first
-                chest.RemoveItem(item, count);
-                // Then add to player manager (Standard logic)
-                InventoryManager.Instance.AddItem(item, count);
-
-                ChestUI.Instance.Refresh();
-                InvUI.Instance.RefreshUI();
-            }
-        }
-    }
-
-    private void HandlePlayerToPlayerSwap(InventorySlotUI dragged)
-    {
-        if (dragged.currentItem != null && dragged.currentItem == this.currentItem)
-        {
-            int newCount = this.currentCount + dragged.currentCount;
-            this.SetSlot(this.currentItem, null, newCount);
-            dragged.ClearSlot();
-        }
-        else
+        if (dragged != null && dragged != this)
         {
             ItemData tempItem = dragged.currentItem;
             Ability tempAbility = dragged.currentAbility;
             int tempCount = dragged.currentCount;
 
-            dragged.SetSlot(this.currentItem, this.currentAbility, this.currentCount);
-            this.SetSlot(tempItem, tempAbility, tempCount);
-        }
+            dragged.SetSlot(currentItem, currentAbility, currentCount);
+            SetSlot(tempItem, tempAbility, tempCount);
 
-        InvUI.Instance?.SyncToInventory();
-        PlayerHotbarManager.Instance?.SyncHotbarToData();
+            InvUI.Instance?.SyncToInventory();
+            PlayerHotbarManager.Instance?.SyncHotbarToData();
+        }
     }
 }

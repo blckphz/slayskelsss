@@ -106,7 +106,6 @@ public class charsetter : MonoBehaviour
             }
         }
 
-        Debug.Log("[UI] Ability icons updated");
     }
 
     public void TriggerAbilityUsed(Ability ability)
@@ -204,7 +203,6 @@ public class charsetter : MonoBehaviour
     // 🔥 FIXED FORCE REFRESH
     public void ForceChargeUIRefresh()
     {
-        Debug.Log("[UI] ForceChargeUIRefresh CALLED");
 
         if (chargeText == null)
         {
