@@ -530,7 +530,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 48e9bbd5b66198c43945a5e822e5ba20, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  health: 100
+  maxHealth: 100
+  currentHealth: 0
+  enemyID: basiocskeleton
   goldPrefab: {fileID: 2937630582518109097, guid: a755f204c17557043a5d74ed21066738, type: 3}
   minGold: 1
   maxGold: 3
@@ -540,6 +542,8 @@ MonoBehaviour:
   flashDuration: 0.2
   hitIntensityName: _Intensity
   stunIntensityName: _StunIntensity
+  berrySmearIntensityName: _BerrySmearIntensity
+  smearDecaySpeed: 0.5
 --- !u!114 &5654009883178532623
 MonoBehaviour:
   m_ObjectHideFlags: 0

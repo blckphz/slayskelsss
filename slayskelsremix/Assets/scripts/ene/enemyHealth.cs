@@ -1,10 +1,13 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
 using Pathfinding;
 
 public class enemyHealth : healthMaster, IDamageable
 {
+    [Header("SAVE SYSTEM")]
+    public string enemyID;
+
     [Header("Loot Settings")]
     public GameObject goldPrefab;
     public int minGold = 1;
@@ -17,11 +20,11 @@ public class enemyHealth : healthMaster, IDamageable
     public float flashDuration = 0.2f;
 
     [Header("Shader Property Names")]
-    public string hitIntensityName = "_Intensity";           // Generic Hit Flash
-    public string stunIntensityName = "_StunIntensity";       // Thunder/Stun Effect
-    public string berrySmearIntensityName = "_BerrySmearIntensity"; // Berry Juice Effect
+    public string hitIntensityName = "_Intensity";
+    public string stunIntensityName = "_StunIntensity";
+    public string berrySmearIntensityName = "_BerrySmearIntensity";
 
-    [Header("Berry Smear Stacking (Uncapped)")]
+    [Header("Berry Smear")]
     public float smearDecaySpeed = 0.5f;
     private float currentSmearIntensity = 0f;
 
@@ -38,13 +41,39 @@ public class enemyHealth : healthMaster, IDamageable
 
     public bool IsSlowed => _slowCoroutine != null;
 
+    // =========================
+    // SAVE ACCESS (optional)
+    // =========================
+    public float GetHealth() => currentHealth;
+
+    public void SetHealth(float value)
+    {
+        currentHealth = value;
+        UpdateHealthUI();
+    }
+
+    // =========================
+    // AWAKEN
+    // =========================
     protected override void Awake()
     {
         base.Awake();
+
         spriteRenderer = GetComponent<SpriteRenderer>();
         ai = GetComponent<AIPath>();
         rb = GetComponent<Rigidbody2D>();
         propertyBlock = new MaterialPropertyBlock();
+
+        // 🔥 ONLY SAVE-RELEVANT DEBUG
+        if (string.IsNullOrEmpty(enemyID))
+        {
+            enemyID = System.Guid.NewGuid().ToString();
+            Debug.Log($"[SAVE] New Enemy ID generated: {enemyID}");
+        }
+        else
+        {
+            Debug.Log($"[SAVE] Enemy loaded with ID: {enemyID}");
+        }
     }
 
     void Start()
@@ -54,33 +83,34 @@ public class enemyHealth : healthMaster, IDamageable
         UpdateHealthUI();
     }
 
-    void Update()
-    {
-        // Decay the smear over time
-        if (currentSmearIntensity > 0)
-        {
-            currentSmearIntensity -= smearDecaySpeed * Time.deltaTime;
-
-            // Ensure we don't go below zero
-            if (currentSmearIntensity < 0) currentSmearIntensity = 0;
-
-            UpdateShaderFloat(berrySmearIntensityName, currentSmearIntensity);
-        }
-    }
-
-    // --- IDAMAGEABLE & OVERRIDES ---
-
+    // =========================
+    // DAMAGE
+    // =========================
     public override void TakeDamage(float damage)
     {
         base.TakeDamage(damage);
         UpdateHealthUI();
+
         ShowDamageText(damage);
+
+        Debug.Log($"[COMBAT] Enemy {enemyID} took {damage} damage | HP: {currentHealth}");
 
         if (_flashCoroutine != null) StopCoroutine(_flashCoroutine);
         _flashCoroutine = StartCoroutine(FlashEffect());
     }
 
-    // --- THUNDER / STUN LOGIC ---
+    // =========================
+    // SMEAR
+    // =========================
+    public void AddSmear(float amount)
+    {
+        currentSmearIntensity += amount;
+        UpdateShaderFloat(berrySmearIntensityName, currentSmearIntensity);
+    }
+
+    // =========================
+    // SLOW
+    // =========================
     public void ApplySlow(float slowPercent, float duration, float tickDmg, float tickInterval)
     {
         if (_slowCoroutine != null) StopCoroutine(_slowCoroutine);
@@ -88,36 +118,38 @@ public class enemyHealth : healthMaster, IDamageable
 
         if (_tickDamageCoroutine != null) StopCoroutine(_tickDamageCoroutine);
         _tickDamageCoroutine = StartCoroutine(TickDamageRoutine(tickDmg, tickInterval, duration));
+
+        Debug.Log($"[STATUS] Enemy {enemyID} slowed for {duration}s");
     }
 
-    // --- BERRY SMEAR LOGIC (Uncapped Stacking) ---
-    public void AddSmear(float amount)
-    {
-        currentSmearIntensity += amount;
-        // No Clamp here! The intensity can go as high as you want.
-        UpdateShaderFloat(berrySmearIntensityName, currentSmearIntensity);
-
-        Debug.Log($"[EnemyHealth] Smear Intensity is now: {currentSmearIntensity}");
-    }
-
+    // =========================
+    // DEATH (IMPORTANT)
+    // =========================
     protected override void Die()
     {
+        Debug.Log($"[SAVE] Enemy died: {enemyID}");
+
         UpdateShaderFloat(hitIntensityName, 0f);
         UpdateShaderFloat(stunIntensityName, 0f);
         UpdateShaderFloat(berrySmearIntensityName, 0f);
 
         if (comboSys != null) comboSys.RegisterKill();
+
         SpawnLoot();
+
         base.Die();
     }
 
-    // --- COROUTINES ---
-
+    // =========================
+    // IMPULSE
+    // =========================
     public void ApplyImpulse(Vector2 force)
     {
         if (rb == null) return;
         if (ai != null) ai.canMove = false;
+
         rb.AddForce(force, ForceMode2D.Impulse);
+
         StopCoroutine(nameof(ResetAI));
         StartCoroutine(ResetAI());
     }
@@ -128,9 +160,13 @@ public class enemyHealth : healthMaster, IDamageable
         if (ai != null) ai.canMove = true;
     }
 
+    // =========================
+    // EFFECTS
+    // =========================
     private IEnumerator FlashEffect()
     {
         float elapsed = 0f;
+
         while (elapsed < flashDuration)
         {
             elapsed += Time.deltaTime;
@@ -138,6 +174,7 @@ public class enemyHealth : healthMaster, IDamageable
             UpdateShaderFloat(hitIntensityName, intensity);
             yield return null;
         }
+
         UpdateShaderFloat(hitIntensityName, 0f);
     }
 
@@ -146,7 +183,9 @@ public class enemyHealth : healthMaster, IDamageable
         if (ai != null)
         {
             ai.maxSpeed = Mathf.Max(0.1f, originalSpeed - slowAmount);
+
             float elapsed = 0f;
+
             while (elapsed < duration)
             {
                 elapsed += Time.deltaTime;
@@ -154,54 +193,81 @@ public class enemyHealth : healthMaster, IDamageable
                 UpdateShaderFloat(stunIntensityName, pulse);
                 yield return null;
             }
+
             ai.maxSpeed = originalSpeed;
             UpdateShaderFloat(stunIntensityName, 0f);
         }
+
         _slowCoroutine = null;
     }
 
     private IEnumerator TickDamageRoutine(float dmg, float interval, float duration)
     {
         float elapsed = 0f;
+
         while (elapsed < duration)
         {
             yield return new WaitForSeconds(interval);
             elapsed += interval;
+
             TakeDamage(dmg);
         }
+
         _tickDamageCoroutine = null;
     }
 
+    // =========================
+    // SHADER
+    // =========================
     private void UpdateShaderFloat(string name, float value)
     {
         if (spriteRenderer == null) return;
+
         spriteRenderer.GetPropertyBlock(propertyBlock);
         propertyBlock.SetFloat(name, value);
         spriteRenderer.SetPropertyBlock(propertyBlock);
     }
 
+    // =========================
+    // LOOT
+    // =========================
     private void SpawnLoot()
     {
         if (goldPrefab == null) return;
+
         int amount = Random.Range(minGold, maxGold + 1);
+        Debug.Log($"[LOOT] Enemy {enemyID} dropped {amount} gold");
+
         for (int i = 0; i < amount; i++)
         {
             Instantiate(goldPrefab, transform.position, Quaternion.identity);
         }
     }
 
-    void UpdateHealthUI()
+    // =========================
+    // UI
+    // =========================
+    public void UpdateHealthUI()
     {
-        if (healthBarFill != null) healthBarFill.fillAmount = currentHealth / maxHealth;
-        if (healthBarObject != null) healthBarObject.SetActive(currentHealth < maxHealth);
+        if (healthBarFill != null)
+            healthBarFill.fillAmount = currentHealth / maxHealth;
+
+        if (healthBarObject != null)
+            healthBarObject.SetActive(currentHealth < maxHealth);
     }
 
     void ShowDamageText(float damage)
     {
         if (damageTextPrefab != null && damage > 0)
         {
-            GameObject textObj = Instantiate(damageTextPrefab, transform.position + Vector3.up, Quaternion.identity);
-            if (textObj.TryGetComponent<DamageNumber>(out DamageNumber dn)) dn.Setup(damage);
+            GameObject textObj = Instantiate(
+                damageTextPrefab,
+                transform.position + Vector3.up,
+                Quaternion.identity
+            );
+
+            if (textObj.TryGetComponent<DamageNumber>(out DamageNumber dn))
+                dn.Setup(damage);
         }
     }
 }
