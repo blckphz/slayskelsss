@@ -275,6 +275,15 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""SecondaryItemUse"",
+                    ""type"": ""Button"",
+                    ""id"": ""ea1f9f5b-4c36-4e48-bd2f-b53e7dd50d66"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -409,6 +418,17 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""action"": ""UseHotkey"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""d7d1c2a9-87ec-4f57-98e7-d8a620e37adc"",
+                    ""path"": ""<Keyboard>/r"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""SecondaryItemUse"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -430,6 +450,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         m_Player_Use = m_Player.FindAction("Use", throwIfNotFound: true);
         m_Player_Scroll = m_Player.FindAction("Scroll", throwIfNotFound: true);
         m_Player_UseHotkey = m_Player.FindAction("UseHotkey", throwIfNotFound: true);
+        m_Player_SecondaryItemUse = m_Player.FindAction("SecondaryItemUse", throwIfNotFound: true);
     }
 
     ~@PlayerControls()
@@ -677,6 +698,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_Use;
     private readonly InputAction m_Player_Scroll;
     private readonly InputAction m_Player_UseHotkey;
+    private readonly InputAction m_Player_SecondaryItemUse;
     /// <summary>
     /// Provides access to input actions defined in input action map "Player".
     /// </summary>
@@ -704,6 +726,10 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Player/UseHotkey".
         /// </summary>
         public InputAction @UseHotkey => m_Wrapper.m_Player_UseHotkey;
+        /// <summary>
+        /// Provides access to the underlying input action "Player/SecondaryItemUse".
+        /// </summary>
+        public InputAction @SecondaryItemUse => m_Wrapper.m_Player_SecondaryItemUse;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -742,6 +768,9 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @UseHotkey.started += instance.OnUseHotkey;
             @UseHotkey.performed += instance.OnUseHotkey;
             @UseHotkey.canceled += instance.OnUseHotkey;
+            @SecondaryItemUse.started += instance.OnSecondaryItemUse;
+            @SecondaryItemUse.performed += instance.OnSecondaryItemUse;
+            @SecondaryItemUse.canceled += instance.OnSecondaryItemUse;
         }
 
         /// <summary>
@@ -765,6 +794,9 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @UseHotkey.started -= instance.OnUseHotkey;
             @UseHotkey.performed -= instance.OnUseHotkey;
             @UseHotkey.canceled -= instance.OnUseHotkey;
+            @SecondaryItemUse.started -= instance.OnSecondaryItemUse;
+            @SecondaryItemUse.performed -= instance.OnSecondaryItemUse;
+            @SecondaryItemUse.canceled -= instance.OnSecondaryItemUse;
         }
 
         /// <summary>
@@ -890,5 +922,12 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnUseHotkey(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "SecondaryItemUse" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnSecondaryItemUse(InputAction.CallbackContext context);
     }
 }

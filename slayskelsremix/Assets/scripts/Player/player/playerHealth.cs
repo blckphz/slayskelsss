@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 
 public class playerHealth : healthMaster
@@ -14,6 +14,7 @@ public class playerHealth : healthMaster
 
     void Start()
     {
+        // Ensure UI matches starting health
         if (healthSlider != null)
         {
             healthSlider.maxValue = maxHealth;
@@ -23,6 +24,7 @@ public class playerHealth : healthMaster
 
     void Update()
     {
+        // Regeneration logic
         if (currentHealth < maxHealth && Time.time >= lastDamageTime + healthRegenDelay)
         {
             currentHealth += healthRegenRate * Time.deltaTime;
@@ -33,19 +35,29 @@ public class playerHealth : healthMaster
 
     public override void TakeDamage(float amount)
     {
-        base.TakeDamage(amount); // Subtract health
+        base.TakeDamage(amount); // This reduces currentHealth in healthMaster
         lastDamageTime = Time.time;
         UpdateUI();
     }
 
-    void UpdateUI()
+    // 🔥 ADD THIS: A dedicated Heal method that forces a UI update
+    public void Heal(float amount)
     {
-        if (healthSlider != null) healthSlider.value = currentHealth;
+        currentHealth = Mathf.Min(currentHealth + amount, maxHealth);
+        UpdateUI();
+        Debug.Log($"[playerHealth] Health updated to: {currentHealth}");
+    }
+
+    public void UpdateUI()
+    {
+        if (healthSlider != null) 
+        {
+            healthSlider.value = currentHealth;
+        }
     }
 
     protected override void Die()
     {
         Debug.LogError("playerHealth: PLAYER HAS DIED.");
-        // Logic for game over screen or respawning
     }
 }

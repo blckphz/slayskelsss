@@ -70,7 +70,6 @@ public class buildableTurret : MonoBehaviour, IInteractable
         if (currentAmmo > 0)
         {
             currentAmmo--;
-            Debug.Log($"<color=cyan>[Ammo]</color> {gameObject.name} Ammo: {currentAmmo}");
             if (currentAmmo <= 0) turretLogic.SetFiringPermission(false);
             return true;
         }

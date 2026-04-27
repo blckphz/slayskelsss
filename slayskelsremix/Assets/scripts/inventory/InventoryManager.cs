@@ -37,18 +37,31 @@ public class InventoryManager : MonoBehaviour
 
         savePath = Application.persistentDataPath + "/inventory.json";
 
-        if (hotbarData.Count == 0)
-        {
-            for (int i = 0; i < hotbarSize; i++)
-                hotbarData.Add(new HotbarSlotData());
-        }
+        // 🔥 CRITICAL FIX 1: Initialize list structure BEFORE loading
+        InitializeHotbarData();
 
         LoadInventory();
     }
 
-    // =========================
-    // ADD ITEM
-    // =========================
+    private void InitializeHotbarData()
+    {
+        if (hotbarData == null) hotbarData = new List<HotbarSlotData>();
+
+        // If the list is empty or wrong size, populate it with fresh objects
+        if (hotbarData.Count != hotbarSize)
+        {
+            hotbarData.Clear();
+            for (int i = 0; i < hotbarSize; i++)
+            {
+                hotbarData.Add(new HotbarSlotData());
+            }
+        }
+    }
+
+    // ==========================================
+    // ITEM MANAGEMENT
+    // ==========================================
+
     public void AddItem(ItemData data, int amount)
     {
         if (data == null) return;
@@ -67,26 +80,19 @@ public class InventoryManager : MonoBehaviour
         RefreshAll();
     }
 
-    // =========================
-    // REMOVE ITEM
-    // =========================
     public bool RemoveItem(ItemData data, int amount)
     {
         if (data == null) return false;
-
         bool changed = false;
 
-        for (int i = 0; i < inventory.Count; i++)
+        for (int i = inventory.Count - 1; i >= 0; i--)
         {
             if (inventory[i].item != null && inventory[i].item.itemID == data.itemID)
             {
                 int take = Mathf.Min(inventory[i].count, amount);
                 inventory[i].count -= take;
                 amount -= take;
-
-                if (inventory[i].count <= 0)
-                    inventory.RemoveAt(i);
-
+                if (inventory[i].count <= 0) inventory.RemoveAt(i);
                 changed = true;
                 if (amount <= 0) break;
             }
@@ -101,10 +107,7 @@ public class InventoryManager : MonoBehaviour
                     int take = Mathf.Min(hotbarData[i].count, amount);
                     hotbarData[i].count -= take;
                     amount -= take;
-
-                    if (hotbarData[i].count <= 0)
-                        hotbarData[i].Clear();
-
+                    if (hotbarData[i].count <= 0) hotbarData[i].Clear();
                     changed = true;
                     if (amount <= 0) break;
                 }
@@ -115,16 +118,11 @@ public class InventoryManager : MonoBehaviour
         return changed;
     }
 
-    // =========================
-    // 🔥 FIX: THIS WAS MISSING
-    // =========================
     public void ConsumeResources(ItemData data, int amount)
     {
         if (data == null) return;
-
         int remaining = amount;
 
-        // inventory first
         for (int i = inventory.Count - 1; i >= 0; i--)
         {
             if (inventory[i].item != null && inventory[i].item.itemID == data.itemID)
@@ -132,15 +130,11 @@ public class InventoryManager : MonoBehaviour
                 int take = Mathf.Min(inventory[i].count, remaining);
                 inventory[i].count -= take;
                 remaining -= take;
-
-                if (inventory[i].count <= 0)
-                    inventory.RemoveAt(i);
-
+                if (inventory[i].count <= 0) inventory.RemoveAt(i);
                 if (remaining <= 0) break;
             }
         }
 
-        // hotbar fallback
         if (remaining > 0)
         {
             for (int i = 0; i < hotbarData.Count; i++)
@@ -150,40 +144,32 @@ public class InventoryManager : MonoBehaviour
                     int take = Mathf.Min(hotbarData[i].count, remaining);
                     hotbarData[i].count -= take;
                     remaining -= take;
-
-                    if (hotbarData[i].count <= 0)
-                        hotbarData[i].Clear();
-
+                    if (hotbarData[i].count <= 0) hotbarData[i].Clear();
                     if (remaining <= 0) break;
                 }
             }
         }
-
         RefreshAll();
     }
 
-    // =========================
-    // SAVE
-    // =========================
+    // ==========================================
+    // SAVE / LOAD SYSTEM
+    // ==========================================
+
     public void SaveInventory()
     {
-        InventorySaveData data = new InventorySaveData();
+        InventorySaveData saveData = new InventorySaveData();
 
         foreach (var slot in inventory)
         {
             if (slot.item != null)
-                data.savedItems.Add(new SaveSlot
-                {
-                    itemId = slot.item.itemID,
-                    count = slot.count
-                });
+                saveData.savedItems.Add(new SaveSlot { itemId = slot.item.itemID, count = slot.count });
         }
 
         for (int i = 0; i < hotbarData.Count; i++)
         {
             var h = hotbarData[i];
-
-            data.hotbarItems.Add(new HotbarSaveSlot
+            saveData.hotbarItems.Add(new HotbarSaveSlot
             {
                 itemId = h.item != null ? h.item.itemID : -1,
                 abilityName = h.ability != null ? h.ability.name : "",
@@ -191,61 +177,71 @@ public class InventoryManager : MonoBehaviour
             });
         }
 
-        File.WriteAllText(savePath, JsonUtility.ToJson(data, true));
+        string json = JsonUtility.ToJson(saveData, true);
+        File.WriteAllText(savePath, json);
+        Debug.Log($"<color=cyan>[Inventory]</color> Data saved to JSON.");
     }
 
-    // =========================
-    // LOAD
-    // =========================
     public void LoadInventory()
     {
-        if (!File.Exists(savePath)) return;
+        if (!File.Exists(savePath))
+        {
+            Debug.LogWarning("No save file found.");
+            return;
+        }
 
-        var data = JsonUtility.FromJson<InventorySaveData>(File.ReadAllText(savePath));
+        string json = File.ReadAllText(savePath);
+        InventorySaveData saveData = JsonUtility.FromJson<InventorySaveData>(json);
 
         inventory.Clear();
-
-        foreach (var s in data.savedItems)
+        foreach (var s in saveData.savedItems)
         {
             ItemData item = database.GetItemByID(s.itemId);
-            if (item != null)
-                inventory.Add(new InventorySlot(item, s.count));
+            if (item != null) inventory.Add(new InventorySlot(item, s.count));
         }
+
+        // 🔥 CRITICAL FIX 2: Re-Initialize to ensure we aren't loading into null refs
+        InitializeHotbarData();
 
         for (int i = 0; i < hotbarSize; i++)
         {
-            if (i >= data.hotbarItems.Count) continue;
+            if (i >= saveData.hotbarItems.Count) break;
 
-            var h = data.hotbarItems[i];
+            var hSave = saveData.hotbarItems[i];
+            hotbarData[i].Clear(); // Reset the existing object in the list
 
-            hotbarData[i].Clear();
-            hotbarData[i].count = h.count;
+            if (hSave.itemId != -1)
+            {
+                hotbarData[i].item = database.GetItemByID(hSave.itemId);
+                hotbarData[i].count = hSave.count;
+            }
 
-            if (h.itemId != -1)
-                hotbarData[i].item = database.GetItemByID(h.itemId);
-
-            if (!string.IsNullOrEmpty(h.abilityName))
-                hotbarData[i].ability = abilityDatabase.GetAbilityByName(h.abilityName);
+            if (!string.IsNullOrEmpty(hSave.abilityName) && abilityDatabase != null)
+            {
+                hotbarData[i].ability = abilityDatabase.GetAbilityByName(hSave.abilityName);
+            }
         }
+
+        Debug.Log("<color=cyan>[Inventory]</color> Hotbar data populated from file.");
     }
 
     public void RefreshAll()
     {
         SaveInventory();
         InvUI.Instance?.RefreshUI();
-        PlayerHotbarManager.Instance?.RefreshHotbar();
+        if (PlayerHotbarManager.Instance != null)
+        {
+            PlayerHotbarManager.Instance.RefreshHotbar();
+        }
     }
 
     public int GetTotalCount(ItemData data)
     {
         int total = 0;
-
         foreach (var s in inventory)
-            if (s.item == data) total += s.count;
-
+            if (s.item != null && s.item.itemID == data.itemID) total += s.count;
         foreach (var h in hotbarData)
-            if (h.item == data) total += h.count;
-
+            if (h.item != null && h.item.itemID == data.itemID) total += h.count;
         return total;
     }
 }
