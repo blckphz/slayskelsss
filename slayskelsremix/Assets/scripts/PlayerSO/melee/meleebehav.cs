@@ -99,9 +99,6 @@ public class meleebehav : MonoBehaviour
             target.TakeDamage(finalDamage);
             hitEnemies.Add(target);
 
-            Debug.Log(
-                $"[Hit] OWNER: {owner} | Target: {collision.name} | Damage: {finalDamage}"
-            );
 
             CameraShaker.Shake(0.35f, 0.12f);
         }

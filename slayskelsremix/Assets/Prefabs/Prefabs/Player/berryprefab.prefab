@@ -168,3 +168,4 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ad6587873830afd419ac89a088a60daa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::berryBehaviour
+  smearStrengthPerHit: 0.3

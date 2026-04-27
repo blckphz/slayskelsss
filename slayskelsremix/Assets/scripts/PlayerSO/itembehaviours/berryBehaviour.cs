@@ -2,6 +2,9 @@ using UnityEngine;
 
 public class berryBehaviour : MonoBehaviour
 {
+    [Header("Visual Settings")]
+    public float smearStrengthPerHit = 0.3f; // ~3-4 hits for full intensity
+
     private float _damage;
     private float _speed;
     private Vector2 _direction;
@@ -18,40 +21,36 @@ public class berryBehaviour : MonoBehaviour
         _speed = spd;
         _direction = dir;
 
-        // Set velocity
         rb.linearVelocity = _direction * _speed;
 
-        // Rotate to face travel direction
         float angle = Mathf.Atan2(_direction.y, _direction.x) * Mathf.Rad2Deg;
         transform.rotation = Quaternion.Euler(0, 0, angle);
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        // Look for anything that implements IDamageable (Enemies or Items)
         IDamageable damageable = collision.GetComponent<IDamageable>();
 
         if (damageable != null)
         {
-            // 1. Apply the damage
             damageable.TakeDamage(_damage);
 
-            // 2. (Optional) Apply knockback if it's an enemy
             if (collision.TryGetComponent<enemyHealth>(out enemyHealth enemy))
             {
-                // Calculate a small push force based on the berry's direction
+                // Apply physics
                 Vector2 knockbackForce = _direction * 2f;
                 enemy.ApplyImpulse(knockbackForce);
+
+                // Add to Berry Smear ONLY
+                enemy.AddSmear(smearStrengthPerHit);
             }
 
-            // 3. Clean up the projectile
             Deactivate();
         }
     }
 
     private void Deactivate()
     {
-        // Return to pool
         gameObject.SetActive(false);
     }
 }

@@ -178,7 +178,6 @@ public class InventoryManager : MonoBehaviour
 
         string json = JsonUtility.ToJson(saveData, true);
         File.WriteAllText(savePath, json);
-        Debug.Log("<color=cyan>[Save]</color> Inventory and Hotbar written to file.");
     }
 
     public void LoadInventory()

@@ -17,8 +17,13 @@ public class enemyHealth : healthMaster, IDamageable
     public float flashDuration = 0.2f;
 
     [Header("Shader Property Names")]
-    public string hitIntensityName = "_Intensity";
-    public string stunIntensityName = "_StunIntensity";
+    public string hitIntensityName = "_Intensity";           // Generic Hit Flash
+    public string stunIntensityName = "_StunIntensity";       // Thunder/Stun Effect
+    public string berrySmearIntensityName = "_BerrySmearIntensity"; // Berry Juice Effect
+
+    [Header("Berry Smear Stacking (Uncapped)")]
+    public float smearDecaySpeed = 0.5f;
+    private float currentSmearIntensity = 0f;
 
     private AIPath ai;
     private Rigidbody2D rb;
@@ -31,12 +36,11 @@ public class enemyHealth : healthMaster, IDamageable
     private Coroutine _slowCoroutine;
     private Coroutine _tickDamageCoroutine;
 
-    // Interface Property
     public bool IsSlowed => _slowCoroutine != null;
 
     protected override void Awake()
     {
-        base.Awake(); // Sets currentHealth = maxHealth
+        base.Awake();
         spriteRenderer = GetComponent<SpriteRenderer>();
         ai = GetComponent<AIPath>();
         rb = GetComponent<Rigidbody2D>();
@@ -50,12 +54,25 @@ public class enemyHealth : healthMaster, IDamageable
         UpdateHealthUI();
     }
 
+    void Update()
+    {
+        // Decay the smear over time
+        if (currentSmearIntensity > 0)
+        {
+            currentSmearIntensity -= smearDecaySpeed * Time.deltaTime;
+
+            // Ensure we don't go below zero
+            if (currentSmearIntensity < 0) currentSmearIntensity = 0;
+
+            UpdateShaderFloat(berrySmearIntensityName, currentSmearIntensity);
+        }
+    }
+
     // --- IDAMAGEABLE & OVERRIDES ---
 
     public override void TakeDamage(float damage)
     {
-        base.TakeDamage(damage); // Subtracts health and checks for death
-
+        base.TakeDamage(damage);
         UpdateHealthUI();
         ShowDamageText(damage);
 
@@ -63,6 +80,7 @@ public class enemyHealth : healthMaster, IDamageable
         _flashCoroutine = StartCoroutine(FlashEffect());
     }
 
+    // --- THUNDER / STUN LOGIC ---
     public void ApplySlow(float slowPercent, float duration, float tickDmg, float tickInterval)
     {
         if (_slowCoroutine != null) StopCoroutine(_slowCoroutine);
@@ -72,18 +90,28 @@ public class enemyHealth : healthMaster, IDamageable
         _tickDamageCoroutine = StartCoroutine(TickDamageRoutine(tickDmg, tickInterval, duration));
     }
 
+    // --- BERRY SMEAR LOGIC (Uncapped Stacking) ---
+    public void AddSmear(float amount)
+    {
+        currentSmearIntensity += amount;
+        // No Clamp here! The intensity can go as high as you want.
+        UpdateShaderFloat(berrySmearIntensityName, currentSmearIntensity);
+
+        Debug.Log($"[EnemyHealth] Smear Intensity is now: {currentSmearIntensity}");
+    }
+
     protected override void Die()
     {
         UpdateShaderFloat(hitIntensityName, 0f);
         UpdateShaderFloat(stunIntensityName, 0f);
+        UpdateShaderFloat(berrySmearIntensityName, 0f);
 
         if (comboSys != null) comboSys.RegisterKill();
-
         SpawnLoot();
-        base.Die(); // Destroys gameObject
+        base.Die();
     }
 
-    // --- COROUTINES & EFFECTS ---
+    // --- COROUTINES ---
 
     public void ApplyImpulse(Vector2 force)
     {
@@ -122,7 +150,7 @@ public class enemyHealth : healthMaster, IDamageable
             while (elapsed < duration)
             {
                 elapsed += Time.deltaTime;
-                float pulse = 0.85f + Mathf.Sin(Time.time * 10f) * 0.35f;
+                float pulse = 0.85f + Mathf.Sin(Time.time * 15f) * 0.35f;
                 UpdateShaderFloat(stunIntensityName, pulse);
                 yield return null;
             }
