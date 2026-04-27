@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cba701f85b0b1fa4490c7769f991dd18, type: 3}
   m_Name: ThrownStone
   m_EditorClassIdentifier: Assembly-CSharp::StoneSO
-  fireRate: 1
+  fireRate: 2
   prefab: {fileID: 5637220139463772907, guid: 1859ed4aad67def4f963ed337f8be0a3, type: 3}
   icon: {fileID: 21300000, guid: 26c91eaec167ced42a3b7e7dea241553, type: 3}
   launchsound: {fileID: 0}

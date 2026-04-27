@@ -41,12 +41,10 @@ public class EnemyAI : MonoBehaviour
 
         float distanceToTarget = Vector2.Distance(transform.position, currentTarget.position);
 
-        // CHECK RANGE
         if (distanceToTarget <= attackRange)
         {
             ai.isStopped = true;
 
-            // If target is inside trigger and cooldown is over, start attacking
             if (Time.time >= lastAttackTime + attackCooldown && IsTargetInWeaponTrigger())
             {
                 anim.SetBool("isattacking", true);
@@ -55,7 +53,6 @@ public class EnemyAI : MonoBehaviour
         }
         else
         {
-            // TARGET OUTSIDE RANGE: Stop attacking and resume movement
             anim.SetBool("isattacking", false);
             ai.isStopped = false;
             ai.destination = currentTarget.position;
@@ -96,7 +93,6 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
-    // CALLED BY ANIMATION EVENT
     public void checkforplayerdmg()
     {
         if (weaponTrigger == null) return;
@@ -113,31 +109,11 @@ public class EnemyAI : MonoBehaviour
 
         for (int i = 0; i < hitCount; i++)
         {
-            // 🔥 UNIVERSAL DAMAGE SYSTEM
-
-            // Player
-            playerHealth pHealth = results[i].GetComponent<playerHealth>();
-            if (pHealth != null)
+            // NEW: Centralized check. Any script inheriting healthMaster works.
+            healthMaster h = results[i].GetComponent<healthMaster>();
+            if (h != null)
             {
-                pHealth.TakeDamage(damageAmount);
-                didHitSomething = true;
-                continue;
-            }
-
-            // Turret
-            TurretBehaviour tBehav = results[i].GetComponent<TurretBehaviour>();
-            if (tBehav != null)
-            {
-                tBehav.TakeDamage(damageAmount);
-                didHitSomething = true;
-                continue;
-            }
-
-            // 🔥 ANY BUILDABLE OBJECT
-            objectHealth objHealth = results[i].GetComponent<objectHealth>();
-            if (objHealth != null)
-            {
-                objHealth.TakeDamage(damageAmount);
+                h.TakeDamage(damageAmount);
                 didHitSomething = true;
             }
         }
@@ -155,43 +131,19 @@ public class EnemyAI : MonoBehaviour
         float closestDistance = Mathf.Infinity;
         Transform bestTarget = null;
 
-        // ---------------- PLAYER ----------------
-        GameObject player = GameObject.FindGameObjectWithTag("Player");
-        if (player != null)
+        // Find all objects with health
+        healthMaster[] allTargets = FindObjectsOfType<healthMaster>();
+
+        foreach (healthMaster target in allTargets)
         {
-            float dist = Vector2.Distance(transform.position, player.transform.position);
+            // Don't target yourself or other enemies
+            if (target is enemyHealth || !target.gameObject.activeInHierarchy) continue;
+
+            float dist = Vector2.Distance(transform.position, target.transform.position);
             if (dist < closestDistance)
             {
                 closestDistance = dist;
-                bestTarget = player.transform;
-            }
-        }
-
-        // ---------------- TURRETS ----------------
-        TurretBehaviour[] turrets = FindObjectsOfType<TurretBehaviour>();
-        foreach (TurretBehaviour turret in turrets)
-        {
-            if (!turret.gameObject.activeInHierarchy) continue;
-
-            float dist = Vector2.Distance(transform.position, turret.transform.position);
-            if (dist < closestDistance)
-            {
-                closestDistance = dist;
-                bestTarget = turret.transform;
-            }
-        }
-
-        // ---------------- BUILDINGS (🔥 NEW) ----------------
-        objectHealth[] objects = FindObjectsOfType<objectHealth>();
-        foreach (objectHealth obj in objects)
-        {
-            if (!obj.gameObject.activeInHierarchy) continue;
-
-            float dist = Vector2.Distance(transform.position, obj.transform.position);
-            if (dist < closestDistance)
-            {
-                closestDistance = dist;
-                bestTarget = obj.transform;
+                bestTarget = target.transform;
             }
         }
 

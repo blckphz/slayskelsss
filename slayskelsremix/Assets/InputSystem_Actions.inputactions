@@ -124,15 +124,6 @@
                     "initialStateCheck": false
                 },
                 {
-                    "name": "AddWood",
-                    "type": "Button",
-                    "id": "47079ef0-05ee-4a59-a90b-2491b2d94d6a",
-                    "expectedControlType": "",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": false
-                },
-                {
                     "name": "Use",
                     "type": "Button",
                     "id": "f7e1ac91-0ca4-4ecf-8b1f-20da75caf652",
@@ -591,7 +582,7 @@
                 {
                     "name": "",
                     "id": "2c710409-6127-4a84-a9bf-01c343923952",
-                    "path": "<Keyboard>/e",
+                    "path": "<Keyboard>/f",
                     "interactions": "",
                     "processors": "",
                     "groups": ";Keyboard&Mouse",
@@ -601,19 +592,8 @@
                 },
                 {
                     "name": "",
-                    "id": "c52c92b0-be33-4de0-a16d-619436c02213",
-                    "path": "<Keyboard>/1",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "AddWood",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
                     "id": "cd96787b-283f-424b-affa-adb96f453012",
-                    "path": "<Keyboard>/e",
+                    "path": "<Keyboard>/q",
                     "interactions": "",
                     "processors": "",
                     "groups": "",

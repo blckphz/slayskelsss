@@ -96,7 +96,6 @@ public class BuildingSaveManager : MonoBehaviour
         }
 
         File.WriteAllText(savePath, JsonUtility.ToJson(data, true));
-        Debug.Log($"<color=cyan>[SAVE]</color> Saved {data.buildings.Count} buildings.");
     }
 
     public void LoadBuildings()

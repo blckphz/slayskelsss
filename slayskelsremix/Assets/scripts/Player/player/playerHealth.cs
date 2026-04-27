@@ -1,32 +1,24 @@
 using UnityEngine;
-using UnityEngine.UI; // Needed for the Slider
+using UnityEngine.UI;
 
-public class playerHealth : MonoBehaviour
+public class playerHealth : healthMaster
 {
-    [Header("Health Stats")]
-    public float maxHealth = 100f;
-    public float currentHealth;
-
     [Header("Regen Settings")]
     public float healthRegenRate = 5f;
     public float healthRegenDelay = 5f;
 
     [Header("UI Components")]
-    public Slider healthSlider; // Drag your slider here in the inspector
+    public Slider healthSlider;
 
     private float lastDamageTime;
 
     void Start()
     {
-        currentHealth = maxHealth;
-
-        // Setup slider values
         if (healthSlider != null)
         {
             healthSlider.maxValue = maxHealth;
             healthSlider.value = currentHealth;
         }
-
     }
 
     void Update()
@@ -35,36 +27,25 @@ public class playerHealth : MonoBehaviour
         {
             currentHealth += healthRegenRate * Time.deltaTime;
             currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
-
-            UpdateUI(); // Update slider while regenerating
+            UpdateUI();
         }
     }
 
-    public void TakeDamage(float amount)
+    public override void TakeDamage(float amount)
     {
-        currentHealth -= amount;
+        base.TakeDamage(amount); // Subtract health
         lastDamageTime = Time.time;
-
-        UpdateUI(); // Update slider when taking damage
-
-
-        if (currentHealth <= 0)
-        {
-            Die();
-        }
+        UpdateUI();
     }
 
-    // Helper method to keep UI in sync
     void UpdateUI()
     {
-        if (healthSlider != null)
-        {
-            healthSlider.value = currentHealth;
-        }
+        if (healthSlider != null) healthSlider.value = currentHealth;
     }
 
-    void Die()
+    protected override void Die()
     {
         Debug.LogError("playerHealth: PLAYER HAS DIED.");
+        // Logic for game over screen or respawning
     }
 }

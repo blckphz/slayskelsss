@@ -54,13 +54,15 @@ public class PlayerHotbarManager : MonoBehaviour
 
     private void Update()
     {
+        // Number key selection (1–9)
         for (int i = 0; i < hotbarSlots.Count && i < 9; i++)
         {
             if (Keyboard.current[Key.Digit1 + i].wasPressedThisFrame)
                 SelectSlot(i);
         }
 
-        if (Keyboard.current.eKey.wasPressedThisFrame)
+        // 🔥 HOLD TO USE
+        if (Keyboard.current.eKey.isPressed)
             ExecuteActiveSlot();
     }
 
@@ -107,7 +109,7 @@ public class PlayerHotbarManager : MonoBehaviour
     }
 
     // =========================
-    // HOTBAR REFRESH (IMPORTANT FIX)
+    // HOTBAR REFRESH
     // =========================
     public void RefreshHotbar()
     {
@@ -138,6 +140,9 @@ public class PlayerHotbarManager : MonoBehaviour
 
         var slot = hotbarSlots[selectedIndex];
 
+        // =========================
+        // ABILITY
+        // =========================
         if (slot.GetAbility() != null)
         {
             Ability ability = slot.GetAbility();
@@ -145,20 +150,32 @@ public class PlayerHotbarManager : MonoBehaviour
             if (ability.Execute(caster, targetAnchor, true))
                 nextFireTime = Time.time + ability.fireRate;
         }
+        // =========================
+        // ITEM (🔥 FIXED)
+        // =========================
         else if (slot.GetItem() != null)
         {
             ItemData item = slot.GetItem();
 
-            if (!(item is buildSO))
-            {
-                item.Use(caster, targetAnchor);
-                nextFireTime = Time.time + 0.2f;
-            }
+            // Prevent using empty stacks
+            if (slot.GetCount() <= 0) return;
+
+            // Skip build items
+            if (item is buildSO) return;
+
+            // Use item (effect only — NO stack logic inside item!)
+            item.Use(caster, targetAnchor);
+
+            // 🔥 Consume ONCE
+            UseSelectedStack(item.consumeAmount);
+
+            // 🔥 Respect per-item fire rate
+            nextFireTime = Time.time + item.useRate;
         }
     }
 
     // =========================
-    // STACK USAGE (🔥 FIXED CORE ISSUE)
+    // STACK USAGE
     // =========================
     public void UseSelectedStack(int amount)
     {
@@ -176,7 +193,7 @@ public class PlayerHotbarManager : MonoBehaviour
     }
 
     // =========================
-    // 🔥 SINGLE SOURCE OF TRUTH FIX
+    // SYNC
     // =========================
     public void SyncHotbarToData()
     {

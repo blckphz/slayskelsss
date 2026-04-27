@@ -210,15 +210,6 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""initialStateCheck"": false
                 },
                 {
-                    ""name"": ""AddWood"",
-                    ""type"": ""Button"",
-                    ""id"": ""47079ef0-05ee-4a59-a90b-2491b2d94d6a"",
-                    ""expectedControlType"": """",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": false
-                },
-                {
                     ""name"": ""Use"",
                     ""type"": ""Button"",
                     ""id"": ""f7e1ac91-0ca4-4ecf-8b1f-20da75caf652"",
@@ -677,7 +668,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                 {
                     ""name"": """",
                     ""id"": ""2c710409-6127-4a84-a9bf-01c343923952"",
-                    ""path"": ""<Keyboard>/e"",
+                    ""path"": ""<Keyboard>/f"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": "";Keyboard&Mouse"",
@@ -687,19 +678,8 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
-                    ""id"": ""c52c92b0-be33-4de0-a16d-619436c02213"",
-                    ""path"": ""<Keyboard>/1"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""AddWood"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
                     ""id"": ""cd96787b-283f-424b-affa-adb96f453012"",
-                    ""path"": ""<Keyboard>/e"",
+                    ""path"": ""<Keyboard>/q"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
@@ -1337,7 +1317,6 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         m_Player_attackThird = m_Player.FindAction("attackThird", throwIfNotFound: true);
         m_Player_Dash = m_Player.FindAction("Dash", throwIfNotFound: true);
         m_Player_LockOnAim = m_Player.FindAction("LockOnAim", throwIfNotFound: true);
-        m_Player_AddWood = m_Player.FindAction("AddWood", throwIfNotFound: true);
         m_Player_Use = m_Player.FindAction("Use", throwIfNotFound: true);
         m_Player_Deconstruct = m_Player.FindAction("Deconstruct", throwIfNotFound: true);
         m_Player_ToggleCrafting = m_Player.FindAction("ToggleCrafting", throwIfNotFound: true);
@@ -1448,7 +1427,6 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_attackThird;
     private readonly InputAction m_Player_Dash;
     private readonly InputAction m_Player_LockOnAim;
-    private readonly InputAction m_Player_AddWood;
     private readonly InputAction m_Player_Use;
     private readonly InputAction m_Player_Deconstruct;
     private readonly InputAction m_Player_ToggleCrafting;
@@ -1516,10 +1494,6 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Player/LockOnAim".
         /// </summary>
         public InputAction @LockOnAim => m_Wrapper.m_Player_LockOnAim;
-        /// <summary>
-        /// Provides access to the underlying input action "Player/AddWood".
-        /// </summary>
-        public InputAction @AddWood => m_Wrapper.m_Player_AddWood;
         /// <summary>
         /// Provides access to the underlying input action "Player/Use".
         /// </summary>
@@ -1601,9 +1575,6 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
             @LockOnAim.started += instance.OnLockOnAim;
             @LockOnAim.performed += instance.OnLockOnAim;
             @LockOnAim.canceled += instance.OnLockOnAim;
-            @AddWood.started += instance.OnAddWood;
-            @AddWood.performed += instance.OnAddWood;
-            @AddWood.canceled += instance.OnAddWood;
             @Use.started += instance.OnUse;
             @Use.performed += instance.OnUse;
             @Use.canceled += instance.OnUse;
@@ -1666,9 +1637,6 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
             @LockOnAim.started -= instance.OnLockOnAim;
             @LockOnAim.performed -= instance.OnLockOnAim;
             @LockOnAim.canceled -= instance.OnLockOnAim;
-            @AddWood.started -= instance.OnAddWood;
-            @AddWood.performed -= instance.OnAddWood;
-            @AddWood.canceled -= instance.OnAddWood;
             @Use.started -= instance.OnUse;
             @Use.performed -= instance.OnUse;
             @Use.canceled -= instance.OnUse;
@@ -2072,13 +2040,6 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnLockOnAim(InputAction.CallbackContext context);
-        /// <summary>
-        /// Method invoked when associated input action "AddWood" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
-        /// </summary>
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
-        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-        void OnAddWood(InputAction.CallbackContext context);
         /// <summary>
         /// Method invoked when associated input action "Use" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
         /// </summary>

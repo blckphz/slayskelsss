@@ -8,7 +8,24 @@ public class UseableItem : ItemData
 
     public override void Use(Transform caster, Transform targetAnchor)
     {
-        // 1. GLOBAL SEARCH: Check Inventory + Hotbar
+        // =========================
+        // 1. SAFETY CHECKS
+        // =========================
+        if (InventoryManager.Instance == null)
+        {
+            Debug.LogWarning("<color=red>[Item System]</color> InventoryManager missing!");
+            return;
+        }
+
+        if (abilityToExecute == null)
+        {
+            Debug.LogWarning($"<color=yellow>[Item System]</color> {itemName} has no Ability assigned!");
+            return;
+        }
+
+        // =========================
+        // 2. CHECK IF ITEM EXISTS (DEBUG PURPOSE ONLY)
+        // =========================
         int currentCount = GetCurrentCount();
 
         if (currentCount <= 0)
@@ -17,36 +34,38 @@ public class UseableItem : ItemData
             return;
         }
 
-        if (abilityToExecute != null)
+        // =========================
+        // 3. EXECUTE ABILITY
+        // =========================
+        Debug.Log($"<color=cyan>[Item System]</color> Attempting Ability: {abilityToExecute.name}");
+
+        bool hasExecuted = abilityToExecute.Execute(caster, targetAnchor, true);
+
+        // =========================
+        // 4. RESULT HANDLING
+        // =========================
+        if (hasExecuted)
         {
-            Debug.Log($"<color=cyan>[Item System]</color> Attempting Ability: {abilityToExecute.name}");
+            // ❌ IMPORTANT FIX:
+            // We DO NOT remove items here anymore.
+            // HotbarManager is the ONLY system allowed to modify stack counts.
 
-            // Trigger the execution and capture if it actually fired
-            // We pass 'true' for isHolding as per your existing logic
-            bool hasExecuted = abilityToExecute.Execute(caster, targetAnchor, true);
+            int remaining = GetCurrentCount();
 
-            if (hasExecuted)
-            {
-                // 2. SMART REMOVAL: Only remove if the stone was actually thrown
-                InventoryManager.Instance.RemoveItem(this, 1);
-
-                int remaining = GetCurrentCount();
-                Debug.Log($"<color=green>[Item System]</color> Successfully used {itemName}. Remaining: {remaining}");
-            }
-            else
-            {
-                Debug.Log("<color=orange>[Item System]</color> Ability failed to execute. Item not consumed.");
-            }
         }
         else
         {
-            Debug.LogWarning($"<color=yellow>[Item System]</color> {itemName} has no Ability assigned!");
+            Debug.Log("<color=orange>[Item System]</color> Ability failed to execute. Item not consumed.");
         }
     }
 
+    // =========================
+    // GLOBAL COUNT CHECK (READ ONLY)
+    // =========================
     private int GetCurrentCount()
     {
         if (InventoryManager.Instance == null) return 0;
+
         int totalFound = 0;
 
         // Check Inventory

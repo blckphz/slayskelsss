@@ -3,12 +3,8 @@ using UnityEngine.UI;
 using System.Collections;
 using Pathfinding;
 
-public class enemyHealth : MonoBehaviour, IDamageable
+public class enemyHealth : healthMaster, IDamageable
 {
-    [Header("Health Settings")]
-    public float health = 100f;
-    private float maxHealth;
-
     [Header("Loot Settings")]
     public GameObject goldPrefab;
     public int minGold = 1;
@@ -35,11 +31,12 @@ public class enemyHealth : MonoBehaviour, IDamageable
     private Coroutine _slowCoroutine;
     private Coroutine _tickDamageCoroutine;
 
-    // IMPLEMENTING INTERFACE PROPERTY
+    // Interface Property
     public bool IsSlowed => _slowCoroutine != null;
 
-    void Awake()
+    protected override void Awake()
     {
+        base.Awake(); // Sets currentHealth = maxHealth
         spriteRenderer = GetComponent<SpriteRenderer>();
         ai = GetComponent<AIPath>();
         rb = GetComponent<Rigidbody2D>();
@@ -48,17 +45,23 @@ public class enemyHealth : MonoBehaviour, IDamageable
 
     void Start()
     {
-        maxHealth = health;
         if (ai != null) originalSpeed = ai.maxSpeed;
-
-        // Find the combo script in the scene automatically
         comboSys = Object.FindAnyObjectByType<comboScript>();
-
         UpdateHealthUI();
     }
 
-    // --- IDAMAGEABLE METHODS ---
+    // --- IDAMAGEABLE & OVERRIDES ---
 
+    public override void TakeDamage(float damage)
+    {
+        base.TakeDamage(damage); // Subtracts health and checks for death
+
+        UpdateHealthUI();
+        ShowDamageText(damage);
+
+        if (_flashCoroutine != null) StopCoroutine(_flashCoroutine);
+        _flashCoroutine = StartCoroutine(FlashEffect());
+    }
 
     public void ApplySlow(float slowPercent, float duration, float tickDmg, float tickInterval)
     {
@@ -69,7 +72,18 @@ public class enemyHealth : MonoBehaviour, IDamageable
         _tickDamageCoroutine = StartCoroutine(TickDamageRoutine(tickDmg, tickInterval, duration));
     }
 
-    // --- PHYSICS & EFFECTS ---
+    protected override void Die()
+    {
+        UpdateShaderFloat(hitIntensityName, 0f);
+        UpdateShaderFloat(stunIntensityName, 0f);
+
+        if (comboSys != null) comboSys.RegisterKill();
+
+        SpawnLoot();
+        base.Die(); // Destroys gameObject
+    }
+
+    // --- COROUTINES & EFFECTS ---
 
     public void ApplyImpulse(Vector2 force)
     {
@@ -103,7 +117,6 @@ public class enemyHealth : MonoBehaviour, IDamageable
     {
         if (ai != null)
         {
-            // Reduce speed
             ai.maxSpeed = Mathf.Max(0.1f, originalSpeed - slowAmount);
             float elapsed = 0f;
             while (elapsed < duration)
@@ -116,7 +129,7 @@ public class enemyHealth : MonoBehaviour, IDamageable
             ai.maxSpeed = originalSpeed;
             UpdateShaderFloat(stunIntensityName, 0f);
         }
-        _slowCoroutine = null; // Resetting this makes IsSlowed return false
+        _slowCoroutine = null;
     }
 
     private IEnumerator TickDamageRoutine(float dmg, float interval, float duration)
@@ -139,38 +152,6 @@ public class enemyHealth : MonoBehaviour, IDamageable
         spriteRenderer.SetPropertyBlock(propertyBlock);
     }
 
-    // --- DEATH AND UI ---
-
-    public void TakeDamage(float damage)
-    {
-        health -= damage;
-        health = Mathf.Clamp(health, 0, maxHealth);
-        UpdateHealthUI();
-        ShowDamageText(damage);
-
-        // REMOVED: comboSys.RegisterHit() - We only want kills now!
-
-        if (_flashCoroutine != null) StopCoroutine(_flashCoroutine);
-        _flashCoroutine = StartCoroutine(FlashEffect());
-
-        if (health <= 0) Die();
-    }
-
-    private void Die()
-    {
-        UpdateShaderFloat(hitIntensityName, 0f);
-        UpdateShaderFloat(stunIntensityName, 0f);
-
-        // ONLY CALL COMBO SYSTEM HERE
-        if (comboSys != null)
-        {
-            comboSys.RegisterKill();
-        }
-
-        SpawnLoot();
-        Destroy(gameObject);
-    }
-
     private void SpawnLoot()
     {
         if (goldPrefab == null) return;
@@ -183,8 +164,8 @@ public class enemyHealth : MonoBehaviour, IDamageable
 
     void UpdateHealthUI()
     {
-        if (healthBarFill != null) healthBarFill.fillAmount = health / maxHealth;
-        if (healthBarObject != null) healthBarObject.SetActive(health < maxHealth);
+        if (healthBarFill != null) healthBarFill.fillAmount = currentHealth / maxHealth;
+        if (healthBarObject != null) healthBarObject.SetActive(currentHealth < maxHealth);
     }
 
     void ShowDamageText(float damage)
