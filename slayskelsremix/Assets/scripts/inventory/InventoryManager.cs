@@ -37,9 +37,7 @@ public class InventoryManager : MonoBehaviour
 
         savePath = Application.persistentDataPath + "/inventory.json";
 
-        // 🔥 CRITICAL FIX 1: Initialize list structure BEFORE loading
         InitializeHotbarData();
-
         LoadInventory();
     }
 
@@ -47,7 +45,6 @@ public class InventoryManager : MonoBehaviour
     {
         if (hotbarData == null) hotbarData = new List<HotbarSlotData>();
 
-        // If the list is empty or wrong size, populate it with fresh objects
         if (hotbarData.Count != hotbarSize)
         {
             hotbarData.Clear();
@@ -66,6 +63,8 @@ public class InventoryManager : MonoBehaviour
     {
         if (data == null) return;
 
+        // Note: If you want items to NEVER stack even during gameplay, 
+        // remove this foreach loop and just use the inventory.Add line below.
         foreach (var slot in inventory)
         {
             if (slot.item != null && slot.item.itemID == data.itemID)
@@ -179,46 +178,52 @@ public class InventoryManager : MonoBehaviour
 
         string json = JsonUtility.ToJson(saveData, true);
         File.WriteAllText(savePath, json);
-        Debug.Log($"<color=cyan>[Inventory]</color> Data saved to JSON.");
+        Debug.Log("<color=cyan>[Save]</color> Inventory and Hotbar written to file.");
     }
 
     public void LoadInventory()
     {
-        if (!File.Exists(savePath))
-        {
-            Debug.LogWarning("No save file found.");
-            return;
-        }
+        if (!File.Exists(savePath)) return;
 
         string json = File.ReadAllText(savePath);
         InventorySaveData saveData = JsonUtility.FromJson<InventorySaveData>(json);
 
+        // CLEAR AND POPULATE DIRECTLY
+        // This ensures separate stacks in the file remain separate in the list
         inventory.Clear();
         foreach (var s in saveData.savedItems)
         {
             ItemData item = database.GetItemByID(s.itemId);
-            if (item != null) inventory.Add(new InventorySlot(item, s.count));
+            if (item != null)
+            {
+                inventory.Add(new InventorySlot(item, s.count));
+            }
         }
 
-        // 🔥 CRITICAL FIX 2: Re-Initialize to ensure we aren't loading into null refs
         InitializeHotbarData();
 
         for (int i = 0; i < hotbarSize; i++)
         {
-            if (i >= saveData.hotbarItems.Count) break;
+            hotbarData[i].Clear();
 
-            var hSave = saveData.hotbarItems[i];
-            hotbarData[i].Clear(); // Reset the existing object in the list
-
-            if (hSave.itemId != -1)
+            if (i < saveData.hotbarItems.Count)
             {
-                hotbarData[i].item = database.GetItemByID(hSave.itemId);
-                hotbarData[i].count = hSave.count;
-            }
+                var hSave = saveData.hotbarItems[i];
 
-            if (!string.IsNullOrEmpty(hSave.abilityName) && abilityDatabase != null)
-            {
-                hotbarData[i].ability = abilityDatabase.GetAbilityByName(hSave.abilityName);
+                if (hSave.itemId != -1)
+                {
+                    ItemData foundItem = database.GetItemByID(hSave.itemId);
+                    if (foundItem != null)
+                    {
+                        hotbarData[i].item = foundItem;
+                        hotbarData[i].count = hSave.count;
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(hSave.abilityName) && abilityDatabase != null)
+                {
+                    hotbarData[i].ability = abilityDatabase.GetAbilityByName(hSave.abilityName);
+                }
             }
         }
 
@@ -229,10 +234,7 @@ public class InventoryManager : MonoBehaviour
     {
         SaveInventory();
         InvUI.Instance?.RefreshUI();
-        if (PlayerHotbarManager.Instance != null)
-        {
-            PlayerHotbarManager.Instance.RefreshHotbar();
-        }
+        PlayerHotbarManager.Instance?.RefreshHotbar();
     }
 
     public int GetTotalCount(ItemData data)
