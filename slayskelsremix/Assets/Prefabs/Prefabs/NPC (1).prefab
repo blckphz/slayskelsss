@@ -129,6 +129,7 @@ GameObject:
   - component: {fileID: 8802841011327608955}
   - component: {fileID: 3874133939572215982}
   - component: {fileID: 8442703433919779620}
+  - component: {fileID: 4573692379244824283}
   m_Layer: 0
   m_Name: NPC (1)
   m_TagString: Untagged
@@ -165,11 +166,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5ae86de85266c7f41ac8516f6e920ad1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  debug: 1
-  isAggressive: 1
-  isCollecting: 1
-  detectionRange: 20
-  jobInterval: 1.5
+  woodItemID: 1
+  interactDistance: 1.2
+  actionCooldown: 1
+  wanderRadius: 5
+  maintenanceThreshold: 0.6
+  currentState: 0
+  jobDescription: Idle
 --- !u!212 &7450443348552350561
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -332,10 +335,10 @@ MonoBehaviour:
   targetCompatibility: {fileID: 0}
   maxAcceleration: -2.5
   rotationSpeed: 360
-  slowdownDistance: 0.6
+  slowdownDistance: 0.24
   pickNextWaypointDist: 2
-  endReachedDistance: 1
-  alwaysDrawGizmos: 0
+  endReachedDistance: 1.42
+  alwaysDrawGizmos: 1
   slowWhenNotFacingTarget: 1
   whenCloseToDestination: 0
   constrainInsideGraph: 0
@@ -351,9 +354,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 53079a9d954345c47ac76690b8049f81, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  npcID: 
   currentAbility: {fileID: 11400000, guid: 926c66018d0b056498826a3d6154559d, type: 2}
   attackAnchor: {fileID: 5091922913764416537}
+  globalAttackCooldown: 0.2
 --- !u!70 &3874133939572215982
 CapsuleCollider2D:
   m_ObjectHideFlags: 0
@@ -403,9 +406,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2e391d83d889f8d4eaa1c63242f5c78a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  maxCapacity: 20
   inventory: []
-  debug: 0
+--- !u!114 &4573692379244824283
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1260139162946927276}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b99501b809c10a7449c5dded50f908dd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: '::'
 --- !u!1 &1921881276973248205
 GameObject:
   m_ObjectHideFlags: 0
@@ -472,6 +485,6 @@ CapsuleCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: -0.0017800219, y: -0.35857856}
-  m_Size: {x: 0.28284138, y: 0.28284138}
-  m_Direction: 0
+  m_Offset: {x: -0.0017800324, y: -0.39289266}
+  m_Size: {x: 0.28284138, y: 0.17243977}
+  m_Direction: 1

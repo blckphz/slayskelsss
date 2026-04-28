@@ -36,9 +36,29 @@ public class CampfireBehav : MonoBehaviour, IInteractable, IBuildPreview
             ConsumeFuel();
     }
 
-    private void Save()
+    // --- NEW: NPC INTERACTION ---
+    public void NPCInteract(NpcInvBrain npcInv)
     {
-        BuildingSaveManager.Instance?.SaveAfterChange();
+        // Search NPC inventory for the correct fuel item
+        var woodSlot = npcInv.inventory.Find(slot => slot.item != null && slot.item.itemID == fuelItem.itemID);
+
+        if (woodSlot != null && woodSlot.count > 0)
+        {
+            // Only take what the campfire can hold
+            int canAccept = Mathf.Min(woodSlot.count, Mathf.FloorToInt(maxFuel - fuelAmount));
+
+            if (canAccept > 0)
+            {
+                AddFuel(woodSlot.item, canAccept);
+                woodSlot.count -= canAccept;
+
+                // Remove slot if empty
+                if (woodSlot.count <= 0) npcInv.inventory.Remove(woodSlot);
+
+                if (!isBurning) Ignite();
+                Debug.Log($"<color=orange>[Campfire]</color> NPC deposited {canAccept} fuel.");
+            }
+        }
     }
 
     private void ConsumeFuel()
@@ -46,12 +66,10 @@ public class CampfireBehav : MonoBehaviour, IInteractable, IBuildPreview
         if (fuelAmount > 0)
         {
             fuelAmount -= burnRate * Time.deltaTime;
-
             int currentFuelInt = Mathf.CeilToInt(fuelAmount);
             if (currentFuelInt != lastFuelInt)
             {
                 lastFuelInt = currentFuelInt;
-                // Update UI text every time the integer count drops
                 CampfireUI.Instance?.RefreshUI();
             }
 
@@ -69,26 +87,16 @@ public class CampfireBehav : MonoBehaviour, IInteractable, IBuildPreview
 
     public int AddFuel(ItemData item, int amount)
     {
-        // Set the reference immediately before checks
         if (fuelItem == null) fuelItem = item;
-
-        if (fuelItem.itemID != item.itemID)
-        {
-            Debug.LogWarning($"<color=orange>[Campfire]</color> Item ID mismatch! Expected {fuelItem.itemID}, got {item.itemID}");
-            return 0;
-        }
+        if (fuelItem.itemID != item.itemID) return 0;
 
         int amountToAdd = Mathf.Min((int)(maxFuel - fuelAmount), amount);
         fuelAmount += amountToAdd;
         lastFuelInt = Mathf.CeilToInt(fuelAmount);
 
-        Debug.Log($"<color=orange>[Campfire]</color> Added {amountToAdd}. New Total: {fuelAmount}");
-
         UpdateVisuals();
-
-        // FORCE UI REFRESH
         CampfireUI.Instance?.RefreshUI();
-        Save();
+        BuildingSaveManager.Instance?.SaveAfterChange();
 
         return amountToAdd;
     }
@@ -96,26 +104,19 @@ public class CampfireBehav : MonoBehaviour, IInteractable, IBuildPreview
     public int RemoveFuel(int amount)
     {
         if (fuelAmount < 1f) return 0;
-
         int toRemove = Mathf.Min(amount, Mathf.FloorToInt(fuelAmount));
         fuelAmount -= toRemove;
         lastFuelInt = Mathf.CeilToInt(fuelAmount);
 
-        Debug.Log($"<color=orange>[Campfire]</color> Removed {toRemove}. Remaining: {fuelAmount}");
-
         if (fuelAmount <= 0)
         {
             fuelAmount = 0;
-            fuelItem = null; // Clear item reference if empty
             Extinguish();
         }
 
         UpdateVisuals();
-
-        // FORCE UI REFRESH
         CampfireUI.Instance?.RefreshUI();
-        Save();
-
+        BuildingSaveManager.Instance?.SaveAfterChange();
         return toRemove;
     }
 
@@ -124,9 +125,7 @@ public class CampfireBehav : MonoBehaviour, IInteractable, IBuildPreview
         if (fuelAmount > 0)
         {
             isBurning = true;
-            Debug.Log("<color=orange>[Campfire]</color> Ignited.");
             UpdateVisuals();
-            Save();
         }
     }
 
@@ -134,9 +133,7 @@ public class CampfireBehav : MonoBehaviour, IInteractable, IBuildPreview
     {
         if (!isBurning) return;
         isBurning = false;
-        Debug.Log("<color=orange>[Campfire]</color> Extinguished.");
         UpdateVisuals();
-        Save();
     }
 
     private void UpdateVisuals()

@@ -117,12 +117,7 @@ public class offensivemelee : offensiveability
             behav.Setup(damage, bonus, index, owner);
         }
 
-        Debug.Log(
-            $"[SWING CONSUMED] OWNER: {owner} | " +
-            $"TARGET: {(targetAnchor != null ? targetAnchor.name : "NULL")} | " +
-            $"INDEX: {index} | " +
-            $"BONUS: {bonus}"
-        );
+     
 
         CameraShaker.Shake(0.4f, 0.12f);
     }

@@ -17,4 +17,6 @@ MonoBehaviour:
   icon: {fileID: 21300000, guid: 26c91eaec167ced42a3b7e7dea241553, type: 3}
   itemType: 2
   maxStackSize: 99
+  isUsable: 1
+  consumeAmount: 1
   abilityToExecute: {fileID: 11400000, guid: 840e766df5259c34192448d901bff02a, type: 2}

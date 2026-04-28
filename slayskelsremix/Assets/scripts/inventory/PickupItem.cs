@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public class PickupItem : MonoBehaviour 
+public class PickupItem : MonoBehaviour
 {
     [Header("Item Settings")]
     [SerializeField] private ItemData woodData;
@@ -15,6 +15,9 @@ public class PickupItem : MonoBehaviour
     {
         highlight = GetComponent<Highlightable>();
     }
+
+    // Public getter so npcJobBrain can check if this is Wood
+    public ItemData GetItemData() => woodData;
 
     public string GetPrompt()
     {
@@ -31,21 +34,14 @@ public class PickupItem : MonoBehaviour
         Destroy(gameObject);
     }
 
-    // 🔥 REQUIRED BY INTERFACE
-    public void OnFocus()
-    {
-        highlight?.SetHighlighted(true);
-    }
-
-    public void OnLoseFocus()
-    {
-        highlight?.SetHighlighted(false);
-    }
+    public void OnFocus() => highlight?.SetHighlighted(true);
+    public void OnLoseFocus() => highlight?.SetHighlighted(false);
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (!autoPickupOnCollision) return;
 
+        // --- Player Pickup ---
         if (collision.TryGetComponent(out InventoryManager playerInv))
         {
             playerInv.AddItem(woodData, amount);
@@ -53,10 +49,20 @@ public class PickupItem : MonoBehaviour
             return;
         }
 
+        // --- NPC Pickup ---
         if (collision.TryGetComponent(out NpcInvBrain npcInv))
         {
             npcInv.AddItem(woodData, amount);
-            NPCGlobalEvents.NotifyDestroyed(gameObject.GetInstanceID());
+
+            // Notify the brain to re-evaluate its job now that it has items
+            if (collision.TryGetComponent(out NPCBrain brain))
+            {
+                brain.WakeUp();
+            }
+
+            // Clean up global events if you are using them for pathfinding tracking
+            // NPCGlobalEvents.NotifyDestroyed(gameObject.GetInstanceID()); 
+
             Destroy(gameObject);
         }
     }

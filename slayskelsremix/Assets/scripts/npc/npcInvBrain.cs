@@ -11,34 +11,20 @@ public class NpcInvBrain : MonoBehaviour
         public InventorySlot(ItemData d, int c) { item = d; count = c; }
     }
 
-    [Header("NPC Storage")]
-    // SerializeField ensures it shows up in the Unity Inspector
-    [SerializeField] public List<InventorySlot> inventory = new List<InventorySlot>();
+    public List<InventorySlot> inventory = new List<InventorySlot>();
+
+    public bool HasItem(int itemID)
+    {
+        return inventory.Exists(s => s.item != null && s.item.itemID == itemID && s.count > 0);
+    }
 
     public void AddItem(ItemData data, int amount)
     {
-        if (data == null)
-        {
-            return;
-        }
+        if (data == null) return;
+        var slot = inventory.Find(s => s.item.itemID == data.itemID);
+        if (slot != null) slot.count += amount;
+        else inventory.Add(new InventorySlot(data, amount));
 
-
-        // Check if we already have a stack of this item
-        bool found = false;
-        foreach (var slot in inventory)
-        {
-            if (slot.item != null && slot.item.itemID == data.itemID)
-            {
-                slot.count += amount;
-                found = true;
-                break;
-            }
-        }
-
-        // Otherwise, add a new slot
-        if (!found)
-        {
-            inventory.Add(new InventorySlot(data, amount));
-        }
+        Debug.Log($"<color=white>[NPC Inv] Added {amount} of {data.name}. Total: {slot?.count ?? amount}</color>");
     }
 }

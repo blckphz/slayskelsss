@@ -78,11 +78,7 @@ public class CraftingManager : MonoBehaviour
             CraftUIManager.Instance?.RefreshGrid();
             Debug.Log("<color=white>[Crafting]</color> Opened.");
         }
-        else
-        {
-            Cursor.lockState = CursorLockMode.Locked;
-            Cursor.visible = false;
-        }
+      
     }
 
     // =====================================================

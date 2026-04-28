@@ -72,6 +72,7 @@ public class PlayerHotbarManager : MonoBehaviour
 
         var slot = hotbarSlots[selectedIndex];
 
+        // 1. Handle Raw Abilities (if slotted directly)
         if (slot.GetAbility() != null)
         {
             Ability ability = slot.GetAbility();
@@ -80,15 +81,28 @@ public class PlayerHotbarManager : MonoBehaviour
                 nextFireTime = Time.time + ability.fireRate;
             }
         }
+        // 2. Handle Items
         else if (slot.GetItem() != null)
         {
             ItemData item = slot.GetItem();
-            if (slot.GetCount() <= 0) return;
-            if (item is buildSO) return;
 
+            if (!item.isUsable || slot.GetCount() <= 0) return;
+            // Build system check
+            // if (item is buildSO) return; 
+
+            // Logic to determine cooldown rate
+            float cooldown = 0.5f; // Default if not a UseableItem
+            if (item is UseableItem useable)
+            {
+                cooldown = useable.useRate;
+            }
+
+            // Execute the use logic
             item.Use(caster, targetAnchor);
+
+            // Consume and set cooldown
             UseSelectedStack(item.consumeAmount);
-            nextFireTime = Time.time + item.useRate;
+            nextFireTime = Time.time + cooldown;
         }
     }
 
@@ -99,6 +113,9 @@ public class PlayerHotbarManager : MonoBehaviour
         var slot = hotbarSlots[selectedIndex];
         ItemData item = slot.GetItem();
 
+        if (item == null || !item.isUsable) return;
+
+        // Explicit check for UseableItem to access its unique properties
         if (item is UseableItem useable && useable.abilityToExecute != null)
         {
             if (useable.abilityToExecute.ExecuteSecondary(caster))
