@@ -56,7 +56,6 @@ public class CampfireBehav : MonoBehaviour, IInteractable, IBuildPreview
                 if (woodSlot.count <= 0) npcInv.inventory.Remove(woodSlot);
 
                 if (!isBurning) Ignite();
-                Debug.Log($"<color=orange>[Campfire]</color> NPC deposited {canAccept} fuel.");
             }
         }
     }

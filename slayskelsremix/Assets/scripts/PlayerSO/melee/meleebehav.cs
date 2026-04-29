@@ -45,15 +45,7 @@ public class meleebehav : MonoBehaviour
 
                     chargeConsumedThisSwing = true;
                 }
-                else
-                {
-                    Debug.Log("[Melee Swing] PLAYER has no charges.");
-                }
             }
-        }
-        else
-        {
-            Debug.Log("[Melee Swing] NPC swing detected → NO charge consumed.");
         }
 
         if (deactivationRoutine != null)

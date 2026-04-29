@@ -25,6 +25,5 @@ public class NpcInvBrain : MonoBehaviour
         if (slot != null) slot.count += amount;
         else inventory.Add(new InventorySlot(data, amount));
 
-        Debug.Log($"<color=white>[NPC Inv] Added {amount} of {data.name}. Total: {slot?.count ?? amount}</color>");
     }
 }

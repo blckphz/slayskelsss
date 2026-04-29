@@ -79,7 +79,6 @@ public class npcJobBrain : MonoBehaviour
             newState = NPCBrain.NPCState.Refueling;
             target = maintenanceFire.transform;
             description = "Maintenance: Refuel";
-            Debug.Log("<color=orange>[Decision]</color> Topping off fires. Priority: Maintenance Refuel.");
             return;
         }
 
@@ -92,7 +91,6 @@ public class npcJobBrain : MonoBehaviour
                 newState = NPCBrain.NPCState.Stowing;
                 target = chest.transform;
                 description = "Stowing surplus items";
-                Debug.Log("<color=magenta>[Decision]</color> Fires are happy. Priority: Stowing inventory.");
                 return;
             }
         }
@@ -106,7 +104,6 @@ public class npcJobBrain : MonoBehaviour
                 newState = NPCBrain.NPCState.Gathering;
                 target = resource.transform;
                 description = "Gathering Resources";
-                Debug.Log("<color=green>[Decision]</color> Nothing to do. Priority: Gathering (Chop Trees).");
                 return;
             }
         }

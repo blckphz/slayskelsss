@@ -110,7 +110,6 @@ public class NPCBrain : MonoBehaviour
         currentState = state;
         jobDescription = desc;
         aiPath.endReachedDistance = interactDistance - 0.2f;
-        Debug.Log($"<color=cyan>[NPC Brain]</color> New Task: {desc}");
     }
 
     private void StartWander()
@@ -137,7 +136,6 @@ public class NPCBrain : MonoBehaviour
             case NPCState.Refueling:
                 if (t.TryGetComponent(out CampfireBehav fire))
                 {
-                    Debug.Log("<color=cyan>[NPC Action]</color> Refueling Campfire.");
                     fire.NPCInteract(inventory);
                     // CRITICAL: We call FinishJob immediately after interacting 
                     // so the NPC doesn't get stuck staring at the fire.
@@ -174,7 +172,6 @@ public class NPCBrain : MonoBehaviour
 
     public void FinishJob(string debugMsg)
     {
-        Debug.Log($"<color=green>[NPC]</color> {debugMsg}. Clearing target.");
         destinationSetter.target = null;
         currentState = NPCState.Idle;
         nextActionTime = Time.time + actionCooldown;

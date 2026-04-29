@@ -54,6 +54,8 @@ MonoBehaviour:
   flashDuration: 0.15
   shakeDuration: 0.1
   shakeMagnitude: 0.1
+  treeID: 
+  health: 50
   woodPrefab: {fileID: 8504423254273432661, guid: 22af6c420dc2b11488f396c164eab3b4, type: 3}
   topPrefab: {fileID: 8542049761962043926, guid: 5468e57153e3fd44594a6633bb15fdc9, type: 3}
   bottomPrefab: {fileID: 4272399698899235473, guid: f46bc3955377181479d8e75aaf364860, type: 3}
@@ -101,8 +103,8 @@ CapsuleCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 1.7343822}
-  m_Size: {x: 2.8787878, y: 3.66499}
+  m_Offset: {x: -0.031470407, y: 0.48752332}
+  m_Size: {x: 0.7059656, y: 0.8153396}
   m_Direction: 0
 --- !u!212 &6896833497799181211
 SpriteRenderer:

@@ -4,9 +4,12 @@
 public class PlayerVisualController : MonoBehaviour
 {
     [Header("References")]
-    [SerializeField] private charSO currentChar;
     [SerializeField] private PlayerAim aimScript;
     [SerializeField] private SpriteRenderer spriteRenderer;
+
+    [Header("Sprites")]
+    [SerializeField] private Sprite frontSprite;
+    [SerializeField] private Sprite backSprite;
 
     private bool facingUp;
 
@@ -28,7 +31,7 @@ public class PlayerVisualController : MonoBehaviour
 
     private void UpdateVisuals()
     {
-        if (currentChar == null || aimScript == null || spriteRenderer == null)
+        if (aimScript == null || spriteRenderer == null)
             return;
 
         if (aimScript.anchor == null)
@@ -43,30 +46,25 @@ public class PlayerVisualController : MonoBehaviour
         if (isAimingUp != facingUp)
         {
             facingUp = isAimingUp;
+
             spriteRenderer.sprite = facingUp
-                ? currentChar.backsprite
-                : currentChar.frontsprite;
+                ? backSprite
+                : frontSprite;
         }
 
         // Flip logic:
-        // - facing down (frontsprite) → flip if aiming right
-        // - facing up (backsprite) → flip if aiming left (opposite of aiming right)
+        // front (down) → flip if aiming right
+        // back (up) → flip if aiming left
         spriteRenderer.flipX = facingUp ? !isAimingRight : isAimingRight;
     }
 
     private void UpdateSpriteImmediate()
     {
-        if (currentChar == null || spriteRenderer == null)
+        if (spriteRenderer == null)
             return;
 
-        spriteRenderer.sprite = currentChar.frontsprite;
+        spriteRenderer.sprite = frontSprite;
         spriteRenderer.flipX = false;
         facingUp = false;
-    }
-
-    public void SetCharacter(charSO newChar)
-    {
-        currentChar = newChar;
-        UpdateSpriteImmediate();
     }
 }

@@ -4,60 +4,37 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 
-[System.Serializable]
-public class AbilityUI
-{
-    public Image background;
-    public Image fillImage;
-
-    [HideInInspector] public Vector3 bgOriginalPos;
-    [HideInInspector] public Vector3 fillOriginalPos;
-}
-
 public class charsetter : MonoBehaviour
 {
     public static charsetter Instance { get; private set; }
 
-    public charSO selectedChar;
-    public AbilityUI[] abilityUI;
+    [Header("References")]
+    public AbilityUI[] abilityUI; // Assign your 4 UI Slot objects here
     public PlayerAttack playerAttack;
 
     private Dictionary<Ability, float> abilityUsedTime = new Dictionary<Ability, float>();
 
-    [Header("Shake Settings")]
+    [Header("Chain UI Settings")]
+    public TextMeshProUGUI chargeText;
     public float shakeDuration = 0.2f;
     public float shakeMagnitude = 5f;
-
-    [Header("Chain UI")]
-    public TextMeshProUGUI chargeText;
 
     private int lastChargeValue = -1;
     private Coroutine chargePopRoutine;
     private Coroutine chargeShakeRoutine;
-
     private bool uiInitialized = false;
 
     void Awake()
     {
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
-
+        if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
-        Debug.Log("[UI] charsetter Awake");
     }
 
     void Start()
     {
         UpdateAbilityIcons();
-
         ForceChargeUIRefresh();
-
         uiInitialized = true;
-
-        Debug.Log("[UI] charsetter Start COMPLETE");
     }
 
     void Update()
@@ -68,29 +45,28 @@ public class charsetter : MonoBehaviour
 
     public void UpdateAbilityIcons()
     {
-        if (selectedChar == null || selectedChar.abilities == null)
-        {
-            Debug.LogWarning("[UI] No character abilities assigned");
-            return;
-        }
+        if (AbilityLoadout.Instance == null) return;
 
         for (int i = 0; i < abilityUI.Length; i++)
         {
-            if (i < selectedChar.abilities.Length && selectedChar.abilities[i] != null)
-            {
-                Ability ability = selectedChar.abilities[i];
+            // --- SKIP EMPTY SLOTS ---
+            if (abilityUI[i] == null) continue;
 
-                if (abilityUI[i].fillImage != null)
+            Ability ability = AbilityLoadout.Instance.GetAbility(i);
+
+            if (ability != null)
+            {
+                if (abilityUI[i].icon != null)
                 {
-                    abilityUI[i].fillImage.sprite = ability.icon;
-                    abilityUI[i].fillImage.enabled = true;
-                    abilityUI[i].fillImage.fillAmount = 0f;
+                    abilityUI[i].icon.sprite = ability.icon;
+                    abilityUI[i].icon.enabled = true;
                 }
 
-                if (abilityUI[i].background != null)
+                Image bg = abilityUI[i].transform.Find("Background")?.GetComponent<Image>();
+                if (bg != null)
                 {
-                    abilityUI[i].background.sprite = ability.icon;
-                    abilityUI[i].background.enabled = true;
+                    bg.sprite = ability.icon;
+                    bg.enabled = true;
                 }
 
                 if (!abilityUsedTime.ContainsKey(ability))
@@ -98,35 +74,28 @@ public class charsetter : MonoBehaviour
             }
             else
             {
-                if (abilityUI[i].fillImage != null)
-                    abilityUI[i].fillImage.enabled = false;
-
-                if (abilityUI[i].background != null)
-                    abilityUI[i].background.enabled = false;
+                if (abilityUI[i].icon != null) abilityUI[i].icon.enabled = false;
             }
         }
-
     }
 
     public void TriggerAbilityUsed(Ability ability)
     {
         if (ability == null) return;
-
         abilityUsedTime[ability] = Time.time;
-
     }
 
     private void UpdateCooldownUI()
     {
-        if (selectedChar == null || selectedChar.abilities == null || playerAttack == null)
-            return;
+        if (AbilityLoadout.Instance == null || playerAttack == null) return;
 
         for (int i = 0; i < abilityUI.Length; i++)
         {
-            if (i >= selectedChar.abilities.Length) continue;
+            // --- SKIP EMPTY SLOTS ---
+            if (abilityUI[i] == null) continue;
 
-            Ability ability = selectedChar.abilities[i];
-            if (ability == null || abilityUI[i].fillImage == null) continue;
+            Ability ability = AbilityLoadout.Instance.GetAbility(i);
+            if (ability == null || abilityUI[i].icon == null) continue;
 
             float nextFireTime = playerAttack.abilityCooldowns.ContainsKey(ability)
                 ? playerAttack.abilityCooldowns[ability]
@@ -134,148 +103,82 @@ public class charsetter : MonoBehaviour
 
             float remaining = Mathf.Clamp(nextFireTime - Time.time, 0f, ability.fireRate);
 
-            float fill = remaining > 0f ? remaining / ability.fireRate : 0f;
-            abilityUI[i].fillImage.fillAmount = fill;
+            abilityUI[i].icon.fillAmount = (ability.fireRate > 0) ? (remaining / ability.fireRate) : 0;
         }
     }
 
-    // 🔥 CHARGE UI
-    private void UpdateChargeUI()
+    // --- CHARGE / CHAIN UI LOGIC ---
+    public void ForceChargeUIRefresh()
     {
-        if (chargeText == null)
-            return;
+        if (chargeText == null) return;
+        lastChargeValue = -1;
 
-        if (!uiInitialized)
-            return;
-
-        if (!chainController.isUnlocked)
-        {
-            if (chargeText.enabled)
-            {
-                Debug.Log("[UI] Charge UI disabled (not unlocked)");
-            }
-
-            chargeText.enabled = false;
-            chargeText.text = "";
-            lastChargeValue = -1;
-            return;
-        }
-
-        if (!chargeText.enabled)
+        // Note: Ensure chainController is a static class or accessible instance
+        if (chainController.isUnlocked)
         {
             chargeText.enabled = true;
-            Debug.Log("[UI] Charge UI re-enabled");
+            chargeText.text = chainController.hitCounter.ToString();
         }
+        else
+        {
+            chargeText.enabled = false;
+        }
+    }
+
+    private void UpdateChargeUI()
+    {
+        if (chargeText == null || !uiInitialized || !chainController.isUnlocked) return;
 
         int charges = chainController.hitCounter;
         chargeText.text = charges.ToString();
 
         if (charges > lastChargeValue)
         {
-            Debug.Log($"[UI] Charge INCREASE: {lastChargeValue} → {charges}");
-
-            if (chargePopRoutine != null)
-                StopCoroutine(chargePopRoutine);
-
+            if (chargePopRoutine != null) StopCoroutine(chargePopRoutine);
             chargePopRoutine = StartCoroutine(ChargePop());
         }
         else if (charges < lastChargeValue)
         {
-            Debug.Log($"[UI] Charge DECREASE: {lastChargeValue} → {charges}");
-
-            if (chargeShakeRoutine != null)
-                StopCoroutine(chargeShakeRoutine);
-
+            if (chargeShakeRoutine != null) StopCoroutine(chargeShakeRoutine);
             chargeShakeRoutine = StartCoroutine(ChargeShake());
         }
 
         lastChargeValue = charges;
-
-        // color feedback
-        if (charges <= 0)
-            chargeText.color = Color.gray;
-        else if (charges < 5)
-            chargeText.color = Color.white;
-        else
-            chargeText.color = Color.yellow;
+        chargeText.color = charges <= 0 ? Color.gray : (charges < 5 ? Color.white : Color.yellow);
     }
 
-    // 🔥 FIXED FORCE REFRESH
-    public void ForceChargeUIRefresh()
-    {
-
-        if (chargeText == null)
-        {
-            Debug.LogWarning("[UI] chargeText is NULL");
-            return;
-        }
-
-        lastChargeValue = -1;
-
-        if (chainController.isUnlocked)
-        {
-            chargeText.enabled = true;
-            chargeText.text = chainController.hitCounter.ToString();
-
-            Debug.Log($"[UI] Forced display: {chainController.hitCounter}");
-        }
-        else
-        {
-            chargeText.enabled = false;
-        }
-    }
-
-    // ⚡ POP
     private IEnumerator ChargePop()
     {
         RectTransform rt = chargeText.rectTransform;
-
-        rt.localScale = Vector3.one;
-
         float duration = 0.15f;
         float t = 0f;
-
         while (t < duration)
         {
             t += Time.deltaTime;
-            float s = Mathf.Lerp(1f, 1.4f, t / duration);
-            rt.localScale = Vector3.one * s;
+            rt.localScale = Vector3.one * Mathf.Lerp(1f, 1.4f, t / duration);
             yield return null;
         }
-
         t = 0f;
-
         while (t < duration)
         {
             t += Time.deltaTime;
-            float s = Mathf.Lerp(1.4f, 1f, t / duration);
-            rt.localScale = Vector3.one * s;
+            rt.localScale = Vector3.one * Mathf.Lerp(1.4f, 1f, t / duration);
             yield return null;
         }
-
         rt.localScale = Vector3.one;
     }
 
-    // 💥 SHAKE
     private IEnumerator ChargeShake()
     {
         RectTransform rt = chargeText.rectTransform;
         Vector2 originalPos = rt.anchoredPosition;
-
         float time = 0f;
-
         while (time < 0.12f)
         {
             time += Time.deltaTime;
-
-            float strength = Mathf.Lerp(4f, 0f, time / 0.12f);
-            Vector2 offset = Random.insideUnitCircle * strength;
-
-            rt.anchoredPosition = originalPos + offset;
-
+            rt.anchoredPosition = originalPos + Random.insideUnitCircle * Mathf.Lerp(4f, 0f, time / 0.12f);
             yield return null;
         }
-
         rt.anchoredPosition = originalPos;
     }
 }
