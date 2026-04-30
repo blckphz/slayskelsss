@@ -109,7 +109,6 @@ public class npcJobBrain : MonoBehaviour
         }
 
         // 7. FALLBACK
-        Debug.Log("<color=white>[Decision]</color> No tasks found. Priority: Wandering.");
     }
 
     // --- Helpers ---

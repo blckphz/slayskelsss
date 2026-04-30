@@ -1,35 +1,100 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
-public class AbilityDropSlot : MonoBehaviour, IDropHandler
+public class AbilityDropSlot : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPointerExitHandler
 {
     public int slotIndex;
 
+    [Header("UI")]
+    public Image slotIcon;
+    public Image slotBackground;
+
+    private bool isHovered;
+
+    void Update()
+    {
+        if (slotBackground == null) return;
+
+        if (DragState.IsDraggingAbility)
+        {
+            slotBackground.enabled = true;
+
+            // 🖤 hovered slot = darker tint
+            if (isHovered)
+                slotBackground.color = new Color(0f, 0f, 0f, 0.6f); // black
+            else
+                slotBackground.color = new Color(1f, 1f, 1f, 0.3f); // normal highlight
+        }
+        else
+        {
+            slotBackground.enabled = false;
+        }
+    }
+
+    // 🟩 mouse enters slot
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+        isHovered = true;
+    }
+
+    // 🟥 mouse leaves slot
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        isHovered = false;
+    }
+
     public void OnDrop(PointerEventData eventData)
     {
-        Debug.Log($"[Drop] Object dropped onto Slot {slotIndex}");
-
         if (eventData.pointerDrag == null) return;
 
-        AbilityUI draggedAbility = eventData.pointerDrag.GetComponent<AbilityUI>();
-        if (draggedAbility == null) return;
+        AbilityUI dragged = eventData.pointerDrag.GetComponent<AbilityUI>();
+        if (dragged == null || dragged.ability == null) return;
 
-        // --- THE SAFETY CHECK ---
-        if (AbilityLoadout.Instance == null)
+        if (AbilityLoadout.Instance == null) return;
+
+        // 🔒 unlock check
+        if (AbilityUnlocks.Instance != null &&
+            !AbilityUnlocks.Instance.IsUnlocked(dragged.ability))
         {
-            Debug.LogError("[Drop] CRITICAL: AbilityLoadout.Instance is NULL! Is it in your scene?");
+            Debug.LogWarning("[Drop] Locked ability");
             return;
         }
 
-        // If we get here, everything is safe
-        AbilityLoadout.Instance.SetAbility(slotIndex, draggedAbility.ability);
+        // 🚫 duplicate check
+        for (int i = 0; i < AbilityLoadout.Instance.equippedAbilities.Length; i++)
+        {
+            if (i == slotIndex) continue;
 
-        // This is the line that was being skipped because of the crash:
-        draggedAbility.dropped = true;
+            if (AbilityLoadout.Instance.equippedAbilities[i] == dragged.ability)
+            {
+                Debug.LogWarning("[Drop] Already equipped");
+                return;
+            }
+        }
 
-        draggedAbility.transform.SetParent(transform);
-        draggedAbility.transform.localPosition = Vector3.zero;
+        AbilityLoadout.Instance.SetAbility(slotIndex, dragged.ability);
 
-        Debug.Log($"[Drop] SUCCESS! Equipped {draggedAbility.ability.name} to slot {slotIndex}");
+        UpdateSlotUI(dragged.ability);
+
+        // reset hover tint after drop
+        isHovered = false;
+    }
+
+    private void UpdateSlotUI(Ability ability)
+    {
+        if (ability == null)
+        {
+            if (slotIcon != null)
+                slotIcon.enabled = false;
+
+            return;
+        }
+
+        if (slotIcon != null)
+        {
+            slotIcon.sprite = ability.icon;
+            slotIcon.enabled = true;
+        }
     }
 }

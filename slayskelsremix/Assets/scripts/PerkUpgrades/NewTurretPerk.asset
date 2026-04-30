@@ -14,5 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TurretFortressUpgrade
   upgradeName: Iron Fortress
   description: "20 more health \n2 bonus turrets"
+  currentLevel: 5
+  maxLevel: 5
+  givesNewAbility: 1
+  newAbility: {fileID: 11400000, guid: deb15be96f8d43447895f1312cb9994a, type: 2}
   hpBonus: 50
   countBonus: 2

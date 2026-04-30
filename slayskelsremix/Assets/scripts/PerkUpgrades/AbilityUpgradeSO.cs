@@ -10,6 +10,11 @@ public abstract class AbilityUpgradeSO : ScriptableObject, IAbilityUpgrade
     public int currentLevel = 0;
     public int maxLevel = 5;
 
+    public bool givesNewAbility = false; // Set to true if this upgrade grants a new ability
+    public Ability newAbility; // The new ability granted by this upgrade (if applicable)
+
+
+
     public string UpgradeName => upgradeName;
     public string Description => description;
     public int Level { get => currentLevel; set => currentLevel = value; }

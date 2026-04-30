@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using TMPro;
 using UnityEngine.InputSystem; // Required for Mouse.current
 
@@ -40,29 +40,9 @@ public class perkTooltip : MonoBehaviour
         _rectTransform.position = mousePosition + offset;
 
         // Optional: Keep tooltip on screen
-        ClampToWindow();
     }
 
-    private void ClampToWindow()
-    {
-        Vector3[] corners = new Vector3[4];
-        _rectTransform.GetWorldCorners(corners);
 
-        float width = corners[2].x - corners[0].x;
-        float height = corners[1].y - corners[0].y;
-
-        Vector2 pos = _rectTransform.position;
-
-        // Check right edge
-        if (pos.x + width > Screen.width)
-            pos.x = Screen.width - width;
-
-        // Check bottom edge
-        if (pos.y - height < 0)
-            pos.y = height;
-
-        _rectTransform.position = pos;
-    }
 
     public void ShowTooltip(string name, string description, int lv, int maxLv)
     {
