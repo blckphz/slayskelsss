@@ -6,6 +6,9 @@ public abstract class AbilityUpgradeSO : ScriptableObject, IAbilityUpgrade
     public string upgradeName;
     [TextArea] public string description;
 
+    public string perkName;
+    [TextArea] public string perkdescription;
+
     [Header("Leveling Settings")]
     public int currentLevel = 0;
     public int maxLevel = 5;

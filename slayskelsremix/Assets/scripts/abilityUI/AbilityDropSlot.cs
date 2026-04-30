@@ -2,7 +2,11 @@
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class AbilityDropSlot : MonoBehaviour, IDropHandler, IPointerEnterHandler, IPointerExitHandler
+public class AbilityDropSlot : MonoBehaviour,
+    IDropHandler,
+    IPointerEnterHandler,
+    IPointerExitHandler,
+    IPointerClickHandler
 {
     public int slotIndex;
 
@@ -20,11 +24,11 @@ public class AbilityDropSlot : MonoBehaviour, IDropHandler, IPointerEnterHandler
         {
             slotBackground.enabled = true;
 
-            // 🖤 hovered slot = darker tint
+            // 🖤 hovered slot darker
             if (isHovered)
-                slotBackground.color = new Color(0f, 0f, 0f, 0.6f); // black
+                slotBackground.color = new Color(0f, 0f, 0f, 0.6f);
             else
-                slotBackground.color = new Color(1f, 1f, 1f, 0.3f); // normal highlight
+                slotBackground.color = new Color(1f, 1f, 1f, 0.3f);
         }
         else
         {
@@ -32,18 +36,19 @@ public class AbilityDropSlot : MonoBehaviour, IDropHandler, IPointerEnterHandler
         }
     }
 
-    // 🟩 mouse enters slot
+    // 🟩 hover enter
     public void OnPointerEnter(PointerEventData eventData)
     {
         isHovered = true;
     }
 
-    // 🟥 mouse leaves slot
+    // 🟥 hover exit
     public void OnPointerExit(PointerEventData eventData)
     {
         isHovered = false;
     }
 
+    // 💥 drop
     public void OnDrop(PointerEventData eventData)
     {
         if (eventData.pointerDrag == null) return;
@@ -74,11 +79,33 @@ public class AbilityDropSlot : MonoBehaviour, IDropHandler, IPointerEnterHandler
         }
 
         AbilityLoadout.Instance.SetAbility(slotIndex, dragged.ability);
-
         UpdateSlotUI(dragged.ability);
 
-        // reset hover tint after drop
         isHovered = false;
+    }
+
+    // 🖱️ RIGHT CLICK REMOVE
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        if (eventData.button != PointerEventData.InputButton.Right)
+            return;
+
+        RemoveAbility();
+    }
+
+    private void RemoveAbility()
+    {
+        if (AbilityLoadout.Instance == null) return;
+
+        AbilityLoadout.Instance.SetAbility(slotIndex, null);
+
+        if (slotIcon != null)
+        {
+            slotIcon.sprite = null;
+            slotIcon.enabled = false;
+        }
+
+        Debug.Log($"[Slot] Removed ability from slot {slotIndex}");
     }
 
     private void UpdateSlotUI(Ability ability)
@@ -87,7 +114,6 @@ public class AbilityDropSlot : MonoBehaviour, IDropHandler, IPointerEnterHandler
         {
             if (slotIcon != null)
                 slotIcon.enabled = false;
-
             return;
         }
 
