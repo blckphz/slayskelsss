@@ -1,73 +1,102 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
 public class PerkButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
-    [Header("UI Component")]
     public Image buttonIcon;
-    public perkTooltip tooltip; // Assign the Tooltip object here in the inspector
+
+    [Header("Highlight")]
+    public Image background; // assign in inspector
+
+    public Color normalColor = Color.white;
+    public Color hoverColor = new Color(0.8f, 1f, 0.8f);   // light green
+    public Color selectedColor = new Color(1f, 0.9f, 0.4f); // yellow
 
     [HideInInspector] public AbilityUpgradeSO perkAsset;
 
-    private string _targetAbilityName;
-    private PerkUIDisplay _uiDisplay;
+    private PerkManager _manager;
     private Ability _targetAbility;
 
-    public void SetupButton(PerkManager manager, PerkUIDisplay display, string abilityName, AbilityUpgradeSO asset)
+    private bool isSelected;
+
+    public void SetupButton(PerkManager manager, string abilityName, AbilityUpgradeSO asset)
     {
-        _uiDisplay = display;
-        _targetAbilityName = abilityName;
+        _manager = manager;
         perkAsset = asset;
 
         if (manager.abilityDatabase != null)
         {
-            _targetAbility = manager.abilityDatabase.GetAbilityByName(_targetAbilityName);
+            _targetAbility = manager.abilityDatabase.GetAbilityByName(abilityName);
+
             if (_targetAbility != null && buttonIcon != null)
-            {
                 buttonIcon.sprite = _targetAbility.icon;
-            }
+        }
+
+        SetNormal();
+    }
+
+    public void OnSelect()
+    {
+        Debug.Log($"[PerkButton] Selected → {_targetAbility?.abilityName}");
+
+        if (_manager != null)
+        {
+            _manager.SelectPerk(perkAsset, _targetAbility);
+            _manager.NotifySelection(this); // 🔥 important
         }
     }
 
+    // 🟩 HOVER
     public void OnPointerEnter(PointerEventData eventData)
     {
-        // Update the main UI panel
-        if (_uiDisplay != null && _targetAbility != null && perkAsset != null)
-        {
-            _uiDisplay.UpdatePerkInfo(perkAsset, _targetAbility.icon);
-        }
+        if (!isSelected)
+            SetHover();
 
-        // Show the floating tooltip
-        if (tooltip != null && perkAsset != null)
+        if (_manager != null && perkAsset != null && _targetAbility != null)
         {
-            tooltip.ShowTooltip(perkAsset.UpgradeName, perkAsset.Description, perkAsset.Level, perkAsset.MaxLevel);
+            _manager.DisplayPerkDetails(perkAsset, _targetAbility);
         }
     }
 
+    // 🟥 EXIT
     public void OnPointerExit(PointerEventData eventData)
     {
-        if (_uiDisplay != null) _uiDisplay.ClearInfo();
+        if (!isSelected)
+            SetNormal();
 
-        // Hide floating tooltip
-        if (tooltip != null) tooltip.HideTooltip();
+        if (_manager != null)
+        {
+            _manager.RestoreSelectedPerk();
+        }
     }
 
-    public void OnClickUpgrade()
+    // 🔥 VISUAL STATES
+    public void SetSelected(bool value)
     {
-        if (perkAsset == null || _targetAbility == null) return;
+        isSelected = value;
 
-        if (perkAsset.Level < perkAsset.MaxLevel)
-        {
-            perkAsset.Apply(_targetAbility);
-            perkAsset.Level++;
-            perkAsset.SaveLevel();
+        if (isSelected)
+            SetSelectedColor();
+        else
+            SetNormal();
+    }
 
-            _uiDisplay.UpdatePerkInfo(perkAsset, _targetAbility.icon);
+    private void SetNormal()
+    {
+        if (background != null)
+            background.color = normalColor;
+    }
 
-            // Refresh tooltip text after upgrade
-            if (tooltip != null)
-                tooltip.ShowTooltip(perkAsset.UpgradeName, perkAsset.Description, perkAsset.Level, perkAsset.MaxLevel);
-        }
+    private void SetHover()
+    {
+        if (background != null)
+            background.color = hoverColor;
+    }
+
+    private void SetSelectedColor()
+    {
+        if (background != null)
+            background.color = selectedColor;
     }
 }

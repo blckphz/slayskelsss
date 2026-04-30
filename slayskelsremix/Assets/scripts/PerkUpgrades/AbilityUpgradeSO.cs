@@ -2,43 +2,47 @@ using UnityEngine;
 
 public abstract class AbilityUpgradeSO : ScriptableObject, IAbilityUpgrade
 {
-    [Header("UI Display")]
-    public string upgradeName;
-    [TextArea] public string description;
-
+    [Header("Level 0 (Unlock) Display")]
     public string perkName;
     [TextArea] public string perkdescription;
+
+    [Header("Level 1+ (Upgrade) Display")]
+    public string upgradeName;
+    [TextArea] public string description;
 
     [Header("Leveling Settings")]
     public int currentLevel = 0;
     public int maxLevel = 5;
 
-    public bool givesNewAbility = false; // Set to true if this upgrade grants a new ability
-    public Ability newAbility; // The new ability granted by this upgrade (if applicable)
+    [Header("Ability Modification")]
+    public bool givesNewAbility = false;
+    public Ability newAbility;
 
-
-
-    public string UpgradeName => upgradeName;
-    public string Description => description;
+    // Interface Implementation with Auto-Switching logic
+    public string UpgradeName => currentLevel <= 0 ? perkName : upgradeName;
+    public string Description => currentLevel <= 0 ? perkdescription : description;
     public int Level { get => currentLevel; set => currentLevel = value; }
     public int MaxLevel => maxLevel;
 
     public abstract void Apply(Ability ability);
 
-    // Saves the level to disk using the Asset's name as a unique key
+    public (string displayName, string displayDesc) GetDisplayStrings()
+    {
+        if (currentLevel <= 0) return (perkName, perkdescription);
+        return (upgradeName, description);
+    }
+
     public void SaveLevel()
     {
         PlayerPrefs.SetInt(this.name + "_SavedLevel", currentLevel);
         PlayerPrefs.Save();
     }
 
-    // Loads the level from disk
     public void LoadLevel()
     {
         currentLevel = PlayerPrefs.GetInt(this.name + "_SavedLevel", 0);
     }
 
-    // Call this to completely wipe progress for this specific perk
     public void ResetLevel()
     {
         currentLevel = 0;

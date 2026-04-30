@@ -46,4 +46,12 @@ public class ChainLightning : offensiveRanged
         // Return true to start cooldown immediately in PlayerAttack
         return true;
     }
+
+    public string GetStatsFormat()
+    {
+        return $"Max Bounces: {maxBounces}\n" +
+               $"Bounce Range: {bounceRadius}m\n" +
+               $"Stun Duration: {stunDuration}s";
+    }
+
 }

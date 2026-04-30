@@ -10,6 +10,9 @@ public class offensivemelee : offensiveability
         NPC
     }
 
+    [Tooltip("Check this if the ability handles its own sound timing (like melee combos).")]
+    public bool customAudioLogic = false;
+
     [Header("Melee Stats")]
     public int maxSwings = 3;
     public float swingFreq = 0.2f;
@@ -117,8 +120,15 @@ public class offensivemelee : offensiveability
             behav.Setup(damage, bonus, index, owner);
         }
 
-     
+
 
         CameraShaker.Shake(0.4f, 0.12f);
     }
+
+    public string GetStatsFormat()
+    {
+        return $"Combo Swings: {maxSwings}\n" +
+               $"Swing Speed: {swingFreq}s";
+    }
+
 }

@@ -226,7 +226,6 @@ public class InventoryManager : MonoBehaviour
             }
         }
 
-        Debug.Log("<color=cyan>[Inventory]</color> Hotbar data populated from file.");
     }
 
     public void RefreshAll()
