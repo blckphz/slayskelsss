@@ -1,40 +1,109 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using TMPro;
 using System.Collections;
 
 public class SceneLoader : MonoBehaviour
 {
+    public static SceneLoader Instance;
+
     [Header("UI Elements")]
     public GameObject loadingScreen;
     public Slider progressBar;
+    public TextMeshProUGUI loadingText;
+
+    [Header("Settings")]
+    public float minimumLoadTime = 2f;
+
+    private bool customTextActive = false;
+
+    private void Awake()
+    {
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        if (loadingScreen != null)
+            loadingScreen.SetActive(false);
+    }
 
     public void LoadLevel(int sceneIndex)
     {
-        // Start a Coroutine so the game keeps running while loading
+        customTextActive = false;
         StartCoroutine(LoadAsynchronously(sceneIndex));
+    }
+
+    public void SetLoadingText(string message)
+    {
+        // lock custom messages so SceneLoader won't overwrite them
+        customTextActive = true;
+
+        Debug.Log($"[Loading] {message}");
+
+        if (loadingText != null)
+            loadingText.text = message;
     }
 
     IEnumerator LoadAsynchronously(int sceneIndex)
     {
-        // 1. Show the loading UI
-        loadingScreen.SetActive(true);
+        if (loadingScreen != null)
+            loadingScreen.SetActive(true);
 
-        // 2. Start the background operation
+        customTextActive = false;
+
+        loadingText.text = "Loading scene...";
+
         AsyncOperation operation = SceneManager.LoadSceneAsync(sceneIndex);
+        operation.allowSceneActivation = false;
 
-        // 3. Loop until the scene is finished loading
-        while (!operation.isDone)
+        float timer = 0f;
+
+        while (operation.progress < 0.9f || timer < minimumLoadTime)
         {
-            // Unity loads scenes in two steps. 0.0 to 0.9 is loading. 
-            // 0.9 to 1.0 is activation. We clamp it for a smooth 0-1 value.
+            timer += Time.deltaTime;
+
             float progress = Mathf.Clamp01(operation.progress / 0.9f);
 
-            // 4. Update the slider value
-            progressBar.value = progress;
+            if (progressBar != null)
+                progressBar.value = progress;
 
-            // Wait until the next frame to update again
+            // Only use default messages if no custom save/load text is active
+            if (!customTextActive)
+            {
+                if (progress < 0.3f)
+                    loadingText.text = "Preparing world...";
+                else if (progress < 0.6f)
+                    loadingText.text = "Loading assets...";
+                else if (progress < 0.9f)
+                    loadingText.text = "Generating world...";
+                else
+                    loadingText.text = "Finalizing...";
+            }
+
             yield return null;
         }
+
+        if (progressBar != null)
+            progressBar.value = 1f;
+
+        if (!customTextActive)
+            loadingText.text = "Entering world...";
+
+        yield return new WaitForSeconds(0.5f);
+
+        operation.allowSceneActivation = true;
+
+        yield return null;
+
+        if (loadingScreen != null)
+            loadingScreen.SetActive(false);
     }
 }

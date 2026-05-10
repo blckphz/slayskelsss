@@ -601,7 +601,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2b50e23f2a496a64a81f39580844fa27, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerAttack
-  currentChar: {fileID: 0}
   aimScript: {fileID: 0}
   fireActions: []
 --- !u!61 &7810479635399899880
@@ -835,9 +834,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c9f5ee89a2f980c499c736d799a20a1b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  currentChar: {fileID: 11400000, guid: f2abf8e868eba4a4d8273f0a3bd6d491, type: 2}
   aimScript: {fileID: 0}
   spriteRenderer: {fileID: 571495365541788744}
+  frontSprite: {fileID: 21300000, guid: 68fb8d7b457e8594d9ae103d5d6e629f, type: 3}
+  backSprite: {fileID: 21300000, guid: 4bf5f9d6b046c2b4dada62bbde5707e6, type: 3}
 --- !u!114 &3277555629805189734
 MonoBehaviour:
   m_ObjectHideFlags: 0

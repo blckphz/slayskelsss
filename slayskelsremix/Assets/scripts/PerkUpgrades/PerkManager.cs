@@ -40,7 +40,6 @@ public class PerkManager : MonoBehaviour
 
     private void OnEnable()
     {
-        Debug.Log("[PerkManager] Input Enabled");
         toggleAction.action.Enable();
     }
 
@@ -54,7 +53,6 @@ public class PerkManager : MonoBehaviour
     {
         if (toggleAction.action.WasPressedThisFrame())
         {
-            Debug.Log("[PerkManager] Toggle pressed");
             ToggleUpgradeUI();
         }
     }
@@ -65,13 +63,11 @@ public class PerkManager : MonoBehaviour
 
         bool isActive = upgradePanel.activeSelf;
 
-        Debug.Log($"[PerkManager] Toggle UI → {(isActive ? "Closing" : "Opening")}");
 
         upgradePanel.SetActive(!isActive);
 
         if (isActive)
         {
-            Debug.Log("[PerkManager] Clearing UI + Selection");
 
             ClearPerkDetails();
 
@@ -83,7 +79,6 @@ public class PerkManager : MonoBehaviour
 
     private void InitializeAllSlots()
     {
-        Debug.Log("[PerkManager] Initializing slots");
 
         foreach (PerkSlot slot in perkSlots)
         {
@@ -102,7 +97,6 @@ public class PerkManager : MonoBehaviour
         _selectedPerk = perkAsset;
         _selectedAbility = ability;
 
-        Debug.Log($"[PerkManager] Selected {ability.abilityName}");
 
         DisplayPerkDetails(perkAsset, ability);
     }
@@ -121,7 +115,6 @@ public class PerkManager : MonoBehaviour
             _selectedPerk.Level++;
             _selectedPerk.SaveLevel();
 
-            Debug.Log($"[PerkManager] Upgraded {_selectedAbility.abilityName} → Level {_selectedPerk.Level}");
 
             DisplayPerkDetails(_selectedPerk, _selectedAbility);
         }
@@ -182,14 +175,12 @@ public class PerkManager : MonoBehaviour
         }
         else
         {
-            Debug.Log("[PerkManager] No selection → clearing");
 
             ClearPerkDetails();
         }
     }
     public void NotifySelection(PerkButton selectedButton)
     {
-        Debug.Log("[PerkManager] Updating button highlights");
 
         foreach (PerkSlot slot in perkSlots)
         {

@@ -12,6 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e73804289ff8b3c4ab31f1633c3f6d49, type: 3}
   m_Name: ChainLightningBounceUpgrade
   m_EditorClassIdentifier: Assembly-CSharp::ChainlightningPerk
+  perkName: Chain Lightning
+  perkdescription: A fast projectile that bounces between enemies and paralyzes them.
   upgradeName: Thunderbolt
   description: Increases bounce by 1 and radius by 1.5
   currentLevel: 1

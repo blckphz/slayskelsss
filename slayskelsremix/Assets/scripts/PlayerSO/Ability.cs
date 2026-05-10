@@ -3,6 +3,7 @@ using UnityEngine;
 public abstract class Ability : ScriptableObject
 {
     public string abilityName;
+    public string description;
     public Sprite icon;
     public AudioClip launchsound;
     public float fireRate = 0.2f;

@@ -13,12 +13,10 @@ public class BuildingSaveManager : MonoBehaviour
         public string uniqueID;
         public Vector3 position;
 
-        // Campfire data
         public float fuelAmount;
         public bool isBurning;
         public int fuelItemID;
 
-        // Turret data
         public int currentAmmo;
     }
 
@@ -36,10 +34,16 @@ public class BuildingSaveManager : MonoBehaviour
 
     void Awake()
     {
-        if (Instance == null) Instance = this;
-        else { Destroy(gameObject); return; }
+        if (Instance == null)
+            Instance = this;
+        else
+        {
+            Destroy(gameObject);
+            return;
+        }
 
         savePath = Application.persistentDataPath + "/buildings.json";
+
         LoadBuildings();
         AutoRegisterSceneBuildings();
     }
@@ -56,12 +60,13 @@ public class BuildingSaveManager : MonoBehaviour
             placedBuildings.Remove(obj);
     }
 
-    // 🔥 FIXED: Added this back for your other scripts
     public void SaveAfterChange() => SaveNow();
 
     public void SaveNow()
     {
         SaveData data = new SaveData();
+
+        SceneLoader.Instance?.SetLoadingText("Saving buildings...");
 
         foreach (GameObject obj in placedBuildings)
         {
@@ -76,64 +81,119 @@ public class BuildingSaveManager : MonoBehaviour
                 position = obj.transform.position
             };
 
-            // Save Turret Data
             if (obj.TryGetComponent(out buildableTurret turret))
             {
+                SceneLoader.Instance?.SetLoadingText("Saving turret...");
+
                 b.currentAmmo = turret.currentAmmo;
+
                 if (obj.TryGetComponent(out turretsave tSave))
                     b.uniqueID = tSave.turretID;
             }
 
-            // Save Campfire Data
             if (obj.TryGetComponent(out CampfireBehav campfire))
             {
+                SceneLoader.Instance?.SetLoadingText("Saving campfire...");
+
                 b.fuelAmount = campfire.fuelAmount;
                 b.isBurning = campfire.isBurning;
-                b.fuelItemID = campfire.fuelItem != null ? campfire.fuelItem.itemID : -1;
+                b.fuelItemID = campfire.fuelItem != null
+                    ? campfire.fuelItem.itemID
+                    : -1;
             }
 
             data.buildings.Add(b);
         }
 
         File.WriteAllText(savePath, JsonUtility.ToJson(data, true));
+
+        SceneLoader.Instance?.SetLoadingText(
+            "Buildings saved successfully."
+        );
     }
 
     public void LoadBuildings()
     {
-        if (!File.Exists(savePath)) return;
+        SceneLoader.Instance?.SetLoadingText(
+            "Loading buildings..."
+        );
+
+        if (!File.Exists(savePath))
+        {
+            SceneLoader.Instance?.SetLoadingText(
+                "No building save found."
+            );
+            return;
+        }
 
         string json = File.ReadAllText(savePath);
         SaveData data = JsonUtility.FromJson<SaveData>(json);
 
         foreach (var b in data.buildings)
         {
+            SceneLoader.Instance?.SetLoadingText(
+                $"Generating item {b.itemID}..."
+            );
+
             ItemData item = database.GetItemByID(b.itemID);
-            if (item == null || item is not buildSO buildItem) continue;
 
-            GameObject obj = Instantiate(buildItem.placeablePrefab, b.position, Quaternion.identity);
+            if (item == null || item is not buildSO buildItem)
+                continue;
 
-            // Restore Turret
+            GameObject obj = Instantiate(
+                buildItem.placeablePrefab,
+                b.position,
+                Quaternion.identity
+            );
+
             if (obj.TryGetComponent(out buildableTurret turret))
             {
+                SceneLoader.Instance?.SetLoadingText(
+                    $"Restoring turret ammo ({b.currentAmmo})..."
+                );
+
                 turret.currentAmmo = b.currentAmmo;
-                if (obj.TryGetComponent(out turretsave tSave)) tSave.turretID = b.uniqueID;
+
+                if (obj.TryGetComponent(out turretsave tSave))
+                    tSave.turretID = b.uniqueID;
+
                 if (obj.TryGetComponent(out TurretBehaviour brain))
-                    brain.SetFiringPermission(turret.currentAmmo > 0);
+                    brain.SetFiringPermission(
+                        turret.currentAmmo > 0
+                    );
             }
 
-            // Restore Campfire
             if (obj.TryGetComponent(out CampfireBehav campfire))
             {
+                SceneLoader.Instance?.SetLoadingText(
+                    $"Loading campfire fuel ({b.fuelAmount})..."
+                );
+
                 campfire.fuelAmount = b.fuelAmount;
                 campfire.isBurning = b.isBurning;
-                if (b.fuelItemID != -1) campfire.fuelItem = database.GetItemByID(b.fuelItemID);
-                campfire.SendMessage("UpdateVisuals", SendMessageOptions.DontRequireReceiver);
+
+                if (b.fuelItemID != -1)
+                    campfire.fuelItem =
+                        database.GetItemByID(b.fuelItemID);
+
+                campfire.SendMessage(
+                    "UpdateVisuals",
+                    SendMessageOptions.DontRequireReceiver
+                );
             }
 
-            BuildIdentity id = obj.GetComponent<BuildIdentity>() ?? obj.AddComponent<BuildIdentity>();
+            BuildIdentity id =
+                obj.GetComponent<BuildIdentity>()
+                ?? obj.AddComponent<BuildIdentity>();
+
             id.item = buildItem;
+
             RegisterBuilding(obj);
         }
+
+        SceneLoader.Instance?.SetLoadingText(
+            "Buildings loaded successfully."
+        );
     }
 
     void AutoRegisterSceneBuildings()

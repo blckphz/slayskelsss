@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
 
@@ -14,17 +13,19 @@ public class EnemySaveSystem : MonoBehaviour
         path = Application.persistentDataPath + "/enemies.json";
     }
 
-    // =========================
-    // SAVE
-    // =========================
     public void SaveEnemies()
     {
         enemyHealth[] enemies = FindObjectsOfType<enemyHealth>();
-
         EnemySaveList saveList = new EnemySaveList();
+
+        SceneLoader.Instance?.SetLoadingText("Saving enemies...");
 
         foreach (var e in enemies)
         {
+            SceneLoader.Instance?.SetLoadingText(
+                $"Saving enemy {e.enemyID}..."
+            );
+
             EnemySaveData data = new EnemySaveData
             {
                 id = e.enemyID,
@@ -39,39 +40,59 @@ public class EnemySaveSystem : MonoBehaviour
         string json = JsonUtility.ToJson(saveList, true);
         File.WriteAllText(path, json);
 
-        Debug.Log("Enemies saved to: " + path);
+        SceneLoader.Instance?.SetLoadingText(
+            "Enemies saved successfully."
+        );
     }
 
-    // =========================
-    // LOAD
-    // =========================
     public void LoadEnemies()
     {
+        SceneLoader.Instance?.SetLoadingText(
+            "Loading enemies..."
+        );
+
         if (!File.Exists(path))
         {
-            Debug.LogWarning("No save file found.");
+            SceneLoader.Instance?.SetLoadingText(
+                "No enemy save found."
+            );
             return;
         }
 
         string json = File.ReadAllText(path);
-        EnemySaveList saveList = JsonUtility.FromJson<EnemySaveList>(json);
+        EnemySaveList saveList =
+            JsonUtility.FromJson<EnemySaveList>(json);
 
-        enemyHealth[] enemies = FindObjectsOfType<enemyHealth>();
+        enemyHealth[] enemies =
+            FindObjectsOfType<enemyHealth>();
 
         foreach (var savedEnemy in saveList.enemies)
         {
+            SceneLoader.Instance?.SetLoadingText(
+                $"Restoring enemy {savedEnemy.id}..."
+            );
+
             foreach (var sceneEnemy in enemies)
             {
                 if (sceneEnemy.enemyID == savedEnemy.id)
                 {
-                    sceneEnemy.transform.position = new Vector2(savedEnemy.x, savedEnemy.y);
-                    sceneEnemy.currentHealth = savedEnemy.health;
+                    sceneEnemy.transform.position =
+                        new Vector2(
+                            savedEnemy.x,
+                            savedEnemy.y
+                        );
+
+                    sceneEnemy.currentHealth =
+                        savedEnemy.health;
+
                     sceneEnemy.UpdateHealthUI();
                     break;
                 }
             }
         }
 
-        Debug.Log("Enemies loaded.");
+        SceneLoader.Instance?.SetLoadingText(
+            "Enemies loaded successfully."
+        );
     }
 }

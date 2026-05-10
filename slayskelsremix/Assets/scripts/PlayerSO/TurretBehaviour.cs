@@ -5,6 +5,13 @@ public partial class TurretBehaviour : MonoBehaviour
 {
     public static List<TurretBehaviour> ActiveTurrets = new List<TurretBehaviour>();
 
+    // This ensures the list is wiped clean every time you press Play in the Editor
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+    static void ResetStaticData()
+    {
+        ActiveTurrets.Clear();
+    }
+
     [Header("Stats")]
     [SerializeField] private float health;
     private float turretDamage;
@@ -38,8 +45,12 @@ public partial class TurretBehaviour : MonoBehaviour
         shootTimer = 0f;
         gameObject.SetActive(true);
 
+        // Manage static list registration
         if (!ActiveTurrets.Contains(this))
+        {
             ActiveTurrets.Add(this);
+            Debug.Log($"<color=cyan>[Turret]</color> Added. Count: {ActiveTurrets.Count}");
+        }
 
         CancelInvoke(nameof(Deactivate));
         if (lifetime > 0f) Invoke(nameof(Deactivate), lifetime);
@@ -62,18 +73,15 @@ public partial class TurretBehaviour : MonoBehaviour
 
         if (shootTimer >= shootFrequency)
         {
-            // FIX: Find target BEFORE consuming ammo
             enemyHealth target = FindNearestEnemy();
 
             if (target != null)
             {
-                // Only drain ammo if we are actually firing
                 if (ammoController != null)
                 {
                     if (!ammoController.ConsumeAmmo()) return;
                 }
 
-                Debug.Log($"<color=green>[Turret Logic]</color> {gameObject.name} shooting {target.name}");
                 shootTimer = 0f;
                 FaceTarget(target.transform);
                 Shoot(target.transform);
@@ -124,30 +132,27 @@ public partial class TurretBehaviour : MonoBehaviour
         if (proj.TryGetComponent<Projectile>(out Projectile p)) p.SetDamage(turretDamage, pierceAmount);
     }
 
-    public void TakeDamage(float amount)
-    {
-        // If this turret has an objectHealth component, damage that
-        if (objHealth != null)
-        {
-            objHealth.TakeDamage(amount);
-        }
-        else
-        {
-            // Fallback if objectHealth is missing
-            health -= amount;
-            if (health <= 0) Deactivate();
-        }
-    }
-
     public void Deactivate()
     {
         isActive = false;
+
+        // Remove from list immediately
+        if (ActiveTurrets.Contains(this))
+        {
+            ActiveTurrets.Remove(this);
+            Debug.Log($"<color=yellow>[Turret]</color> Removed. Count: {ActiveTurrets.Count}");
+        }
+
         gameObject.SetActive(false);
     }
 
     private void OnDisable()
     {
-        ActiveTurrets.Remove(this);
+        // Double safety for pooling
+        if (ActiveTurrets.Contains(this))
+        {
+            ActiveTurrets.Remove(this);
+        }
         CancelInvoke();
     }
 }
