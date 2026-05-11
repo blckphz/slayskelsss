@@ -6,10 +6,22 @@ public class berrySO : offensiveRanged
     [Header("Eat Settings")]
     public float healAmount = 20f;
 
-    // PRIMARY ACTION: The Throw
-    // This uses 'damage' and 'projectileSpeed' which are inherited from offensiveRanged
+    [Header("Planting Settings")]
+    public GameObject plantPrefab; // The crop prefab to spawn
+
+    // PRIMARY ACTION (Left Click or Interact)
     public override bool Execute(Transform caster, Transform targetAnchor, bool isHolding)
     {
+        // 1. Try to see if we are looking at a hole via the interaction system
+        GameObject currentTarget = PlayerHotbarManager.Instance.interaction.CurrentTarget;
+
+        if (currentTarget != null && currentTarget.TryGetComponent(out EarthHoleDigBehav hole))
+        {
+            // If it's a hole, try to plant
+            return hole.PlantSeed(plantPrefab);
+        }
+
+        // 2. Fallback: Throw the berry if not looking at a hole
         if (prefab == null) return false;
 
         Vector2 direction = (targetAnchor.position - caster.position).normalized;
@@ -17,29 +29,18 @@ public class berrySO : offensiveRanged
 
         if (berry != null && berry.TryGetComponent<berryBehaviour>(out var behavior))
         {
-            // Setup uses the variables inherited from offensiveRanged/offensiveability
             behavior.Setup(damage, projectileSpeed, direction);
         }
         return true;
     }
 
-    // SECONDARY ACTION: The Eat
-    // This is the "Secondary Effect" logic
+    // SECONDARY ACTION (Right Click)
     public override bool ExecuteSecondary(Transform caster)
     {
-        // Try to get playerHealth specifically first to trigger UI
         if (caster.TryGetComponent<playerHealth>(out playerHealth pHealth))
         {
             if (pHealth.currentHealth >= pHealth.maxHealth) return false;
-
-            pHealth.Heal(healAmount); // This calls the UI update!
-            return true;
-        }
-        // Fallback for enemies or other things with healthMaster
-        else if (caster.TryGetComponent<healthMaster>(out healthMaster genericHealth))
-        {
-            if (genericHealth.currentHealth >= genericHealth.maxHealth) return false;
-            genericHealth.currentHealth = Mathf.Min(genericHealth.currentHealth + healAmount, genericHealth.maxHealth);
+            pHealth.Heal(healAmount);
             return true;
         }
         return false;

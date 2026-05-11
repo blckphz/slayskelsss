@@ -14,6 +14,9 @@ public class PlayerHotbarManager : MonoBehaviour
     public Transform caster;
     public Transform targetAnchor;
 
+    [Header("References")]
+    public PlayerInteraction2D interaction;
+
     private int selectedIndex = 0;
     private float nextFireTime = 0f;
     private PlayerControls controls;
@@ -52,7 +55,8 @@ public class PlayerHotbarManager : MonoBehaviour
 
     private void Update()
     {
-        if (Keyboard.current.eKey.isPressed)
+        // ✅ FIX: no spam holding key
+        if (Keyboard.current.eKey.wasPressedThisFrame)
         {
             ExecuteActiveSlot();
         }
@@ -66,56 +70,66 @@ public class PlayerHotbarManager : MonoBehaviour
         }
     }
 
+    // ==========================================
+    // MAIN EXECUTION
+    // ==========================================
     public void ExecuteActiveSlot()
     {
-        if (selectedIndex >= hotbarSlots.Count || Time.time < nextFireTime) return;
+        if (selectedIndex >= hotbarSlots.Count || Time.time < nextFireTime)
+            return;
 
         var slot = hotbarSlots[selectedIndex];
 
-        // 1. Handle Raw Abilities (if slotted directly)
+        // ================= ABILITY =================
         if (slot.GetAbility() != null)
         {
             Ability ability = slot.GetAbility();
+
             if (ability.Execute(caster, targetAnchor, true))
             {
                 nextFireTime = Time.time + ability.fireRate;
             }
+
+            return;
         }
-        // 2. Handle Items
-        else if (slot.GetItem() != null)
+
+        // ================= ITEM =================
+        ItemData item = slot.GetItem();
+
+        if (item == null || !item.isUsable || slot.GetCount() <= 0)
+            return;
+
+        float cooldown = 0.5f;
+
+        if (item is UseableItem useable)
+            cooldown = useable.useRate;
+
+        GameObject target = interaction != null ? interaction.CurrentTarget : null;
+
+        Debug.Log($"[Hotbar] Using item: {item.name}, Target: {(target ? target.name : "NULL")}");
+
+        // ✅ FIX: check success BEFORE consuming
+        bool success = item.Use(caster, targetAnchor, target);
+
+        if (success)
         {
-            ItemData item = slot.GetItem();
-
-            if (!item.isUsable || slot.GetCount() <= 0) return;
-            // Build system check
-            // if (item is buildSO) return; 
-
-            // Logic to determine cooldown rate
-            float cooldown = 0.5f; // Default if not a UseableItem
-            if (item is UseableItem useable)
-            {
-                cooldown = useable.useRate;
-            }
-
-            // Execute the use logic
-            item.Use(caster, targetAnchor);
-
-            // Consume and set cooldown
             UseSelectedStack(item.consumeAmount);
             nextFireTime = Time.time + cooldown;
         }
+       
     }
 
     private void ExecuteSecondaryActiveSlot()
     {
-        if (selectedIndex >= hotbarSlots.Count || Time.time < nextFireTime) return;
+        if (selectedIndex >= hotbarSlots.Count || Time.time < nextFireTime)
+            return;
 
         var slot = hotbarSlots[selectedIndex];
         ItemData item = slot.GetItem();
 
-        if (item == null || !item.isUsable) return;
+        if (item == null || !item.isUsable)
+            return;
 
-        // Explicit check for UseableItem to access its unique properties
         if (item is UseableItem useable && useable.abilityToExecute != null)
         {
             if (useable.abilityToExecute.ExecuteSecondary(caster))
@@ -126,6 +140,9 @@ public class PlayerHotbarManager : MonoBehaviour
         }
     }
 
+    // ==========================================
+    // SLOT CONTROL
+    // ==========================================
     private void SelectSlot(int index)
     {
         if (index == selectedIndex) return;
@@ -150,44 +167,26 @@ public class PlayerHotbarManager : MonoBehaviour
 
     private void UpdateSelector()
     {
-        if (selector != null && selectedIndex >= 0 && selectedIndex < hotbarSlots.Count)
+        if (selector != null && selectedIndex < hotbarSlots.Count)
         {
             selector.position = hotbarSlots[selectedIndex].transform.position;
         }
     }
 
+    // ==========================================
+    // ITEM HELPERS
+    // ==========================================
     public ItemData GetSelectedItem()
     {
         if (selectedIndex >= 0 && selectedIndex < hotbarSlots.Count)
-        {
             return hotbarSlots[selectedIndex].GetItem();
-        }
+
         return null;
     }
 
     private void NotifySelectionChanged()
     {
         OnSelectedItemChanged?.Invoke(GetSelectedItem());
-    }
-
-    public void RefreshHotbar()
-    {
-        if (InventoryManager.Instance == null) return;
-
-        var data = InventoryManager.Instance.hotbarData;
-
-        for (int i = 0; i < hotbarSlots.Count; i++)
-        {
-            if (i < data.Count)
-            {
-                hotbarSlots[i].SetSlot(data[i].item, data[i].ability, data[i].count);
-            }
-            else
-            {
-                hotbarSlots[i].ClearSlot();
-            }
-        }
-        UpdateSelector();
     }
 
     public void UseSelectedStack(int amount)
@@ -198,12 +197,30 @@ public class PlayerHotbarManager : MonoBehaviour
         slot.UpdateCount(-amount);
 
         if (slot.GetCount() <= 0)
-        {
             slot.ClearSlot();
-        }
 
         SyncHotbarToData();
         InventoryManager.Instance?.SaveInventory();
+    }
+
+    // ==========================================
+    // HOTBAR SYNC
+    // ==========================================
+    public void RefreshHotbar()
+    {
+        if (InventoryManager.Instance == null) return;
+
+        var data = InventoryManager.Instance.hotbarData;
+
+        for (int i = 0; i < hotbarSlots.Count; i++)
+        {
+            if (i < data.Count)
+                hotbarSlots[i].SetSlot(data[i].item, data[i].ability, data[i].count);
+            else
+                hotbarSlots[i].ClearSlot();
+        }
+
+        UpdateSelector();
     }
 
     public void SyncHotbarToData()
@@ -214,7 +231,8 @@ public class PlayerHotbarManager : MonoBehaviour
 
         for (int i = 0; i < hotbarSlots.Count; i++)
         {
-            while (data.Count <= i) data.Add(new HotbarSlotData());
+            while (data.Count <= i)
+                data.Add(new HotbarSlotData());
 
             data[i].item = hotbarSlots[i].GetItem();
             data[i].ability = hotbarSlots[i].GetAbility();

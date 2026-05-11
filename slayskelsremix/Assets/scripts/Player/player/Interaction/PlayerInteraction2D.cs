@@ -16,44 +16,39 @@ public class PlayerInteraction2D : MonoBehaviour
     public InputActionReference interactAction;
 
     private IInteractable currentInteractable;
-
     private Collider2D[] results;
     private float scanTimer;
+
+    public GameObject CurrentTarget
+    {
+        get
+        {
+            if (currentInteractable == null) return null;
+            return ((MonoBehaviour)currentInteractable).gameObject;
+        }
+    }
 
     private void Awake()
     {
         results = new Collider2D[maxResults];
-
-        if (inventory == null)
-            Debug.LogError("[INIT] Inventory is NOT assigned!");
     }
 
     private void OnEnable()
     {
-        if (interactAction == null)
-        {
-            Debug.LogError("[INPUT] interactAction NOT assigned!");
-            return;
-        }
-
         interactAction.action.Enable();
         interactAction.action.performed += OnInteract;
     }
 
     private void OnDisable()
     {
-        if (interactAction != null)
-        {
-            interactAction.action.performed -= OnInteract;
-            interactAction.action.Disable();
-        }
+        interactAction.action.performed -= OnInteract;
+        interactAction.action.Disable();
     }
 
     private void Update()
     {
         DetectNearest();
 
-        // Optional debug fallback for keyboard
         if (Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
         {
             TryInteract();
@@ -63,10 +58,7 @@ public class PlayerInteraction2D : MonoBehaviour
     private void DetectNearest()
     {
         scanTimer += Time.deltaTime;
-
-        if (scanTimer < scanInterval)
-            return;
-
+        if (scanTimer < scanInterval) return;
         scanTimer = 0f;
 
         int count = Physics2D.OverlapCircleNonAlloc(
@@ -86,10 +78,7 @@ public class PlayerInteraction2D : MonoBehaviour
 
             if (hit.TryGetComponent(out IInteractable interactable))
             {
-                float dist = Vector2.Distance(
-                    transform.position,
-                    hit.transform.position
-                );
+                float dist = Vector2.Distance(transform.position, hit.transform.position);
 
                 if (dist < bestDist)
                 {
@@ -101,50 +90,23 @@ public class PlayerInteraction2D : MonoBehaviour
 
         if (nearest != currentInteractable)
         {
-            // Lose focus on previous interactable
             if (currentInteractable != null)
             {
                 currentInteractable.OnLoseFocus();
                 InteractionUI.Instance?.Hide();
-
-                // Auto-close Campfire
-                if (currentInteractable is CampfireBehav)
-                {
-                    CampfireUI.Instance?.CloseCampfire();
-                }
-
-                // Auto-close Chest
-                if (currentInteractable is ChestInventory chest)
-                {
-                    chest.CloseChest();
-                }
             }
 
-            // Set new interactable
             currentInteractable = nearest;
 
-            // Focus new interactable
             if (currentInteractable != null)
             {
                 currentInteractable.OnFocus();
-
-                string key = GetBoundKey();
-                string prompt = currentInteractable.GetPrompt();
-
-                InteractionUI.Instance?.Show($"[{key}] {prompt}");
+                InteractionUI.Instance?.Show($"[E] {currentInteractable.GetPrompt()}");
             }
         }
     }
 
-    private string GetBoundKey()
-    {
-        if (interactAction == null || interactAction.action == null)
-            return "E";
-
-        return interactAction.action.bindings[0].ToDisplayString();
-    }
-
-    private void OnInteract(InputAction.CallbackContext context)
+    private void OnInteract(InputAction.CallbackContext ctx)
     {
         TryInteract();
     }
@@ -155,6 +117,17 @@ public class PlayerInteraction2D : MonoBehaviour
         if (inventory == null) return;
 
         currentInteractable.Interact(inventory);
+    }
+
+    // 🔥 FORCE UI REFRESH AFTER WORLD CHANGE
+    public void ForceRefreshUI()
+    {
+        if (currentInteractable == null) return;
+
+        currentInteractable.OnLoseFocus();
+        currentInteractable.OnFocus();
+
+        InteractionUI.Instance?.Show($"[E] {currentInteractable.GetPrompt()}");
     }
 
     private void OnDrawGizmosSelected()

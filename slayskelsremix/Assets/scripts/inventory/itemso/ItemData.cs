@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 
-
 public class ItemData : ScriptableObject
 {
     public int itemID;
@@ -12,13 +11,12 @@ public class ItemData : ScriptableObject
     public int maxStackSize = 99;
 
     [Header("Usage")]
-    public bool isUsable;
+    public bool isUsable = true;
+    public int consumeAmount = 1;
 
-    [Tooltip("How many items are consumed per use")]
-    public int consumeAmount;
-
-    public virtual void Use(Transform caster, Transform targetAnchor)
+    // 🔥 MUST return success/failure
+    public virtual bool Use(Transform caster, Transform targetAnchor, GameObject target)
     {
-        Debug.Log($"Used item: {itemName}");
+        return true;
     }
 }
