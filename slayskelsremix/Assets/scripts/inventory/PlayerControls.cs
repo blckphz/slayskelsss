@@ -154,6 +154,15 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""TriggerFishingNote"",
+                    ""type"": ""Button"",
+                    ""id"": ""fef7fe9b-547a-457f-9d4e-4f9f0e255302"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -231,6 +240,17 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""LayerTogglePressed"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""3c6c9483-5920-40c2-83de-8c70146d91f5"",
+                    ""path"": ""<Keyboard>/space"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""TriggerFishingNote"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -444,6 +464,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         m_Gameplay_UseHotkey = m_Gameplay.FindAction("UseHotkey", throwIfNotFound: true);
         m_Gameplay_BuildMode = m_Gameplay.FindAction("BuildMode", throwIfNotFound: true);
         m_Gameplay_LayerTogglePressed = m_Gameplay.FindAction("LayerTogglePressed", throwIfNotFound: true);
+        m_Gameplay_TriggerFishingNote = m_Gameplay.FindAction("TriggerFishingNote", throwIfNotFound: true);
         // Player
         m_Player = asset.FindActionMap("Player", throwIfNotFound: true);
         m_Player_Hotbar = m_Player.FindAction("Hotbar", throwIfNotFound: true);
@@ -539,6 +560,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
     private readonly InputAction m_Gameplay_UseHotkey;
     private readonly InputAction m_Gameplay_BuildMode;
     private readonly InputAction m_Gameplay_LayerTogglePressed;
+    private readonly InputAction m_Gameplay_TriggerFishingNote;
     /// <summary>
     /// Provides access to input actions defined in input action map "Gameplay".
     /// </summary>
@@ -578,6 +600,10 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Gameplay/LayerTogglePressed".
         /// </summary>
         public InputAction @LayerTogglePressed => m_Wrapper.m_Gameplay_LayerTogglePressed;
+        /// <summary>
+        /// Provides access to the underlying input action "Gameplay/TriggerFishingNote".
+        /// </summary>
+        public InputAction @TriggerFishingNote => m_Wrapper.m_Gameplay_TriggerFishingNote;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -625,6 +651,9 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @LayerTogglePressed.started += instance.OnLayerTogglePressed;
             @LayerTogglePressed.performed += instance.OnLayerTogglePressed;
             @LayerTogglePressed.canceled += instance.OnLayerTogglePressed;
+            @TriggerFishingNote.started += instance.OnTriggerFishingNote;
+            @TriggerFishingNote.performed += instance.OnTriggerFishingNote;
+            @TriggerFishingNote.canceled += instance.OnTriggerFishingNote;
         }
 
         /// <summary>
@@ -657,6 +686,9 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @LayerTogglePressed.started -= instance.OnLayerTogglePressed;
             @LayerTogglePressed.performed -= instance.OnLayerTogglePressed;
             @LayerTogglePressed.canceled -= instance.OnLayerTogglePressed;
+            @TriggerFishingNote.started -= instance.OnTriggerFishingNote;
+            @TriggerFishingNote.performed -= instance.OnTriggerFishingNote;
+            @TriggerFishingNote.canceled -= instance.OnTriggerFishingNote;
         }
 
         /// <summary>
@@ -886,6 +918,13 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnLayerTogglePressed(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "TriggerFishingNote" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnTriggerFishingNote(InputAction.CallbackContext context);
     }
     /// <summary>
     /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "Player" which allows adding and removing callbacks.

@@ -53,6 +53,7 @@ public class PlayerInteraction2D : MonoBehaviour
     {
         DetectNearest();
 
+        // Optional debug fallback for keyboard
         if (Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
         {
             TryInteract();
@@ -62,6 +63,7 @@ public class PlayerInteraction2D : MonoBehaviour
     private void DetectNearest()
     {
         scanTimer += Time.deltaTime;
+
         if (scanTimer < scanInterval)
             return;
 
@@ -84,7 +86,10 @@ public class PlayerInteraction2D : MonoBehaviour
 
             if (hit.TryGetComponent(out IInteractable interactable))
             {
-                float dist = Vector2.Distance(transform.position, hit.transform.position);
+                float dist = Vector2.Distance(
+                    transform.position,
+                    hit.transform.position
+                );
 
                 if (dist < bestDist)
                 {
@@ -96,33 +101,37 @@ public class PlayerInteraction2D : MonoBehaviour
 
         if (nearest != currentInteractable)
         {
+            // Lose focus on previous interactable
             if (currentInteractable != null)
             {
                 currentInteractable.OnLoseFocus();
                 InteractionUI.Instance?.Hide();
 
-                // 🔹 AUTO-CLOSE CAMPFIRE
+                // Auto-close Campfire
                 if (currentInteractable is CampfireBehav)
                 {
                     CampfireUI.Instance?.CloseCampfire();
                 }
 
-                // 🔹 AUTO-CLOSE CHEST
-                // We check if it's a ChestInventory and close it if the player walks away
+                // Auto-close Chest
                 if (currentInteractable is ChestInventory chest)
                 {
                     chest.CloseChest();
                 }
             }
 
+            // Set new interactable
             currentInteractable = nearest;
 
+            // Focus new interactable
             if (currentInteractable != null)
             {
                 currentInteractable.OnFocus();
 
                 string key = GetBoundKey();
-                InteractionUI.Instance?.Show($"[{key}]");
+                string prompt = currentInteractable.GetPrompt();
+
+                InteractionUI.Instance?.Show($"[{key}] {prompt}");
             }
         }
     }

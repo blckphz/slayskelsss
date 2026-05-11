@@ -1,22 +1,19 @@
 ﻿using UnityEngine;
-using UnityEngine.InputSystem;
 using System.Collections;
 
-public class fishingManager : MonoBehaviour
+public class fishingManager : MonoBehaviour, IInteractable
 {
+    [Header("References")]
     public FishingUI fishingUI;
     public GameObject fishingGameObject;
     public GameObject pressEPrompt;
 
-    public InputActionReference interactAction;
+    [Header("Settings")]
+    public float fadeDuration = 0.25f;
 
     private CanvasGroup canvasGroup;
-
-    private bool playerInRange;
     private bool isFishing;
     private bool isEnding;
-
-    public float fadeDuration = 0.25f;
 
     public enum EndReason
     {
@@ -27,55 +24,50 @@ public class fishingManager : MonoBehaviour
 
     private void Awake()
     {
-        // Cache the CanvasGroup for fading
         canvasGroup = fishingGameObject.GetComponent<CanvasGroup>();
 
-        // Ensure everything starts hidden
+        if (canvasGroup == null)
+        {
+            Debug.LogError("Fishing GameObject needs a CanvasGroup!");
+        }
+
         fishingGameObject.SetActive(false);
         pressEPrompt.SetActive(false);
     }
 
-    private void OnEnable()
+    // ====================================
+    // IInteractable
+    // ====================================
+
+    public void Interact(InventoryManager playerInventory)
     {
-        if (interactAction != null)
+        if (!isFishing && !isEnding)
         {
-            interactAction.action.Enable();
-            interactAction.action.performed += OnInteract;
-        }
-    }
-
-    private void OnDisable()
-    {
-        if (interactAction != null)
-            interactAction.action.performed -= OnInteract;
-    }
-
-    private void OnInteract(InputAction.CallbackContext context)
-    {
-        // Only start if we are in range, not already fishing, and not currently in the "Fade Out" process
-        if (playerInRange && !isFishing && !isEnding)
             StartFishing();
-    }
-
-    private void OnTriggerEnter2D(Collider2D other)
-    {
-        if (other.CompareTag("Player"))
-        {
-            playerInRange = true;
-            // Only show prompt if the game isn't currently active or ending
-            if (!isFishing && !isEnding)
-                pressEPrompt.SetActive(true);
         }
     }
 
-    private void OnTriggerExit2D(Collider2D other)
+    public string GetPrompt()
     {
-        if (other.CompareTag("Player"))
+        return "Fish";
+    }
+
+    public void OnFocus()
+    {
+        if (!isFishing && !isEnding)
         {
-            playerInRange = false;
-            pressEPrompt.SetActive(false);
+            pressEPrompt.SetActive(true);
         }
     }
+
+    public void OnLoseFocus()
+    {
+        pressEPrompt.SetActive(false);
+    }
+
+    // ====================================
+    // Fishing Logic
+    // ====================================
 
     private void StartFishing()
     {
@@ -85,34 +77,36 @@ public class fishingManager : MonoBehaviour
         pressEPrompt.SetActive(false);
         fishingGameObject.SetActive(true);
 
-        // Reset UI Alpha before Fade In
         canvasGroup.alpha = 0f;
-        StopAllCoroutines(); // Stop any lingering FadeOuts
+
+        StopAllCoroutines();
         StartCoroutine(FadeIn());
 
-        // 1. Reset and Start the Spawner
+        // Reset NoteSpawner
         var spawner = fishingGameObject.GetComponentInChildren<NoteSpawner>();
         if (spawner != null)
         {
             spawner.ResetSpawner();
         }
 
-        // 2. Reset and Start the HitZone (Listening for Space/Input)
+        // Start HitZone
         var hitZone = fishingGameObject.GetComponentInChildren<HitZone>();
         if (hitZone != null)
         {
             hitZone.StartGame();
         }
 
-        // 3. Start the actual sequence (Phase 1: Audio, then Phase 2: Spawn)
-        fishingUI.StartGame();
+        // Start Fishing UI
+        if (fishingUI != null)
+        {
+            fishingUI.StartGame();
+        }
 
-        Debug.Log("🎣 START FISHING SEQUENCE");
+        Debug.Log("🎣 START FISHING");
     }
 
     public void EndFishing(bool success, EndReason reason = EndReason.Unknown)
     {
-        // Prevent EndFishing from being called multiple times per session
         if (isEnding) return;
 
         isEnding = true;
@@ -120,10 +114,13 @@ public class fishingManager : MonoBehaviour
 
         Debug.Log($"🎣 END | Success: {success} | Reason: {reason}");
 
-        // Stop the UI sequence (stops any active coroutines in FishingUI)
-        fishingUI.StopGame();
+        // Stop Fishing UI
+        if (fishingUI != null)
+        {
+            fishingUI.StopGame();
+        }
 
-        // Deactivate the HitZone immediately so no more hits register
+        // Disable HitZone
         var hitZone = fishingGameObject.GetComponentInChildren<HitZone>();
         if (hitZone != null)
         {
@@ -131,30 +128,38 @@ public class fishingManager : MonoBehaviour
             hitZone.activeNotes.Clear();
         }
 
-        // Clean up the spawner (kills any notes flying in the air)
+        // Reset spawner
         var spawner = fishingGameObject.GetComponentInChildren<NoteSpawner>();
         if (spawner != null)
+        {
             spawner.ResetSpawner();
+        }
 
-        // Fade out the UI
         StartCoroutine(FadeOut());
     }
+
+    // ====================================
+    // Fade Effects
+    // ====================================
 
     private IEnumerator FadeIn()
     {
         float t = 0f;
+
         while (t < fadeDuration)
         {
             t += Time.deltaTime;
             canvasGroup.alpha = Mathf.Lerp(0f, 1f, t / fadeDuration);
             yield return null;
         }
+
         canvasGroup.alpha = 1f;
     }
 
     private IEnumerator FadeOut()
     {
         float t = 0f;
+
         while (t < fadeDuration)
         {
             t += Time.deltaTime;
@@ -165,11 +170,9 @@ public class fishingManager : MonoBehaviour
         canvasGroup.alpha = 0f;
         fishingGameObject.SetActive(false);
 
-        // Game is officially "closed" now
         isEnding = false;
 
-        // Bring back the prompt if the player is still standing there
-        if (playerInRange)
-            pressEPrompt.SetActive(true);
+        // PlayerInteraction2D will show prompt again automatically
+        pressEPrompt.SetActive(false);
     }
 }

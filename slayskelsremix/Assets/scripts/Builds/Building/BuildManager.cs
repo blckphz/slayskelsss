@@ -132,7 +132,7 @@ public class BuildManager : MonoBehaviour
             BuildingSaveManager.Instance.RegisterBuilding(obj);
             BuildingSaveManager.Instance.SaveAfterChange();
         }
-        PlayerHotbarManager.Instance.UseSelectedStack(1);
+        PlayerHotbarManager.Instance.UseSelectedStack(currentItem.consumeAmount);
     }
 
     bool CanPlace()

@@ -15,7 +15,7 @@ public class ItemData : ScriptableObject
     public bool isUsable;
 
     [Tooltip("How many items are consumed per use")]
-    public int consumeAmount = 1;
+    public int consumeAmount;
 
     public virtual void Use(Transform caster, Transform targetAnchor)
     {
