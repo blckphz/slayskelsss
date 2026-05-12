@@ -6,12 +6,15 @@ public class healthMaster : MonoBehaviour
     public float maxHealth = 100f;
     public float currentHealth;
 
+    [Header("XP Reward")]
+    public int xpReward = 20;   // how much XP this object gives when it dies
+    public bool givesXP = true;
+
     protected virtual void Awake()
     {
         currentHealth = maxHealth;
     }
 
-    // Virtual allows child classes to add UI/VFX logic while keeping core math here
     public virtual void TakeDamage(float amount)
     {
         currentHealth -= amount;
@@ -22,10 +25,18 @@ public class healthMaster : MonoBehaviour
             Die();
         }
     }
-
     protected virtual void Die()
     {
-        // Default death is just destruction
+        if (givesXP)
+        {
+            LevelManager playerLevel = FindFirstObjectByType<LevelManager>();
+
+            if (playerLevel != null)
+            {
+                playerLevel.AddXP(xpReward);
+            }
+        }
+
         Destroy(gameObject);
     }
 }

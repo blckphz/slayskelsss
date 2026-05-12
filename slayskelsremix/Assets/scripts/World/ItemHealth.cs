@@ -1,13 +1,15 @@
 using UnityEngine;
 using System.Collections;
 
-public class ItemHealth : MonoBehaviour, IDamageable
+// "abstract" means this script is a template and cannot be attached to a GameObject directly.
+// You must create a subclass (like treeItemBehav) to use it.
+public abstract class ItemHealth : MonoBehaviour, IDamageable
 {
     [Header("Health")]
     public float health = 50f;
-    private float maxHealth;
+    protected float maxHealth;
 
-    [Header("Loot")]
+    [Header("Loot (Base)")]
     public GameObject lootPrefab;
     public int dropAmount = 3;
 
@@ -22,7 +24,7 @@ public class ItemHealth : MonoBehaviour, IDamageable
     public float shakeDuration = 0.1f;
     public float shakeMagnitude = 0.1f;
 
-    private SpriteRenderer spriteRenderer;
+    protected SpriteRenderer spriteRenderer;
     private MaterialPropertyBlock propertyBlock;
 
     private Coroutine flashCoroutine;
@@ -30,21 +32,16 @@ public class ItemHealth : MonoBehaviour, IDamageable
 
     private Vector3 originalLocalPosition;
 
-    void Awake()
+    protected virtual void Awake()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
         propertyBlock = new MaterialPropertyBlock();
         originalLocalPosition = transform.localPosition;
-    }
-
-    void Start()
-    {
         maxHealth = health;
     }
 
-    // ---------------- IDAMAGEABLE ----------------
-
-    public void TakeDamage(float damage)
+    // "virtual" allows child scripts to use "override" to add their own logic.
+    public virtual void TakeDamage(float damage)
     {
         health -= damage;
         health = Mathf.Clamp(health, 0, maxHealth);
@@ -59,16 +56,16 @@ public class ItemHealth : MonoBehaviour, IDamageable
         }
     }
 
-    public void ApplySlow(float slowPercent, float duration, float tickDmg, float tickInterval)
+    public virtual void ApplySlow(float slowPercent, float duration, float tickDmg, float tickInterval)
     {
-        // Not applicable for static objects
+        // Default: Do nothing (Static items don't move)
     }
 
     public bool IsSlowed => false;
 
     // ---------------- FLASH ----------------
 
-    private void TriggerFlash()
+    protected void TriggerFlash()
     {
         if (flashCoroutine != null)
             StopCoroutine(flashCoroutine);
@@ -91,7 +88,7 @@ public class ItemHealth : MonoBehaviour, IDamageable
         UpdateShaderFloat(hitIntensityName, 0f);
     }
 
-    private void UpdateShaderFloat(string name, float value)
+    protected void UpdateShaderFloat(string name, float value)
     {
         if (spriteRenderer == null) return;
 
@@ -102,7 +99,7 @@ public class ItemHealth : MonoBehaviour, IDamageable
 
     // ---------------- SHAKE ----------------
 
-    private void TriggerShake()
+    protected void TriggerShake()
     {
         if (shakeCoroutine != null)
             StopCoroutine(shakeCoroutine);
@@ -129,17 +126,17 @@ public class ItemHealth : MonoBehaviour, IDamageable
 
     // ---------------- DEATH ----------------
 
-    private void Die()
+    // Trees use a fall sequence, but a crate might just explode. 
+    // Making this virtual let's us change the behavior per item.
+    protected virtual void Die()
     {
-        // Notify NPCs before destroying
         NPCGlobalEvents.NotifyDestroyed(gameObject.GetInstanceID());
-
         UpdateShaderFloat(hitIntensityName, 0f);
         SpawnLoot();
         Destroy(gameObject);
     }
 
-    public void SpawnLoot()
+    public virtual void SpawnLoot()
     {
         if (lootPrefab == null) return;
 
@@ -157,7 +154,7 @@ public class ItemHealth : MonoBehaviour, IDamageable
 
     // ---------------- UI ----------------
 
-    private void ShowDamageText(float damage)
+    protected void ShowDamageText(float damage)
     {
         if (damageTextPrefab != null && damage > 0)
         {

@@ -10,8 +10,9 @@ GameObject:
   m_Component:
   - component: {fileID: 8125030079420843103}
   - component: {fileID: 5553068737315625402}
-  - component: {fileID: 2451702341799347945}
   - component: {fileID: 512176677166505769}
+  - component: {fileID: 1169483223643054696}
+  - component: {fileID: 3887806738031074784}
   m_Layer: 0
   m_Name: stone
   m_TagString: Untagged
@@ -92,26 +93,6 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!114 &2451702341799347945
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5216174609153863728}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 92e6bbaa4534b6848aaece494ec57c4a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: '::'
-  health: 50
-  lootPrefab: {fileID: 7419506218884482566, guid: 785514fc593b4044e91b9b6f017dbe2f, type: 3}
-  dropAmount: 3
-  damageTextPrefab: {fileID: 9146332368269871989, guid: e2da221bf74f11340b439450cb25f81e, type: 3}
-  hitIntensityName: _Intensity
-  flashDuration: 0.15
-  shakeDuration: 0.1
-  shakeMagnitude: 0.1
 --- !u!61 &512176677166505769
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -158,3 +139,40 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 1.6301687, y: 1.0685613}
   m_EdgeRadius: 0
+--- !u!114 &1169483223643054696
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5216174609153863728}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4aab5be093298a948b815445d7eae465, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ResourceBehav
+  health: 50
+  lootPrefab: {fileID: 0}
+  dropAmount: 3
+  damageTextPrefab: {fileID: 0}
+  hitIntensityName: _Intensity
+  flashDuration: 0.15
+  shakeDuration: 0.1
+  shakeMagnitude: 0.1
+--- !u!114 &3887806738031074784
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5216174609153863728}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 480bf6f5b63fd37448bfb150bbe29e4f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::objectHealth
+  maxHealth: 100
+  currentHealth: 0
+  xpReward: 20
+  givesXP: 0
+  interactionRange: 3

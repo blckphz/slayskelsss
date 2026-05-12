@@ -1,15 +1,12 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class treeItemBehav : ItemHealth, IDamageable
+public class treeItemBehav : ItemHealth
 {
     [Header("Tree Identity")]
     public string treeID;
 
-    [Header("Health Settings")]
-    public float health = 10f; // Ensure this matches your ItemHealth logic
-
-    [Header("Loot")]
+    [Header("Loot override")]
     public GameObject woodPrefab;
 
     [Header("Tree Parts")]
@@ -29,25 +26,17 @@ public class treeItemBehav : ItemHealth, IDamageable
 
     [Header("VFX & UI")]
     public GameObject leafParticlePrefab;
-    public GameObject damageTextPrefab;
     public Vector3 damageTextOffset = new Vector3(0, 1.5f, 0);
 
-    [Header("Flash Settings")]
-    public string hitIntensityName = "_Intensity";
-    public float flashDuration = 0.2f;
-
     private bool isDead = false;
-    private SpriteRenderer spriteRenderer;
     private Collider2D treeCollider;
-    private MaterialPropertyBlock propertyBlock;
-    private Coroutine _flashCoroutine;
     private DayNightCycle timeSystem;
 
-    void Awake()
+    protected override void Awake()
     {
-        spriteRenderer = GetComponent<SpriteRenderer>();
+        // Call the Awake logic in ItemHealth (setup spriteRenderer, originalPos, etc)
+        base.Awake();
         treeCollider = GetComponent<Collider2D>();
-        propertyBlock = new MaterialPropertyBlock();
     }
 
     void Start()
@@ -68,33 +57,29 @@ public class treeItemBehav : ItemHealth, IDamageable
         }
     }
 
-    public void TakeDamage(float damage)
+    // We override TakeDamage to ensure it checks 'isDead' specifically for the tree sequence.
+    public override void TakeDamage(float damage)
     {
         if (isDead) return;
-        health -= damage;
 
-        if (damageTextPrefab != null && damage > 0)
-        {
-            GameObject dmgObj = Instantiate(damageTextPrefab, transform.position + damageTextOffset, Quaternion.identity);
-            if (dmgObj.TryGetComponent<DamageNumber>(out DamageNumber dn)) dn.Setup(damage);
-        }
-
-        if (_flashCoroutine != null) StopCoroutine(_flashCoroutine);
-        _flashCoroutine = StartCoroutine(FlashEffect());
-
-        if (health <= 0) Die();
+        // base.TakeDamage handles the health subtraction, shaking, and flashing logic.
+        base.TakeDamage(damage);
     }
 
-    private void Die()
+    // We override Die because trees don't just disappear; they fall over.
+    protected override void Die()
     {
         if (isDead) return;
         isDead = true;
+
+        // Still notify NPCs
+        NPCGlobalEvents.NotifyDestroyed(gameObject.GetInstanceID());
+
         StartCoroutine(FallSequence());
     }
 
     private void SpawnStumpOnly()
     {
-        // Used when loading the game and finding a tree that should be a stump
         if (bottomPrefab != null)
         {
             GameObject stump = Instantiate(bottomPrefab, transform.position, Quaternion.identity);
@@ -123,6 +108,7 @@ public class treeItemBehav : ItemHealth, IDamageable
         if (topPrefab != null)
             top = Instantiate(topPrefab, transform.position, Quaternion.identity);
 
+        // Hide the main tree and disable physics
         if (spriteRenderer != null) spriteRenderer.enabled = false;
         if (treeCollider != null) treeCollider.enabled = false;
 
@@ -132,43 +118,29 @@ public class treeItemBehav : ItemHealth, IDamageable
         if (top != null)
         {
             yield return StartCoroutine(RotateTop(top.transform, dir));
-            SpawnLoot();
+            SpawnLoot(); // Use the tree-specific loot method
             Destroy(top);
         }
 
         Destroy(gameObject);
     }
 
-    // --- Helper Methods (Flash, Loot, Rotation) ---
-
-    private IEnumerator FlashEffect()
-    {
-        float elapsed = 0f;
-        while (elapsed < flashDuration)
-        {
-            elapsed += Time.deltaTime;
-            float intensity = Mathf.Lerp(1f, 0f, elapsed / flashDuration);
-            UpdateShaderFloat(hitIntensityName, intensity);
-            yield return null;
-        }
-        UpdateShaderFloat(hitIntensityName, 0f);
-    }
-
-    private void UpdateShaderFloat(string name, float value)
-    {
-        if (spriteRenderer == null) return;
-        spriteRenderer.GetPropertyBlock(propertyBlock);
-        propertyBlock.SetFloat(name, value);
-        spriteRenderer.SetPropertyBlock(propertyBlock);
-    }
-
-    private void SpawnLoot()
+    // We override SpawnLoot because trees spawn wood differently than standard items
+    public override void SpawnLoot()
     {
         if (woodPrefab != null)
         {
             int amount = Random.Range(2, 4);
             for (int i = 0; i < amount; i++)
-                Instantiate(woodPrefab, transform.position + (Vector3)Random.insideUnitCircle * 0.5f, Quaternion.identity);
+            {
+                GameObject loot = Instantiate(woodPrefab, transform.position + (Vector3)Random.insideUnitCircle * 0.5f, Quaternion.identity);
+
+                // Add the arc effect if present
+                if (loot.TryGetComponent<LootArc>(out LootArc arc))
+                {
+                    arc.Initialize(transform.position);
+                }
+            }
         }
     }
 

@@ -12,12 +12,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c14770e733c6e884f99e2ed432c27447, type: 3}
   m_Name: Berry
   m_EditorClassIdentifier: Assembly-CSharp::berrySO
-  fireRate: 0.2
-  prefab: {fileID: 1052125020934496716, guid: 06e7bc9639ba5344eafe10ce30ee7b69, type: 3}
+  abilityName: 
+  description: 
   icon: {fileID: 21300000, guid: cefec940ed937c9428141b320e903a10, type: 3}
   launchsound: {fileID: 0}
-  customAudioLogic: 0
+  fireRate: 0.2
+  prefab: {fileID: 1052125020934496716, guid: 06e7bc9639ba5344eafe10ce30ee7b69, type: 3}
   damage: 2
   projectileSpeed: 15
   pierceCount: 0
   healAmount: 20
+  plantPrefab: {fileID: 7117563833271513188, guid: adeaca234b29fdd4abddbf36aa4577b7, type: 3}

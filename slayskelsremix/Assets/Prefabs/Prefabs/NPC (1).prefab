@@ -130,6 +130,8 @@ GameObject:
   - component: {fileID: 3874133939572215982}
   - component: {fileID: 8442703433919779620}
   - component: {fileID: 4573692379244824283}
+  - component: {fileID: 3966021581244072405}
+  - component: {fileID: 508923507783663121}
   m_Layer: 0
   m_Name: NPC (1)
   m_TagString: Untagged
@@ -419,6 +421,37 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b99501b809c10a7449c5dded50f908dd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
+--- !u!114 &3966021581244072405
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1260139162946927276}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 78661267de8a09e47ae15b889179b1a1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LevelManager
+  currentXP: 0
+  level: 1
+  xpToNextLevel: 100
+--- !u!114 &508923507783663121
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1260139162946927276}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0ca81bc7a57ee40499222c2f5d8ebd6f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::npcHealth
+  maxHealth: 100
+  currentHealth: 0
+  xpReward: 20
+  givesXP: 1
 --- !u!1 &1921881276973248205
 GameObject:
   m_ObjectHideFlags: 0

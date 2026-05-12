@@ -49,7 +49,6 @@ public partial class TurretBehaviour : MonoBehaviour
         if (!ActiveTurrets.Contains(this))
         {
             ActiveTurrets.Add(this);
-            Debug.Log($"<color=cyan>[Turret]</color> Added. Count: {ActiveTurrets.Count}");
         }
 
         CancelInvoke(nameof(Deactivate));
