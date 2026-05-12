@@ -16,7 +16,11 @@ public class DayNightCycle : MonoBehaviour
     private float _rawTime;
     public int DaysPassed { get; private set; }
 
-    void Start() => LoadGame();
+    void Start()
+    {
+        Debug.Log("[DayNightCycle] Starting...");
+        LoadGame();
+    }
 
     void Update()
     {
@@ -32,10 +36,16 @@ public class DayNightCycle : MonoBehaviour
         _rawTime += delta;
         TotalTime += delta;
 
+        // Debug current time occasionally (optional)
+        // Debug.Log($"[DayNightCycle] RawTime: {_rawTime:F3} | TotalTime: {TotalTime:F3}");
+
         if (_rawTime >= 1f)
         {
             _rawTime -= 1f;
             DaysPassed++;
+
+            Debug.Log($"[DayNightCycle] New Day Started! Days Passed: {DaysPassed}");
+            Debug.Log($"[DayNightCycle] RawTime reset to {_rawTime:F3}, TotalTime: {TotalTime:F3}");
         }
     }
 
@@ -45,6 +55,13 @@ public class DayNightCycle : MonoBehaviour
         {
             globalLight.color = nightDayColor.Evaluate(_rawTime);
             globalLight.intensity = intensityCurve.Evaluate(_rawTime);
+
+            // Uncomment if you want live lighting debug (can spam console)
+            // Debug.Log($"[DayNightCycle] Light Intensity: {globalLight.intensity:F2}");
+        }
+        else
+        {
+            Debug.LogWarning("[DayNightCycle] Global Light reference is missing!");
         }
     }
 
@@ -54,6 +71,13 @@ public class DayNightCycle : MonoBehaviour
         PlayerPrefs.SetFloat("RawTime", _rawTime);
         PlayerPrefs.SetInt("DaysPassed", DaysPassed);
         PlayerPrefs.Save();
+
+        Debug.Log(
+            $"[DayNightCycle] Game Saved!\n" +
+            $"TotalTime: {TotalTime:F3}\n" +
+            $"RawTime: {_rawTime:F3}\n" +
+            $"DaysPassed: {DaysPassed}"
+        );
     }
 
     public void LoadGame()
@@ -61,7 +85,18 @@ public class DayNightCycle : MonoBehaviour
         TotalTime = PlayerPrefs.GetFloat("TotalTime", startTimePercent);
         _rawTime = PlayerPrefs.GetFloat("RawTime", startTimePercent);
         DaysPassed = PlayerPrefs.GetInt("DaysPassed", 0);
+
+        Debug.Log(
+            $"[DayNightCycle] Game Loaded!\n" +
+            $"TotalTime: {TotalTime:F3}\n" +
+            $"RawTime: {_rawTime:F3}\n" +
+            $"DaysPassed: {DaysPassed}"
+        );
     }
 
-    private void OnApplicationQuit() => SaveGame();
+    private void OnApplicationQuit()
+    {
+        Debug.Log("[DayNightCycle] Application quitting, saving...");
+        SaveGame();
+    }
 }

@@ -7,11 +7,17 @@ public class PerkButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
     public Image buttonIcon;
 
     [Header("Highlight")]
-    public Image background; // assign in inspector
+    public Image background;
 
     public Color normalColor = Color.white;
-    public Color hoverColor = new Color(0.8f, 1f, 0.8f);   // light green
-    public Color selectedColor = new Color(1f, 0.9f, 0.4f); // yellow
+    public Color hoverColor = new Color(0.8f, 1f, 0.8f);
+    public Color selectedColor = new Color(1f, 0.9f, 0.4f);
+
+    [Header("Hover Juice")]
+    public float hoverScaleMultiplier = 1.08f;
+    public float minHoverRotation = 2f;
+    public float maxHoverRotation = 5f;
+    public float animSpeed = 10f;
 
     [HideInInspector] public AbilityUpgradeSO perkAsset;
 
@@ -19,6 +25,15 @@ public class PerkButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
     private Ability _targetAbility;
 
     private bool isSelected;
+    private bool isHovered;
+
+    // Cached initial transform
+    private Vector3 _initialBgScale;
+    private Quaternion _initialBgRotation;
+
+    // Animation targets
+    private Vector3 _targetBgScale;
+    private Quaternion _targetBgRotation;
 
     public void SetupButton(PerkManager manager, string abilityName, AbilityUpgradeSO asset)
     {
@@ -33,7 +48,36 @@ public class PerkButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
                 buttonIcon.sprite = _targetAbility.icon;
         }
 
+        if (background != null)
+        {
+            // Cache whatever scale/rotation you set in inspector
+            _initialBgScale = background.rectTransform.localScale;
+            _initialBgRotation = background.rectTransform.localRotation;
+
+            _targetBgScale = _initialBgScale;
+            _targetBgRotation = _initialBgRotation;
+        }
+
         SetNormal();
+    }
+
+    private void Update()
+    {
+        if (background == null) return;
+
+        RectTransform bgRect = background.rectTransform;
+
+        bgRect.localScale = Vector3.Lerp(
+            bgRect.localScale,
+            _targetBgScale,
+            Time.deltaTime * animSpeed
+        );
+
+        bgRect.localRotation = Quaternion.Lerp(
+            bgRect.localRotation,
+            _targetBgRotation,
+            Time.deltaTime * animSpeed
+        );
     }
 
     public void OnSelect()
@@ -43,15 +87,28 @@ public class PerkButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
         if (_manager != null)
         {
             _manager.SelectPerk(perkAsset, _targetAbility);
-            _manager.NotifySelection(this); // 🔥 important
+            _manager.NotifySelection(this);
         }
     }
 
-    // 🟩 HOVER
     public void OnPointerEnter(PointerEventData eventData)
     {
+        isHovered = true;
+
         if (!isSelected)
             SetHover();
+
+        // Random left/right (50/50)
+        float direction = Random.value < 0.5f ? -1f : 1f;
+
+        // Random rotation amount
+        float angle = Random.Range(minHoverRotation, maxHoverRotation) * direction;
+
+        // Scale relative to initial inspector scale
+        _targetBgScale = _initialBgScale * hoverScaleMultiplier;
+
+        // Rotate relative to initial inspector rotation
+        _targetBgRotation = _initialBgRotation * Quaternion.Euler(0f, 0f, angle);
 
         if (_manager != null && perkAsset != null && _targetAbility != null)
         {
@@ -59,11 +116,16 @@ public class PerkButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
         }
     }
 
-    // 🟥 EXIT
     public void OnPointerExit(PointerEventData eventData)
     {
+        isHovered = false;
+
         if (!isSelected)
             SetNormal();
+
+        // Restore original transform
+        _targetBgScale = _initialBgScale;
+        _targetBgRotation = _initialBgRotation;
 
         if (_manager != null)
         {
@@ -71,15 +133,28 @@ public class PerkButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandl
         }
     }
 
-    // 🔥 VISUAL STATES
     public void SetSelected(bool value)
     {
         isSelected = value;
 
         if (isSelected)
+        {
             SetSelectedColor();
+
+            // subtle selected scale relative to initial
+            _targetBgScale = _initialBgScale * 1.03f;
+            _targetBgRotation = _initialBgRotation;
+        }
         else
+        {
             SetNormal();
+
+            if (!isHovered)
+            {
+                _targetBgScale = _initialBgScale;
+                _targetBgRotation = _initialBgRotation;
+            }
+        }
     }
 
     private void SetNormal()

@@ -7,12 +7,7 @@ public class ResourceBehav : ItemHealth
 
     protected override void Die()
     {
-        // 1. Any resource-specific death VFX (like a rock shattering) goes here.
 
-        // 2. Call the base Die which handles:
-        //    - Notifying NPCs
-        //    - Running SpawnLoot()
-        //    - Destroying the world object
         base.Die();
     }
 

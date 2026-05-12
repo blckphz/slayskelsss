@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::turretSO
   abilityName: Turret
   description: test
-  icon: {fileID: 21300000, guid: 67489853d7b68f248a4c9391bd7c321d, type: 3}
+  icon: {fileID: 21300000, guid: 859e98a146b6f3049b6e74c198e5b18a, type: 3}
   launchsound: {fileID: 0}
   fireRate: 0.2
   prefab: {fileID: 8753894595848831632, guid: 2d8a9fcc3ff41ae45a0d0df325f0147f, type: 3}

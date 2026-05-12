@@ -36,29 +36,12 @@ public class BuildingSaveManager : MonoBehaviour
         LoadBuildings();
     }
 
-    void Update()
-    {
-        // NEW INPUT SYSTEM DEBUG CHECK
-        // If "K" is pressed on the keyboard
-        if (Keyboard.current != null && Keyboard.current.kKey.wasPressedThisFrame)
-        {
-            Debug.Log($"<color=cyan>[SaveDebug]</color> Currently tracking {placedBuildings.Count} objects.");
-            foreach (var obj in placedBuildings)
-            {
-                if (obj != null)
-                    Debug.Log($"   - {obj.name} at {obj.transform.position}");
-                else
-                    Debug.Log("   - Found a Null object in list (Destroyed but not unregistered!)");
-            }
-        }
-    }
 
     public void RegisterBuilding(GameObject obj)
     {
         if (obj != null && !placedBuildings.Contains(obj))
         {
             placedBuildings.Add(obj);
-            Debug.Log($"<color=green>[SaveSystem]</color> Registered: {obj.name}");
         }
     }
 
@@ -67,7 +50,6 @@ public class BuildingSaveManager : MonoBehaviour
         if (obj != null && placedBuildings.Contains(obj))
         {
             placedBuildings.Remove(obj);
-            Debug.Log($"<color=red>[SaveSystem]</color> Unregistered: {obj.name}");
         }
     }
 
@@ -87,12 +69,10 @@ public class BuildingSaveManager : MonoBehaviour
             {
                 b.itemID = saveable.GetItemID();
                 saveable.GetSaveData(out b.currentAmmo, out b.plantProgress);
-                Debug.Log($"[Save] Found Interface on {obj.name}. ID: {b.itemID}");
             }
             else if (obj.TryGetComponent(out BuildIdentity id) && id.item != null)
             {
                 b.itemID = id.item.itemID;
-                Debug.Log($"[Save] Found Identity on {obj.name}. ID: {b.itemID}");
             }
             else
             {
@@ -105,8 +85,6 @@ public class BuildingSaveManager : MonoBehaviour
 
         string json = JsonUtility.ToJson(data, true);
         File.WriteAllText(savePath, json);
-        Debug.Log($"<color=yellow>[SaveSystem] SUCCESS. File written to: {savePath}</color>");
-        Debug.Log($"[Raw JSON] {json}");
     }
 
     public void LoadBuildings()
