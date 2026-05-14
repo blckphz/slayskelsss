@@ -56,7 +56,6 @@ MonoBehaviour:
   shakeDuration: 0.1
   shakeMagnitude: 0.1
   treeID: 
-  health: 50
   woodPrefab: {fileID: 8504423254273432661, guid: 22af6c420dc2b11488f396c164eab3b4, type: 3}
   topPrefab: {fileID: 8542049761962043926, guid: 5468e57153e3fd44594a6633bb15fdc9, type: 3}
   bottomPrefab: {fileID: 4272399698899235473, guid: f46bc3955377181479d8e75aaf364860, type: 3}
@@ -66,10 +65,7 @@ MonoBehaviour:
   fallDelay: 0.05
   fadeDuration: 1.5
   leafParticlePrefab: {fileID: 0}
-  damageTextPrefab: {fileID: 9146332368269871989, guid: e2da221bf74f11340b439450cb25f81e, type: 3}
   damageTextOffset: {x: 0, y: 1.5, z: 0}
-  hitIntensityName: _Intensity
-  flashDuration: 0.15
 --- !u!70 &3365394450542658093
 CapsuleCollider2D:
   m_ObjectHideFlags: 0
@@ -104,8 +100,8 @@ CapsuleCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: -0.031470407, y: 0.48752332}
-  m_Size: {x: 0.7059656, y: 0.8153396}
+  m_Offset: {x: -0.025974907, y: 0.42982057}
+  m_Size: {x: 0.8048843, y: 0.9307451}
   m_Direction: 0
 --- !u!212 &6896833497799181211
 SpriteRenderer:

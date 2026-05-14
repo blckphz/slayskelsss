@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.Rendering.Universal;
+using TMPro;
 
 public class DayNightCycle : MonoBehaviour
 {
@@ -11,6 +12,9 @@ public class DayNightCycle : MonoBehaviour
     public Light2D globalLight;
     public Gradient nightDayColor;
     public AnimationCurve intensityCurve;
+
+    [Header("UI")]
+    public TextMeshProUGUI timeText;
 
     public float TotalTime { get; private set; }
     private float _rawTime;
@@ -26,18 +30,15 @@ public class DayNightCycle : MonoBehaviour
     {
         UpdateTime();
         ApplyLighting();
+        UpdateUI();
     }
 
     private void UpdateTime()
     {
-        // delta is the percentage of a day that passed this frame
         float delta = Time.deltaTime / dayDuration;
 
         _rawTime += delta;
         TotalTime += delta;
-
-        // Debug current time occasionally (optional)
-        // Debug.Log($"[DayNightCycle] RawTime: {_rawTime:F3} | TotalTime: {TotalTime:F3}");
 
         if (_rawTime >= 1f)
         {
@@ -45,7 +46,6 @@ public class DayNightCycle : MonoBehaviour
             DaysPassed++;
 
             Debug.Log($"[DayNightCycle] New Day Started! Days Passed: {DaysPassed}");
-            Debug.Log($"[DayNightCycle] RawTime reset to {_rawTime:F3}, TotalTime: {TotalTime:F3}");
         }
     }
 
@@ -55,13 +55,22 @@ public class DayNightCycle : MonoBehaviour
         {
             globalLight.color = nightDayColor.Evaluate(_rawTime);
             globalLight.intensity = intensityCurve.Evaluate(_rawTime);
-
-            // Uncomment if you want live lighting debug (can spam console)
-            // Debug.Log($"[DayNightCycle] Light Intensity: {globalLight.intensity:F2}");
         }
         else
         {
             Debug.LogWarning("[DayNightCycle] Global Light reference is missing!");
+        }
+    }
+
+    private void UpdateUI()
+    {
+        if (timeText != null)
+        {
+            // Convert _rawTime (0–1) into 24-hour clock
+            int hours = Mathf.FloorToInt(_rawTime * 24f);
+            int minutes = Mathf.FloorToInt((_rawTime * 24f - hours) * 60f);
+
+            timeText.text = $"Day {DaysPassed + 1}\n{hours:00}:{minutes:00}";
         }
     }
 
@@ -71,13 +80,6 @@ public class DayNightCycle : MonoBehaviour
         PlayerPrefs.SetFloat("RawTime", _rawTime);
         PlayerPrefs.SetInt("DaysPassed", DaysPassed);
         PlayerPrefs.Save();
-
-        Debug.Log(
-            $"[DayNightCycle] Game Saved!\n" +
-            $"TotalTime: {TotalTime:F3}\n" +
-            $"RawTime: {_rawTime:F3}\n" +
-            $"DaysPassed: {DaysPassed}"
-        );
     }
 
     public void LoadGame()
@@ -85,18 +87,10 @@ public class DayNightCycle : MonoBehaviour
         TotalTime = PlayerPrefs.GetFloat("TotalTime", startTimePercent);
         _rawTime = PlayerPrefs.GetFloat("RawTime", startTimePercent);
         DaysPassed = PlayerPrefs.GetInt("DaysPassed", 0);
-
-        Debug.Log(
-            $"[DayNightCycle] Game Loaded!\n" +
-            $"TotalTime: {TotalTime:F3}\n" +
-            $"RawTime: {_rawTime:F3}\n" +
-            $"DaysPassed: {DaysPassed}"
-        );
     }
 
     private void OnApplicationQuit()
     {
-        Debug.Log("[DayNightCycle] Application quitting, saving...");
         SaveGame();
     }
 }

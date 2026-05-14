@@ -408,6 +408,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2e391d83d889f8d4eaa1c63242f5c78a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
+  npcId: npcid1
   inventory: []
 --- !u!114 &4573692379244824283
 MonoBehaviour:

@@ -16,7 +16,6 @@ public class AbilityLoadout : MonoBehaviour
         }
 
         Instance = this;
-        Debug.Log("[Loadout] Instance initialized.");
     }
 
     public void SetAbility(int index, Ability ability)

@@ -49,7 +49,6 @@ public class ItemGiver : MonoBehaviour
             // Adds item to your InventoryManager list and saves
             InventoryManager.Instance.AddItem(itemToGive, amount);
 
-            Debug.Log($"Collected: {itemToGive.itemName}");
 
             if (destroyOnPickup)
             {

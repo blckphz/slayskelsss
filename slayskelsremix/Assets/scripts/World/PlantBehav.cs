@@ -70,9 +70,6 @@ public class PlantBehav : MonoBehaviour, ISaveableBuilding
 
         UpdateVisuals();
 
-        Debug.Log(
-            $"{gameObject.name} loaded: stage={growthStage}, progress={growthProgress}"
-        );
     }
 
     // =========================

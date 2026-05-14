@@ -22,3 +22,17 @@ public class InventorySaveData
     public List<SaveSlot> savedItems = new List<SaveSlot>();
     public List<HotbarSaveSlot> hotbarItems = new List<HotbarSaveSlot>();
 }
+
+[System.Serializable]
+public class NpcInventorySaveData
+{
+    public string npcId;
+    public List<SaveSlot> items = new List<SaveSlot>();
+}
+
+[System.Serializable]
+public class WorldSaveData
+{
+    public List<NpcInventorySaveData> npcInventories =
+        new List<NpcInventorySaveData>();
+}

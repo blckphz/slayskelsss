@@ -24,7 +24,6 @@ public class PerkManager : MonoBehaviour
 
     private void Awake()
     {
-        Debug.Log("[PerkManager] Awake");
 
         if (abilityDatabase == null)
         {
@@ -45,7 +44,6 @@ public class PerkManager : MonoBehaviour
 
     private void OnDisable()
     {
-        Debug.Log("[PerkManager] Input Disabled");
         toggleAction.action.Disable();
     }
 
