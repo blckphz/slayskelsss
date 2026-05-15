@@ -42,7 +42,7 @@ public class enemyHealth : healthMaster, IDamageable
     public bool IsSlowed => _slowCoroutine != null;
 
     // =========================
-    // SAVE ACCESS (optional)
+    // SAVE ACCESS
     // =========================
     public float GetHealth() => currentHealth;
 
@@ -57,22 +57,16 @@ public class enemyHealth : healthMaster, IDamageable
     // =========================
     protected override void Awake()
     {
-        base.Awake();
+        base.Awake(); // Calls healthMaster.Awake() to set currentHealth = maxHealth
 
         spriteRenderer = GetComponent<SpriteRenderer>();
         ai = GetComponent<AIPath>();
         rb = GetComponent<Rigidbody2D>();
         propertyBlock = new MaterialPropertyBlock();
 
-        // 🔥 ONLY SAVE-RELEVANT DEBUG
         if (string.IsNullOrEmpty(enemyID))
         {
             enemyID = System.Guid.NewGuid().ToString();
-            Debug.Log($"[SAVE] New Enemy ID generated: {enemyID}");
-        }
-        else
-        {
-            Debug.Log($"[SAVE] Enemy loaded with ID: {enemyID}");
         }
     }
 
@@ -86,17 +80,25 @@ public class enemyHealth : healthMaster, IDamageable
     // =========================
     // DAMAGE
     // =========================
-    public override void TakeDamage(float damage)
+
+    // Overriding the base TakeDamage to include UI and FX
+    public override void TakeDamage(float damage, GameObject attacker = null)
     {
-        base.TakeDamage(damage);
+        // Call the healthMaster logic (handles lastAttacker and currentHealth)
+        base.TakeDamage(damage, attacker);
+
         UpdateHealthUI();
-
         ShowDamageText(damage);
-
-        Debug.Log($"[COMBAT] Enemy {enemyID} took {damage} damage | HP: {currentHealth}");
 
         if (_flashCoroutine != null) StopCoroutine(_flashCoroutine);
         _flashCoroutine = StartCoroutine(FlashEffect());
+    }
+
+    // This implementation is for the IDamageable interface specifically
+    public void TakeDamage(float damage)
+    {
+        // Redirects to our main TakeDamage logic
+        TakeDamage(damage, null);
     }
 
     // =========================
@@ -109,7 +111,7 @@ public class enemyHealth : healthMaster, IDamageable
     }
 
     // =========================
-    // SLOW
+    // SLOW & TICK DAMAGE
     // =========================
     public void ApplySlow(float slowPercent, float duration, float tickDmg, float tickInterval)
     {
@@ -117,18 +119,34 @@ public class enemyHealth : healthMaster, IDamageable
         _slowCoroutine = StartCoroutine(SlowRoutine(slowPercent, duration));
 
         if (_tickDamageCoroutine != null) StopCoroutine(_tickDamageCoroutine);
-        _tickDamageCoroutine = StartCoroutine(TickDamageRoutine(tickDmg, tickInterval, duration));
 
-        Debug.Log($"[STATUS] Enemy {enemyID} slowed for {duration}s");
+        // Pass the Enemy itself as the attacker for tick damage 
+        // (or you could pass the player if the player started the tick effect)
+        _tickDamageCoroutine = StartCoroutine(TickDamageRoutine(tickDmg, tickInterval, duration));
+    }
+
+    private IEnumerator TickDamageRoutine(float dmg, float interval, float duration)
+    {
+        float elapsed = 0f;
+        while (elapsed < duration)
+        {
+            yield return new WaitForSeconds(interval);
+            elapsed += interval;
+
+            // We pass null or the player reference here so the killer gets the XP
+            TakeDamage(dmg, null);
+        }
+        _tickDamageCoroutine = null;
     }
 
     // =========================
-    // DEATH (IMPORTANT)
+    // DEATH
     // =========================
     protected override void Die()
     {
         Debug.Log($"[SAVE] Enemy died: {enemyID}");
 
+        // Reset Shaders
         UpdateShaderFloat(hitIntensityName, 0f);
         UpdateShaderFloat(stunIntensityName, 0f);
         UpdateShaderFloat(berrySmearIntensityName, 0f);
@@ -137,11 +155,12 @@ public class enemyHealth : healthMaster, IDamageable
 
         SpawnLoot();
 
+        // base.Die() handles giving XP to the 'lastAttacker' and destroying the object
         base.Die();
     }
 
     // =========================
-    // IMPULSE
+    // IMPULSE & AI
     // =========================
     public void ApplyImpulse(Vector2 force)
     {
@@ -161,12 +180,11 @@ public class enemyHealth : healthMaster, IDamageable
     }
 
     // =========================
-    // EFFECTS
+    // EFFECTS & SHADER
     // =========================
     private IEnumerator FlashEffect()
     {
         float elapsed = 0f;
-
         while (elapsed < flashDuration)
         {
             elapsed += Time.deltaTime;
@@ -174,7 +192,6 @@ public class enemyHealth : healthMaster, IDamageable
             UpdateShaderFloat(hitIntensityName, intensity);
             yield return null;
         }
-
         UpdateShaderFloat(hitIntensityName, 0f);
     }
 
@@ -183,7 +200,6 @@ public class enemyHealth : healthMaster, IDamageable
         if (ai != null)
         {
             ai.maxSpeed = Mathf.Max(0.1f, originalSpeed - slowAmount);
-
             float elapsed = 0f;
 
             while (elapsed < duration)
@@ -197,32 +213,12 @@ public class enemyHealth : healthMaster, IDamageable
             ai.maxSpeed = originalSpeed;
             UpdateShaderFloat(stunIntensityName, 0f);
         }
-
         _slowCoroutine = null;
     }
 
-    private IEnumerator TickDamageRoutine(float dmg, float interval, float duration)
-    {
-        float elapsed = 0f;
-
-        while (elapsed < duration)
-        {
-            yield return new WaitForSeconds(interval);
-            elapsed += interval;
-
-            TakeDamage(dmg);
-        }
-
-        _tickDamageCoroutine = null;
-    }
-
-    // =========================
-    // SHADER
-    // =========================
     private void UpdateShaderFloat(string name, float value)
     {
         if (spriteRenderer == null) return;
-
         spriteRenderer.GetPropertyBlock(propertyBlock);
         propertyBlock.SetFloat(name, value);
         spriteRenderer.SetPropertyBlock(propertyBlock);
@@ -236,8 +232,6 @@ public class enemyHealth : healthMaster, IDamageable
         if (goldPrefab == null) return;
 
         int amount = Random.Range(minGold, maxGold + 1);
-        Debug.Log($"[LOOT] Enemy {enemyID} dropped {amount} gold");
-
         for (int i = 0; i < amount; i++)
         {
             Instantiate(goldPrefab, transform.position, Quaternion.identity);
@@ -253,19 +247,14 @@ public class enemyHealth : healthMaster, IDamageable
             healthBarFill.fillAmount = currentHealth / maxHealth;
 
         if (healthBarObject != null)
-            healthBarObject.SetActive(currentHealth < maxHealth);
+            healthBarObject.SetActive(currentHealth < maxHealth && currentHealth > 0);
     }
 
     void ShowDamageText(float damage)
     {
         if (damageTextPrefab != null && damage > 0)
         {
-            GameObject textObj = Instantiate(
-                damageTextPrefab,
-                transform.position + Vector3.up,
-                Quaternion.identity
-            );
-
+            GameObject textObj = Instantiate(damageTextPrefab, transform.position + Vector3.up, Quaternion.identity);
             if (textObj.TryGetComponent<DamageNumber>(out DamageNumber dn))
                 dn.Setup(damage);
         }

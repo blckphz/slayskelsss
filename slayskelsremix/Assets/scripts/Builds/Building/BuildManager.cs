@@ -17,8 +17,12 @@ public class BuildManager : MonoBehaviour
     [Header("Grid")]
     public float gridSize = 1f;
 
-    [Header("Effects")]
+    [Header("Effects & Shake")]
     public GameObject placementEffectPrefab;
+    // --- ADD THESE ---
+    public bool shakeOnPlace = true;
+    public float buildShakeIntensity = 0.5f;
+    public float buildShakeDuration = 0.1f;
 
     private GameObject previewObject;
     private buildSO currentItem;
@@ -30,16 +34,13 @@ public class BuildManager : MonoBehaviour
 
     void Update()
     {
-        // Look at the Master Restriction set in the InteractionManager
         bool restricted = InteractionManager.MasterRestriction;
-
         if (restricted && !invUIToggle.IsInventoryOpen)
         {
             if (isPlacing) Cancel();
             return;
         }
 
-        // Only allow switching items if not restricted or if inventory is open
         if (!restricted || invUIToggle.IsInventoryOpen)
         {
             CheckHotbar();
@@ -66,7 +67,9 @@ public class BuildManager : MonoBehaviour
         if (item is buildSO build)
         {
             if (currentItem == null || currentItem.itemName != build.itemName)
+            {
                 StartPlacing(build);
+            }
         }
         else if (isPlacing)
         {
@@ -107,6 +110,12 @@ public class BuildManager : MonoBehaviour
         if (previewObject == null || !CanPlace()) return;
         Vector3 placePos = previewObject.transform.position;
         GameObject obj = Instantiate(currentItem.placeablePrefab, placePos, Quaternion.identity);
+
+        // --- TRIGGER CAMERA SHAKE HERE ---
+        if (shakeOnPlace && CameraShaker.Instance != null)
+        {
+            CameraShaker.Instance.Shake(buildShakeIntensity, buildShakeDuration);
+        }
 
         if (currentItem.placementSound != null) AudioSource.PlayClipAtPoint(currentItem.placementSound, placePos);
         if (placementEffectPrefab != null)

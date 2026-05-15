@@ -24,52 +24,30 @@ public class PerkManager : MonoBehaviour
 
     private void Awake()
     {
-
-        if (abilityDatabase == null)
-        {
-            Debug.LogError("[PerkManager] AbilityDatabase missing!");
-            return;
-        }
-
+        if (abilityDatabase == null) return;
         InitializeAllSlots();
-
-        if (upgradePanel != null)
-            upgradePanel.SetActive(false);
+        if (upgradePanel != null) upgradePanel.SetActive(false);
     }
 
-    private void OnEnable()
-    {
-        toggleAction.action.Enable();
-    }
-
-    private void OnDisable()
-    {
-        toggleAction.action.Disable();
-    }
+    private void OnEnable() => toggleAction.action.Enable();
+    private void OnDisable() => toggleAction.action.Disable();
 
     private void Update()
     {
-        if (toggleAction.action.WasPressedThisFrame())
-        {
-            ToggleUpgradeUI();
-        }
+        if (toggleAction.action.WasPressedThisFrame()) ToggleUpgradeUI();
     }
 
     public void ToggleUpgradeUI()
     {
         if (upgradePanel == null) return;
-
         bool isActive = upgradePanel.activeSelf;
-
-
         upgradePanel.SetActive(!isActive);
 
         if (isActive)
         {
-
-            ClearPerkDetails();
-
-            // 🔥 IMPORTANT FIX
+            // Force clear when closing UI
+            titleText.text = "";
+            descriptionText.text = "";
             _selectedPerk = null;
             _selectedAbility = null;
         }
@@ -77,7 +55,6 @@ public class PerkManager : MonoBehaviour
 
     private void InitializeAllSlots()
     {
-
         foreach (PerkSlot slot in perkSlots)
         {
             if (slot.perk != null && slot.button != null)
@@ -91,21 +68,14 @@ public class PerkManager : MonoBehaviour
     public void SelectPerk(AbilityUpgradeSO perkAsset, Ability ability)
     {
         if (perkAsset == null || ability == null) return;
-
         _selectedPerk = perkAsset;
         _selectedAbility = ability;
-
-
         DisplayPerkDetails(perkAsset, ability);
     }
 
     public void ConfirmUpgrade()
     {
-        if (_selectedPerk == null || _selectedAbility == null)
-        {
-            Debug.LogWarning("[PerkManager] No perk selected for upgrade");
-            return;
-        }
+        if (_selectedPerk == null || _selectedAbility == null) return;
 
         if (_selectedPerk.Level < _selectedPerk.MaxLevel)
         {
@@ -113,12 +83,10 @@ public class PerkManager : MonoBehaviour
             _selectedPerk.Level++;
             _selectedPerk.SaveLevel();
 
+            if (UIShaker.Instance != null)
+                UIShaker.Instance.ShakeUI(0.2f, 20f);
 
             DisplayPerkDetails(_selectedPerk, _selectedAbility);
-        }
-        else
-        {
-            Debug.Log("[PerkManager] Already at max level");
         }
     }
 
@@ -126,67 +94,43 @@ public class PerkManager : MonoBehaviour
     {
         if (titleText == null || descriptionText == null) return;
 
-        Debug.Log($"[PerkManager] Display → {ability.abilityName} (Level {perkAsset.Level})");
-
         titleText.text = ability.abilityName;
-
-        string fullStats = $"<b>--- Base Stats ---</b>\n";
-        fullStats += $"Use Speed: {ability.fireRate}s\n";
+        string fullStats = $"<b>--- Base Stats ---</b>\nUse Speed: {ability.fireRate}s\n";
 
         if (ability is offensiveability offensive)
-        {
             fullStats += $"Base DMG: <color=#FF5555>{offensive.damage}</color>\n";
-        }
 
         if (ability is IStatProvider provider)
-        {
             fullStats += provider.GetStatsFormat() + "\n";
-        }
 
         var perkInfo = perkAsset.GetDisplayStrings();
-
         fullStats += $"\n<b>Current Level ({perkAsset.Level}/{perkAsset.MaxLevel}):</b>\n{perkInfo.displayDesc}";
-
         descriptionText.text = fullStats;
     }
 
-    // 🧹 CLEAR PANEL
     public void ClearPerkDetails()
     {
-        Debug.Log("[PerkManager] Clearing UI text");
+        // CRITICAL FIX: If the player is currently dragging, refuse to clear.
+        if (DragState.IsDraggingAbility) return;
 
-        if (titleText != null)
-            titleText.text = "";
-
-        if (descriptionText != null)
-            descriptionText.text = "";
+        if (titleText != null) titleText.text = "";
+        if (descriptionText != null) descriptionText.text = "";
     }
 
-    // 🔄 RESTORE SELECTED OR CLEAR
     public void RestoreSelectedPerk()
     {
         if (_selectedPerk != null && _selectedAbility != null)
-        {
-            Debug.Log("[PerkManager] Restoring selected perk");
-
             DisplayPerkDetails(_selectedPerk, _selectedAbility);
-        }
         else
-        {
-
             ClearPerkDetails();
-        }
     }
+
     public void NotifySelection(PerkButton selectedButton)
     {
-
         foreach (PerkSlot slot in perkSlots)
         {
-            if (slot.button == null) continue;
-
-            bool isThis = slot.button == selectedButton;
-            slot.button.SetSelected(isThis);
+            if (slot.button != null)
+                slot.button.SetSelected(slot.button == selectedButton);
         }
     }
-
 }

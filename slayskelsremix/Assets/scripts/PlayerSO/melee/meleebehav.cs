@@ -79,7 +79,7 @@ public class meleebehav : MonoBehaviour
         {
             float finalDamage = damage;
 
-            // ⚔️ BONUS DAMAGE LOGIC
+            // Bonus Damage Logic
             if (chainController.isUnlocked)
             {
                 finalDamage += chainController.staticBonusDmg;
@@ -91,8 +91,12 @@ public class meleebehav : MonoBehaviour
             target.TakeDamage(finalDamage);
             hitEnemies.Add(target);
 
-
-            CameraShaker.Shake(0.35f, 0.12f);
+            // --- SCREEN SHAKE ON IMPACT ---
+            // Only shake if the owner is the player and the shaker exists
+            if (owner == offensivemelee.SwingOwner.Player && CameraShaker.Instance != null)
+            {
+                CameraShaker.Instance.Shake(0.35f, 0.12f);
+            }
         }
     }
 

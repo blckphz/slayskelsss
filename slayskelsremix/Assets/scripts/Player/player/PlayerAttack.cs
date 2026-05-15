@@ -7,6 +7,9 @@ public class PlayerAttack : MonoBehaviour
     public PlayerAim aimScript;
     public InputActionReference[] fireActions;
     public Dictionary<Ability, float> abilityCooldowns = new Dictionary<Ability, float>();
+    public float screenshakeIntensity = 0.5f;
+    public float screenshakeDuration = 0.2f;
+
 
     void Update()
     {
@@ -35,6 +38,7 @@ public class PlayerAttack : MonoBehaviour
 
         if (ability is offensivemelee melee)
         {
+            // Execute returns true if the combo is finished or a specific swing logic triggers completion
             bool comboFinished = melee.Execute(transform, aimScript.anchor, isHeld && isWeaponReady);
 
             if (isWeaponReady && (comboFinished || actionRef.action.WasReleasedThisFrame()))
@@ -46,8 +50,14 @@ public class PlayerAttack : MonoBehaviour
         {
             if (isHeld && isWeaponReady)
             {
-                ability.Execute(transform, aimScript.anchor, true);
-                ApplyCooldown(ability);
+                // Execute the ability
+                bool success = ability.Execute(transform, aimScript.anchor, true);
+
+                // If the ability returns true (it actually fired), start cooldown and shake
+                if (success)
+                {
+                    ApplyCooldown(ability);
+                }
             }
         }
     }
@@ -60,7 +70,18 @@ public class PlayerAttack : MonoBehaviour
 
     private void ApplyCooldown(Ability ability)
     {
+        // Set the cooldown timer
         abilityCooldowns[ability] = Time.time + ability.fireRate;
-        if (charsetter.Instance != null) charsetter.Instance.TriggerAbilityUsed(ability);
+
+        // --- SCREEN SHAKE LOGIC ---
+        // Trigger the shake based on the variables in your Ability ScriptableObject
+        if (CameraShaker.Instance != null && screenshakeIntensity > 0)
+        {
+            CameraShaker.Instance.Shake(screenshakeIntensity, screenshakeDuration);
+        }
+
+        // Trigger character animations/effects
+        if (charsetter.Instance != null)
+            charsetter.Instance.TriggerAbilityUsed(ability);
     }
 }

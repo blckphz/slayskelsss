@@ -36,7 +36,6 @@ public class PlantBehav : MonoBehaviour, ISaveableBuilding
             growthProgress -= growTimePerStage;
             growthStage++;
 
-            Debug.Log($"{gameObject.name} grew to stage {growthStage}");
 
             UpdateVisuals();
 

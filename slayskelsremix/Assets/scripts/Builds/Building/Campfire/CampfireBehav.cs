@@ -8,7 +8,7 @@ public class CampfireBehav : MonoBehaviour, IInteractable, IBuildPreview
     [Header("Fuel")]
     public ItemData fuelItem;
 
-    // ✅ NEW: default fuel type assigned in prefab (Wood)
+    // ✅ Assigned in prefab (e.g., Wood, Coal, etc.)
     public ItemData defaultFuelItem;
 
     public float fuelAmount;
@@ -27,7 +27,7 @@ public class CampfireBehav : MonoBehaviour, IInteractable, IBuildPreview
         anim = GetComponent<Animator>();
         highlight = GetComponent<Highlightable>();
 
-        // ✅ SAFE FIX: ensure fuel type exists even after load/spawn
+        // Ensure fuel type exists even after load/spawn
         if (fuelItem == null && defaultFuelItem != null)
         {
             fuelItem = defaultFuelItem;
@@ -45,8 +45,11 @@ public class CampfireBehav : MonoBehaviour, IInteractable, IBuildPreview
             $"fuelItemID={(fuelItem ? fuelItem.itemID : -1)}"
         );
 
-        fuelItem = defaultFuelItem;
-
+        // Ensure the current fuel type matches the default requirement on start
+        if (defaultFuelItem != null)
+        {
+            fuelItem = defaultFuelItem;
+        }
     }
 
     private void Update()
@@ -64,28 +67,29 @@ public class CampfireBehav : MonoBehaviour, IInteractable, IBuildPreview
             return;
         }
 
-        var woodSlot = npcInv.inventory.Find(
+        // Find the specific item this campfire needs in the NPC's inventory
+        var fuelSlot = npcInv.inventory.Find(
             slot => slot.item != null &&
                     slot.item.itemID == fuelItem.itemID
         );
 
-        if (woodSlot == null || woodSlot.count <= 0)
+        if (fuelSlot == null || fuelSlot.count <= 0)
             return;
 
         int canAccept = Mathf.Min(
-            woodSlot.count,
+            fuelSlot.count,
             Mathf.FloorToInt(maxFuel - fuelAmount)
         );
 
         if (canAccept <= 0)
             return;
 
-        AddFuel(woodSlot.item, canAccept);
+        AddFuel(fuelSlot.item, canAccept);
 
-        woodSlot.count -= canAccept;
+        fuelSlot.count -= canAccept;
 
-        if (woodSlot.count <= 0)
-            npcInv.inventory.Remove(woodSlot);
+        if (fuelSlot.count <= 0)
+            npcInv.inventory.Remove(fuelSlot);
 
         if (!isBurning)
             Ignite();

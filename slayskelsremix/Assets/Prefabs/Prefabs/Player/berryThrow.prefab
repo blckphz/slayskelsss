@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 7671146826559191415}
   - component: {fileID: 7910044462801725715}
   m_Layer: 0
-  m_Name: berryprefab
+  m_Name: berryThrow
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

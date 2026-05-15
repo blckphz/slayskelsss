@@ -31,16 +31,25 @@ public class playerHealth : healthMaster
             currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
             UpdateUI();
         }
+
+        // Keep slider max value in sync if maxHealth changes (e.g., after leveling up)
+        if (healthSlider != null && healthSlider.maxValue != maxHealth)
+        {
+            healthSlider.maxValue = maxHealth;
+        }
     }
 
-    public override void TakeDamage(float amount)
+    // Updated to match healthMaster signature
+    public override void TakeDamage(float amount, GameObject attacker = null)
     {
-        base.TakeDamage(amount); // This reduces currentHealth in healthMaster
+        // Passes the damage and the attacker to the base healthMaster logic
+        base.TakeDamage(amount, attacker);
+
         lastDamageTime = Time.time;
         UpdateUI();
     }
 
-    // 🔥 ADD THIS: A dedicated Heal method that forces a UI update
+    // A dedicated Heal method that forces a UI update
     public void Heal(float amount)
     {
         currentHealth = Mathf.Min(currentHealth + amount, maxHealth);
@@ -50,7 +59,7 @@ public class playerHealth : healthMaster
 
     public void UpdateUI()
     {
-        if (healthSlider != null) 
+        if (healthSlider != null)
         {
             healthSlider.value = currentHealth;
         }
@@ -58,6 +67,10 @@ public class playerHealth : healthMaster
 
     protected override void Die()
     {
+        // Note: base.Die() is NOT called here because we usually want 
+        // custom Game Over logic for players rather than just Destroy(gameObject)
         Debug.LogError("playerHealth: PLAYER HAS DIED.");
+
+        // Add your Respawn or Game Over Screen logic here
     }
 }

@@ -9,7 +9,7 @@ public class charsetter : MonoBehaviour
     public static charsetter Instance { get; private set; }
 
     [Header("References")]
-    public AbilityUI[] abilityUI; // Assign your 4 UI Slot objects here
+    public AbilityUI[] abilityUI; // The 4 Hotbar UI Slot objects
     public PlayerAttack playerAttack;
 
     private Dictionary<Ability, float> abilityUsedTime = new Dictionary<Ability, float>();
@@ -32,6 +32,7 @@ public class charsetter : MonoBehaviour
 
     void Start()
     {
+        // Initial setup
         UpdateAbilityIcons();
         ForceChargeUIRefresh();
         uiInitialized = true;
@@ -43,38 +44,51 @@ public class charsetter : MonoBehaviour
         UpdateChargeUI();
     }
 
+    /// <summary>
+    /// Synchronizes the Hotbar icons with the current AbilityLoadout.
+    /// </summary>
     public void UpdateAbilityIcons()
     {
         if (AbilityLoadout.Instance == null) return;
 
         for (int i = 0; i < abilityUI.Length; i++)
         {
-            // --- SKIP EMPTY SLOTS ---
             if (abilityUI[i] == null) continue;
 
             Ability ability = AbilityLoadout.Instance.GetAbility(i);
 
             if (ability != null)
             {
+                // Set Main Icon
                 if (abilityUI[i].icon != null)
                 {
                     abilityUI[i].icon.sprite = ability.icon;
                     abilityUI[i].icon.enabled = true;
+                    // Reset fill for cooldowns
+                    abilityUI[i].icon.fillAmount = 0;
                 }
 
-                Image bg = abilityUI[i].transform.Find("Background")?.GetComponent<Image>();
-                if (bg != null)
+                // Set Background (if you use a blurry/shadow version of the icon)
+                Transform bgTransform = abilityUI[i].transform.Find("Background");
+                if (bgTransform != null && bgTransform.TryGetComponent(out Image bg))
                 {
                     bg.sprite = ability.icon;
                     bg.enabled = true;
                 }
 
+                // Track used time for internal logic
                 if (!abilityUsedTime.ContainsKey(ability))
                     abilityUsedTime[ability] = -Mathf.Infinity;
             }
             else
             {
-                if (abilityUI[i].icon != null) abilityUI[i].icon.enabled = false;
+                // Disable visuals if slot is empty
+                if (abilityUI[i].icon != null)
+                    abilityUI[i].icon.enabled = false;
+
+                Transform bgTransform = abilityUI[i].transform.Find("Background");
+                if (bgTransform != null && bgTransform.TryGetComponent(out Image bg))
+                    bg.enabled = false;
             }
         }
     }
@@ -91,29 +105,30 @@ public class charsetter : MonoBehaviour
 
         for (int i = 0; i < abilityUI.Length; i++)
         {
-            // --- SKIP EMPTY SLOTS ---
             if (abilityUI[i] == null) continue;
 
             Ability ability = AbilityLoadout.Instance.GetAbility(i);
             if (ability == null || abilityUI[i].icon == null) continue;
 
+            // Check the cooldown from PlayerAttack
             float nextFireTime = playerAttack.abilityCooldowns.ContainsKey(ability)
                 ? playerAttack.abilityCooldowns[ability]
                 : 0f;
 
             float remaining = Mathf.Clamp(nextFireTime - Time.time, 0f, ability.fireRate);
 
+            // fillAmount 1 = Cooldown Active, 0 = Ready
             abilityUI[i].icon.fillAmount = (ability.fireRate > 0) ? (remaining / ability.fireRate) : 0;
         }
     }
 
     // --- CHARGE / CHAIN UI LOGIC ---
+
     public void ForceChargeUIRefresh()
     {
         if (chargeText == null) return;
         lastChargeValue = -1;
 
-        // Note: Ensure chainController is a static class or accessible instance
         if (chainController.isUnlocked)
         {
             chargeText.enabled = true;

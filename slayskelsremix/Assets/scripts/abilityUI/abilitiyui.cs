@@ -1,14 +1,11 @@
 ﻿using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using System.Collections;
 
 public class AbilityUI : MonoBehaviour,
-    IBeginDragHandler,
-    IDragHandler,
-    IEndDragHandler,
-    IPointerClickHandler,
-    IPointerEnterHandler,
-    IPointerExitHandler
+    IBeginDragHandler, IDragHandler, IEndDragHandler,
+    IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
 {
     public Ability ability;
     public Image icon;
@@ -19,136 +16,92 @@ public class AbilityUI : MonoBehaviour,
     private Canvas canvas;
     private CanvasGroup canvasGroup;
 
-    // 🔥 GLOBAL FLAG TO PREVENT UI CONFLICTS
     public static bool IsHoveringAbility;
 
     void Awake()
     {
-        Debug.Log($"[AbilityUI] AWAKE -> {gameObject.name}");
-
         canvas = GetComponentInParent<Canvas>();
         canvasGroup = GetComponent<CanvasGroup>();
 
         if (icon != null && ability != null)
             icon.sprite = ability.icon;
-
-        if (ability == null)
-            Debug.LogError($"[AbilityUI] ❌ Missing ability on {gameObject.name}");
     }
 
-    void Start()
-    {
-        Debug.Log($"[AbilityUI] START -> {ability?.name}");
-    }
+    public void OnPointerEnter(PointerEventData eventData) => IsHoveringAbility = true;
 
-    // =========================
-    // HOVER ENTER
-    // =========================
-    public void OnPointerEnter(PointerEventData eventData)
-    {
-        IsHoveringAbility = true;
-
-        Debug.Log($"[AbilityUI] HOVER ENTER -> {ability?.name}");
-
-        if (ability == null)
-        {
-            Debug.LogWarning("[AbilityUI] Ability is NULL");
-            return;
-        }
-
-        Debug.Log($"[AbilityUI] DESCRIPTION: {ability.description}");
-    }
-
-    // =========================
-    // HOVER EXIT
-    // =========================
     public void OnPointerExit(PointerEventData eventData)
     {
         IsHoveringAbility = false;
 
-        Debug.Log($"[AbilityUI] HOVER EXIT -> {ability?.name}");
+        // Attempt to clear, but PerkManager will block this if we are dragging
+        PerkManager pm = Object.FindFirstObjectByType<PerkManager>();
+        if (pm != null) pm.ClearPerkDetails();
     }
 
-    // =========================
-    // CLICK
-    // =========================
     public void OnPointerClick(PointerEventData eventData)
     {
-        Debug.Log($"[AbilityUI] CLICK -> {ability?.name}");
-
         PerkManager pm = Object.FindFirstObjectByType<PerkManager>();
-
-        if (pm == null)
+        if (pm != null && ability != null && linkedPerk != null)
         {
-            Debug.LogWarning("[AbilityUI] PerkManager NOT FOUND");
-            return;
+            pm.SelectPerk(linkedPerk, ability);
         }
-
-        if (ability == null || linkedPerk == null)
-        {
-            Debug.LogWarning("[AbilityUI] Missing ability or perk");
-            return;
-        }
-
-        pm.SelectPerk(linkedPerk, ability);
     }
 
-    // =========================
-    // DRAG START
-    // =========================
     public void OnBeginDrag(PointerEventData eventData)
     {
-        Debug.Log($"[AbilityUI] DRAG START -> {ability?.name}");
+        if (linkedPerk != null && linkedPerk.Level <= 0) return;
 
-        if (linkedPerk != null && linkedPerk.Level <= 0)
-        {
-            Debug.LogWarning("[AbilityUI] Cannot drag (perk level too low)");
-            return;
-        }
-
+        // Set global dragging state
         DragState.IsDraggingAbility = true;
+
+        if (UIShaker.Instance != null)
+            UIShaker.Instance.ShakeUI(0.1f, 6f);
 
         if (ghostPrefab != null)
         {
             ghost = Instantiate(ghostPrefab.gameObject, canvas.transform);
-
-            if (icon != null)
-                ghost.GetComponent<Image>().sprite = icon.sprite;
+            if (icon != null) ghost.GetComponent<Image>().sprite = icon.sprite;
 
             ghost.transform.position = eventData.position;
 
-            Debug.Log("[AbilityUI] Ghost created");
+            // Start the size lerp effect
+            StartCoroutine(LerpGhostScale(ghost.transform, 0.85f, 0.15f));
         }
 
-        if (canvasGroup != null)
-            canvasGroup.blocksRaycasts = false;
+        if (canvasGroup != null) canvasGroup.blocksRaycasts = false;
     }
 
-    // =========================
-    // DRAGGING
-    // =========================
     public void OnDrag(PointerEventData eventData)
     {
-        if (ghost != null)
-            ghost.transform.position = eventData.position;
+        if (ghost != null) ghost.transform.position = eventData.position;
     }
 
-    // =========================
-    // DRAG END
-    // =========================
     public void OnEndDrag(PointerEventData eventData)
     {
-        Debug.Log($"[AbilityUI] DRAG END -> {ability?.name}");
-
+        // Reset state BEFORE calling clear
         DragState.IsDraggingAbility = false;
 
-        if (canvasGroup != null)
-            canvasGroup.blocksRaycasts = true;
+        if (canvasGroup != null) canvasGroup.blocksRaycasts = true;
+        if (ghost != null) Destroy(ghost);
 
-        if (ghost != null)
+        // Now that IsDraggingAbility is false, this call will finally succeed
+        PerkManager pm = Object.FindFirstObjectByType<PerkManager>();
+        if (pm != null) pm.ClearPerkDetails();
+    }
+
+    private IEnumerator LerpGhostScale(Transform target, float targetScale, float duration)
+    {
+        float time = 0;
+        Vector3 startScale = Vector3.one;
+        Vector3 endScale = new Vector3(targetScale, targetScale, 1f);
+
+        while (time < duration)
         {
-            Destroy(ghost);
-            Debug.Log("[AbilityUI] Ghost destroyed");
+            if (target == null) yield break;
+            target.localScale = Vector3.Lerp(startScale, endScale, time / duration);
+            time += Time.deltaTime;
+            yield return null;
         }
+        if (target != null) target.localScale = endScale;
     }
 }

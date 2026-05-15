@@ -19,62 +19,67 @@ public class npcJobBrain : MonoBehaviour
         target = null;
         description = "Wandering";
 
-        int woodCount = GetWoodCount();
+        // Find fires that need attention
+        CampfireBehav criticalFire = GetFireBelow(0.2f);
+        CampfireBehav maintenanceFire = GetFireBelow(0.8f);
 
-        // 1. SCAVENGING
-        PickupItem nearbyItem = GetClosestWoodPickup();
-        if (nearbyItem != null && woodCount < 20)
+        // Determine what fuel we care about right now based on the fire that needs it
+        CampfireBehav fireToHelp = criticalFire ?? maintenanceFire;
+        ItemData requiredFuel = fireToHelp != null ? fireToHelp.defaultFuelItem : null;
+
+        int fuelInInv = requiredFuel != null ? GetItemCount(requiredFuel.itemID) : 0;
+
+        // 1. SCAVENGING (Check ground for the specific fuel required)
+        if (requiredFuel != null)
         {
-            newState = NPCBrain.NPCState.Gathering;
-            target = nearbyItem.transform;
-            description = "Scavenging ground items";
-            Debug.Log($"<color=yellow>[Decision]</color> Found wood on ground. Priority: Scavenge.");
-            return;
+            PickupItem nearbyItem = GetClosestSpecificPickup(requiredFuel.itemID);
+            if (nearbyItem != null && fuelInInv < 20)
+            {
+                newState = NPCBrain.NPCState.Gathering;
+                target = nearbyItem.transform;
+                description = $"Scavenging {requiredFuel.itemName}";
+                return;
+            }
         }
 
         // 2. EMERGENCY REFUEL
-        CampfireBehav criticalFire = GetFireBelow(0.2f);
-        if (criticalFire != null)
+        if (criticalFire != null && requiredFuel != null)
         {
-            if (inventory.HasItem(mainBrain.woodItemID))
+            if (inventory.HasItem(requiredFuel.itemID))
             {
                 newState = NPCBrain.NPCState.Refueling;
                 target = criticalFire.transform;
-                description = "EMERGENCY: Refueling fire";
-                Debug.Log("<color=red>[Decision]</color> Fire is dying! Priority: Emergency Refuel.");
+                description = $"EMERGENCY: Refueling {requiredFuel.itemName}";
                 return;
             }
             else
             {
-                Transform chest = GetClosestChestWithWood();
+                Transform chest = GetClosestChestWithItem(requiredFuel.itemID);
                 if (chest != null)
                 {
                     newState = NPCBrain.NPCState.FetchingFromChest;
                     target = chest;
-                    description = "EMERGENCY: Fetching wood";
-                    Debug.Log("<color=red>[Decision]</color> Fire dying but I have no wood. Priority: Emergency Fetch.");
+                    description = $"EMERGENCY: Fetching {requiredFuel.itemName}";
                     return;
                 }
             }
         }
 
         // 3. MAINTENANCE FETCH
-        if (woodCount == 0 && FireNeedsFuel(mainBrain.maintenanceThreshold))
+        if (requiredFuel != null && fuelInInv == 0 && FireNeedsFuel(mainBrain.maintenanceThreshold))
         {
-            Transform chest = GetClosestChestWithWood();
+            Transform chest = GetClosestChestWithItem(requiredFuel.itemID);
             if (chest != null)
             {
                 newState = NPCBrain.NPCState.FetchingFromChest;
                 target = chest;
-                description = "Fetching wood supply";
-                Debug.Log("<color=orange>[Decision]</color> Fires need fuel soon. Priority: Maintenance Fetch.");
+                description = $"Fetching {requiredFuel.itemName} supply";
                 return;
             }
         }
 
-        // 4. REFUELING
-        CampfireBehav maintenanceFire = GetFireBelow(0.8f);
-        if (inventory.HasItem(mainBrain.woodItemID) && maintenanceFire != null)
+        // 4. REFUELING (Maintenance)
+        if (maintenanceFire != null && requiredFuel != null && inventory.HasItem(requiredFuel.itemID))
         {
             newState = NPCBrain.NPCState.Refueling;
             target = maintenanceFire.transform;
@@ -83,7 +88,9 @@ public class npcJobBrain : MonoBehaviour
         }
 
         // 5. STOWING
-        if (HasExtraItems() || (woodCount > 0 && maintenanceFire == null))
+        // Check if we have items that aren't the current required fuel
+        int currentRequiredID = requiredFuel != null ? requiredFuel.itemID : -1;
+        if (HasExtraItems(currentRequiredID) || (fuelInInv > 0 && maintenanceFire == null))
         {
             ChestInventory chest = GetClosest<ChestInventory>();
             if (chest != null)
@@ -95,8 +102,8 @@ public class npcJobBrain : MonoBehaviour
             }
         }
 
-        // 6. GATHERING
-        if (woodCount < 15)
+        // 6. GATHERING (If low on resources generally)
+        if (fuelInInv < 15)
         {
             ItemHealth resource = GetClosest<ItemHealth>();
             if (resource != null)
@@ -107,39 +114,52 @@ public class npcJobBrain : MonoBehaviour
                 return;
             }
         }
-
-        // 7. FALLBACK
     }
 
     // --- Helpers ---
-    private int GetWoodCount()
+    private int GetItemCount(int itemID)
     {
-        var slot = inventory.inventory.Find(s => s.item != null && s.item.itemID == mainBrain.woodItemID);
+        var slot = inventory.inventory.Find(s => s.item != null && s.item.itemID == itemID);
         return slot != null ? slot.count : 0;
     }
 
-    private bool HasExtraItems() => inventory.inventory.Exists(s => s.item != null && s.item.itemID != mainBrain.woodItemID);
+    private bool HasExtraItems(int currentFuelID)
+    {
+        // NPC has "extra" if inventory contains anything that isn't the item currently needed for refueling
+        return inventory.inventory.Exists(s => s.item != null && s.item.itemID != currentFuelID);
+    }
 
     private bool FireNeedsFuel(float pct)
     {
         CampfireBehav[] fires = Object.FindObjectsByType<CampfireBehav>(FindObjectsSortMode.None);
-        foreach (var f in fires) if (f.fuelAmount < (f.maxFuel * pct)) return true;
+        foreach (var f in fires)
+            if (f.fuelAmount < (f.maxFuel * pct)) return true;
         return false;
     }
 
     private CampfireBehav GetFireBelow(float pct)
     {
         CampfireBehav[] fires = Object.FindObjectsByType<CampfireBehav>(FindObjectsSortMode.None);
-        CampfireBehav worst = null; float low = float.MaxValue;
-        foreach (var f in fires) if (f.fuelAmount < (f.maxFuel * pct) && f.fuelAmount < low) { low = f.fuelAmount; worst = f; }
+        CampfireBehav worst = null;
+        float low = float.MaxValue;
+        foreach (var f in fires)
+        {
+            if (f.fuelAmount < (f.maxFuel * pct) && f.fuelAmount < low)
+            {
+                low = f.fuelAmount;
+                worst = f;
+            }
+        }
         return worst;
     }
 
-    private Transform GetClosestChestWithWood()
+    private Transform GetClosestChestWithItem(int itemID)
     {
         ChestInventory[] chests = Object.FindObjectsByType<ChestInventory>(FindObjectsSortMode.None);
-        float d = Mathf.Infinity; Transform best = null;
-        foreach (var c in chests) if (c.HasItem(mainBrain.woodItemID))
+        float d = Mathf.Infinity;
+        Transform best = null;
+        foreach (var c in chests)
+            if (c.HasItem(itemID))
             {
                 float dist = Vector2.Distance(transform.position, c.transform.position);
                 if (dist < d) { d = dist; best = c.transform; }
@@ -147,11 +167,13 @@ public class npcJobBrain : MonoBehaviour
         return best;
     }
 
-    private PickupItem GetClosestWoodPickup()
+    private PickupItem GetClosestSpecificPickup(int itemID)
     {
         PickupItem[] pickups = Object.FindObjectsByType<PickupItem>(FindObjectsSortMode.None);
-        float d = Mathf.Infinity; PickupItem best = null;
-        foreach (var p in pickups) if (p.GetItemData()?.itemID == mainBrain.woodItemID)
+        float d = Mathf.Infinity;
+        PickupItem best = null;
+        foreach (var p in pickups)
+            if (p.GetItemData()?.itemID == itemID)
             {
                 float dist = Vector2.Distance(transform.position, p.transform.position);
                 if (dist < d && dist < 15f) { d = dist; best = p; }
@@ -162,7 +184,8 @@ public class npcJobBrain : MonoBehaviour
     private T GetClosest<T>() where T : MonoBehaviour
     {
         T[] targets = Object.FindObjectsByType<T>(FindObjectsSortMode.None);
-        float d = Mathf.Infinity; T best = null;
+        float d = Mathf.Infinity;
+        T best = null;
         foreach (var t in targets)
         {
             float dist = Vector2.Distance(transform.position, t.transform.position);

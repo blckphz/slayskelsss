@@ -7,36 +7,35 @@ public class healthMaster : MonoBehaviour
     public float currentHealth;
 
     [Header("XP Reward")]
-    public int xpReward = 20;   // how much XP this object gives when it dies
+    public int xpReward = 20;
     public bool givesXP = true;
+
+    protected GameObject lastAttacker;
 
     protected virtual void Awake()
     {
         currentHealth = maxHealth;
     }
 
-    public virtual void TakeDamage(float amount)
+    public virtual void TakeDamage(float amount, GameObject attacker = null)
     {
+        if (attacker != null) lastAttacker = attacker;
+
         currentHealth -= amount;
         currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
 
-        if (currentHealth <= 0f)
-        {
-            Die();
-        }
+        if (currentHealth <= 0f) Die();
     }
+
     protected virtual void Die()
     {
-        if (givesXP)
+        if (givesXP && lastAttacker != null)
         {
-            LevelManager playerLevel = FindFirstObjectByType<LevelManager>();
-
-            if (playerLevel != null)
+            if (lastAttacker.TryGetComponent<LevelManager>(out LevelManager lm))
             {
-                playerLevel.AddXP(xpReward);
+                lm.AddXP(xpReward);
             }
         }
-
         Destroy(gameObject);
     }
 }

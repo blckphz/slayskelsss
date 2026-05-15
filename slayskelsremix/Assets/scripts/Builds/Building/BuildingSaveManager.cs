@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
-using UnityEngine.InputSystem;
 
 public class BuildingSaveManager : MonoBehaviour
 {
@@ -24,342 +23,141 @@ public class BuildingSaveManager : MonoBehaviour
     public class SaveData
     {
         public List<BuildingData> buildings = new List<BuildingData>();
-
-        // NPC INVENTORIES
-        public List<NpcInventorySaveData> npcInventories =
-            new List<NpcInventorySaveData>();
+        public List<NpcInventorySaveData> npcInventories = new List<NpcInventorySaveData>();
+        public List<BushSaveData> bushes = new List<BushSaveData>(); // New Bush List
     }
 
     public ItemDatabase database;
-
-    private List<GameObject> placedBuildings =
-        new List<GameObject>();
-
+    private List<GameObject> placedBuildings = new List<GameObject>();
     private string savePath;
 
     void Awake()
     {
-        if (Instance == null)
-            Instance = this;
-        else
-        {
-            Destroy(gameObject);
-            return;
-        }
+        if (Instance == null) Instance = this;
+        else { Destroy(gameObject); return; }
 
-        savePath =
-            Application.persistentDataPath +
-            "/buildings.json";
-
-        Debug.Log(
-            $"[SaveSystem] Save path: {savePath}"
-        );
-
-        LoadBuildings();
+        savePath = Application.persistentDataPath + "/buildings.json";
+        LoadEverything();
     }
 
     public void RegisterBuilding(GameObject obj)
     {
-        if (obj != null &&
-            !placedBuildings.Contains(obj))
-        {
+        if (obj != null && !placedBuildings.Contains(obj))
             placedBuildings.Add(obj);
-        }
     }
 
     public void UnregisterBuilding(GameObject obj)
     {
-        if (obj != null &&
-            placedBuildings.Contains(obj))
-        {
+        if (obj != null && placedBuildings.Contains(obj))
             placedBuildings.Remove(obj);
-        }
     }
 
     public void SaveNow()
     {
         SaveData data = new SaveData();
 
-        Debug.Log(
-            "<color=yellow>[SaveSystem] Starting Save Process...</color>"
-        );
-
-        // CLEAN BUILDING LIST
-        placedBuildings.RemoveAll(
-            item => item == null
-        );
-
-        // =========================
-        // SAVE BUILDINGS
-        // =========================
+        // 1. SAVE BUILDINGS
+        placedBuildings.RemoveAll(item => item == null);
         foreach (GameObject obj in placedBuildings)
         {
-            BuildingData b =
-                new BuildingData
-                {
-                    position =
-                        obj.transform.position
-                };
+            BuildingData b = new BuildingData { position = obj.transform.position };
 
-            if (obj.TryGetComponent(
-                out ISaveableBuilding saveable))
+            if (obj.TryGetComponent(out ISaveableBuilding saveable))
             {
-                b.itemID =
-                    saveable.GetItemID();
-
-                saveable.GetSaveData(
-                    out b.currentAmmo,
-                    out b.plantProgress
-                );
+                b.itemID = saveable.GetItemID();
+                saveable.GetSaveData(out b.currentAmmo, out b.plantProgress);
             }
-            else if (
-                obj.TryGetComponent(
-                    out BuildIdentity id
-                ) &&
-                id.item != null
-            )
+            else if (obj.TryGetComponent(out BuildIdentity id) && id.item != null)
             {
-                b.itemID =
-                    id.item.itemID;
-            }
-            else
-            {
-                Debug.LogWarning(
-                    $"[Save] Skipping {obj.name}: No save data found!"
-                );
-                continue;
+                b.itemID = id.item.itemID;
             }
 
-            // Campfire extra data
-            if (obj.TryGetComponent(
-                out CampfireBehav campfire))
+            if (obj.TryGetComponent(out CampfireBehav campfire))
             {
-                b.fuelAmount =
-                    campfire.fuelAmount;
-
-                b.isBurning =
-                    campfire.isBurning;
-
-                b.fuelItemID =
-                    campfire.fuelItem != null
-                        ? campfire.fuelItem.itemID
-                        : -1;
+                b.fuelAmount = campfire.fuelAmount;
+                b.isBurning = campfire.isBurning;
+                b.fuelItemID = campfire.fuelItem != null ? campfire.fuelItem.itemID : -1;
             }
-
             data.buildings.Add(b);
         }
 
-        Debug.Log(
-            $"[Save] Saved {data.buildings.Count} buildings."
-        );
-
-        // =========================
-        // SAVE NPC INVENTORIES
-        // =========================
-        NpcInvBrain[] npcs =
-            FindObjectsOfType<NpcInvBrain>();
-
-        Debug.Log(
-            $"[NPC Save] Found {npcs.Length} NPCs."
-        );
-
+        // 2. SAVE NPCs
+        NpcInvBrain[] npcs = FindObjectsOfType<NpcInvBrain>();
         foreach (NpcInvBrain npc in npcs)
         {
-            Debug.Log(
-                $"[NPC Save] Saving {npc.name} | npcId={npc.npcId}"
-            );
-
-            data.npcInventories.Add(
-                npc.GetSaveData()
-            );
+            data.npcInventories.Add(npc.GetSaveData());
         }
 
-        Debug.Log(
-            $"[NPC Save] Saved {data.npcInventories.Count} NPC inventories."
-        );
+        // 3. SAVE BUSHES
+        BushBehav[] sceneBushes = FindObjectsOfType<BushBehav>();
+        foreach (BushBehav bush in sceneBushes)
+        {
+            data.bushes.Add(new BushSaveData
+            {
+                bushID = bush.bushID,
+                isHarvested = bush.IsHarvested,
+                health = bush.health,
+                timeAtHarvest = bush.GetSaveData().timeAtHarvest 
+            });
+        }
 
-        // WRITE JSON
-        string json =
-            JsonUtility.ToJson(
-                data,
-                true
-            );
-
-        File.WriteAllText(
-            savePath,
-            json
-        );
-
-        Debug.Log(
-            "<color=green>[SaveSystem] Save complete.</color>"
-        );
+        string json = JsonUtility.ToJson(data, true);
+        File.WriteAllText(savePath, json);
     }
 
-    public void LoadBuildings()
+    public void LoadEverything()
     {
-        if (!File.Exists(savePath))
-        {
-            Debug.LogWarning(
-                "[Load] No save file found."
-            );
-            return;
-        }
+        if (!File.Exists(savePath)) return;
 
-        if (database == null)
-        {
-            Debug.LogError(
-                "[Load] ItemDatabase is NOT assigned!"
-            );
-            return;
-        }
+        string json = File.ReadAllText(savePath);
+        SaveData data = JsonUtility.FromJson<SaveData>(json);
 
-        string json =
-            File.ReadAllText(
-                savePath
-            );
-
-        SaveData data =
-            JsonUtility.FromJson<SaveData>(
-                json
-            );
-
-        Debug.Log(
-            $"[Load] Loading {data.buildings.Count} buildings."
-        );
-
-        // =========================
         // LOAD BUILDINGS
-        // =========================
         foreach (var b in data.buildings)
         {
-            ItemData item =
-                database.GetItemByID(
-                    b.itemID
-                );
+            ItemData item = database.GetItemByID(b.itemID);
+            if (item == null) continue;
 
-            if (item == null)
+            GameObject prefab = (item is buildSO bSO) ? bSO.placeablePrefab : (item is SeedSO sSO) ? sSO.plantPrefab : null;
+            if (prefab == null) continue;
+
+            GameObject obj = Instantiate(prefab, b.position, Quaternion.identity);
+            obj.name = prefab.name;
+
+            if (obj.TryGetComponent(out ISaveableBuilding saveable))
+                saveable.LoadSaveData(b.currentAmmo, b.plantProgress);
+
+            if (obj.TryGetComponent(out CampfireBehav campfire))
             {
-                Debug.LogError(
-                    $"[Load] Item ID {b.itemID} not found."
-                );
-                continue;
+                campfire.fuelAmount = b.fuelAmount;
+                campfire.isBurning = b.isBurning;
+                if (b.fuelItemID != -1) campfire.fuelItem = database.GetItemByID(b.fuelItemID);
+                campfire.SendMessage("UpdateVisuals", SendMessageOptions.DontRequireReceiver);
             }
-
-            GameObject prefab = null;
-
-            if (item is buildSO bSO)
-                prefab =
-                    bSO.placeablePrefab;
-            else if (
-                item is SeedSO sSO
-            )
-                prefab =
-                    sSO.plantPrefab;
-
-            if (prefab == null)
-            {
-                Debug.LogError(
-                    $"[Load] No prefab for {item.name}"
-                );
-                continue;
-            }
-
-            GameObject obj =
-                Instantiate(
-                    prefab,
-                    b.position,
-                    Quaternion.identity
-                );
-
-            obj.name =
-                prefab.name;
-
-            // Restore interface data
-            if (obj.TryGetComponent(
-                out ISaveableBuilding saveable))
-            {
-                saveable.LoadSaveData(
-                    b.currentAmmo,
-                    b.plantProgress
-                );
-            }
-
-            // Restore campfire
-            if (obj.TryGetComponent(
-                out CampfireBehav campfire))
-            {
-                campfire.fuelAmount =
-                    b.fuelAmount;
-
-                campfire.isBurning =
-                    b.isBurning;
-
-                if (
-                    b.fuelItemID != -1
-                )
-                {
-                    campfire.fuelItem =
-                        database.GetItemByID(
-                            b.fuelItemID
-                        );
-                }
-
-                campfire.SendMessage(
-                    "UpdateVisuals",
-                    SendMessageOptions
-                        .DontRequireReceiver
-                );
-            }
-
-            RegisterBuilding(
-                obj
-            );
+            RegisterBuilding(obj);
         }
 
-        // =========================
-        // LOAD NPC INVENTORIES
-        // =========================
-        NpcInvBrain[] npcs =
-            FindObjectsOfType<NpcInvBrain>();
-
-        Debug.Log(
-            $"[NPC Load] Found {npcs.Length} NPCs."
-        );
-
-        foreach (NpcInvBrain npc in npcs)
+        // LOAD NPCs
+        NpcInvBrain[] sceneNpcs = FindObjectsOfType<NpcInvBrain>();
+        foreach (NpcInvBrain npc in sceneNpcs)
         {
-            var npcSave =
-                data.npcInventories.Find(
-                    x =>
-                        x.npcId ==
-                        npc.npcId
-                );
-
-            if (npcSave == null)
-            {
-                Debug.LogWarning(
-                    $"[NPC Load] No save found for {npc.name} ({npc.npcId})"
-                );
-                continue;
-            }
-
-            Debug.Log(
-                $"[NPC Load] Loading {npc.name} ({npc.npcId})"
-            );
-
-            npc.LoadFromSave(
-                npcSave,
-                database
-            );
+            var npcSave = data.npcInventories.Find(x => x.npcId == npc.npcId);
+            if (npcSave != null) npc.LoadFromSave(npcSave, database);
         }
 
-        Debug.Log(
-            "<color=green>[Load] Finished loading.</color>"
-        );
+        // LOAD BUSHES
+        BushBehav[] sceneBushes = FindObjectsOfType<BushBehav>();
+        foreach (BushBehav bush in sceneBushes)
+        {
+            var bushSave = data.bushes.Find(x => x.bushID == bush.bushID);
+            if (bushSave != null) bush.LoadData(bushSave);
+        }
     }
 
     public void SaveAfterChange()
     {
+        // Calling the main save logic
         SaveNow();
     }
+
 }

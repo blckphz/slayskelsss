@@ -6,7 +6,6 @@ public class NPCBrain : MonoBehaviour
     public enum NPCState { Idle, Gathering, FetchingFromChest, Refueling, Stowing, Wandering }
 
     [Header("Configuration")]
-    public int woodItemID = 1;
     public float interactDistance = 1.5f; // Increased slightly for reliability
     public float actionCooldown = 1.0f;
     public float wanderRadius = 7f;
@@ -209,7 +208,7 @@ public class NPCBrain : MonoBehaviour
         for (int i = 0; i < chest.chestItems.Count; i++)
         {
             var slot = chest.chestItems[i];
-            if (slot.item != null && slot.item.itemID == woodItemID)
+            if (slot.item != null)
             {
                 int toTake = Mathf.Min(slot.count, 10);
                 inventory.AddItem(slot.item, toTake);

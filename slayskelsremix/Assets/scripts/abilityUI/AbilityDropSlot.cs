@@ -1,34 +1,39 @@
 ﻿using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using System.Collections;
 
 public class AbilityDropSlot : MonoBehaviour,
-    IDropHandler,
-    IPointerEnterHandler,
-    IPointerExitHandler,
-    IPointerClickHandler
+    IDropHandler, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler,
+    IBeginDragHandler, IDragHandler, IEndDragHandler
 {
     public int slotIndex;
 
-    [Header("UI")]
+    [Header("UI References")]
     public Image slotIcon;
     public Image slotBackground;
+    public GameObject ghostPrefab;
 
+    [Tooltip("Drag the Spellbook/Ability Menu GameObject here")]
+    public GameObject spellbookWindow;
+
+    public Ability currentAbility;
     private bool isHovered;
+    private GameObject ghost;
+    private Canvas canvas;
+
+    void Awake() => canvas = GetComponentInParent<Canvas>();
 
     void Update()
     {
         if (slotBackground == null) return;
 
-        if (DragState.IsDraggingAbility)
+        bool canDrag = spellbookWindow != null && spellbookWindow.activeInHierarchy;
+
+        if (DragState.IsDraggingAbility && canDrag)
         {
             slotBackground.enabled = true;
-
-            // 🖤 hovered slot darker
-            if (isHovered)
-                slotBackground.color = new Color(0f, 0f, 0f, 0.6f);
-            else
-                slotBackground.color = new Color(1f, 1f, 1f, 0.3f);
+            slotBackground.color = isHovered ? new Color(0f, 0f, 0f, 0.6f) : new Color(1f, 1f, 1f, 0.3f);
         }
         else
         {
@@ -36,91 +41,150 @@ public class AbilityDropSlot : MonoBehaviour,
         }
     }
 
-    // 🟩 hover enter
-    public void OnPointerEnter(PointerEventData eventData)
+    public void OnBeginDrag(PointerEventData eventData)
     {
-        isHovered = true;
+        if (spellbookWindow == null || !spellbookWindow.activeInHierarchy) return;
+        if (currentAbility == null) return;
+
+        if (UIShaker.Instance != null) UIShaker.Instance.ShakeUI(0.1f, 5f);
+
+        DragState.IsDraggingAbility = true;
+
+        if (ghostPrefab != null)
+        {
+            ghost = Instantiate(ghostPrefab, canvas.transform);
+            if (ghost.TryGetComponent<Image>(out var ghostImg))
+                ghostImg.sprite = currentAbility.icon;
+
+            CanvasGroup group = ghost.GetComponent<CanvasGroup>();
+            if (group == null) group = ghost.AddComponent<CanvasGroup>();
+            group.blocksRaycasts = false;
+
+            ghost.transform.position = eventData.position;
+            StartCoroutine(LerpGhostScale(ghost.transform, 0.85f, 0.15f));
+        }
+
+        if (slotIcon != null) slotIcon.color = new Color(1, 1, 1, 0.5f);
     }
 
-    // 🟥 hover exit
-    public void OnPointerExit(PointerEventData eventData)
+    public void OnDrag(PointerEventData eventData)
     {
-        isHovered = false;
+        if (ghost != null) ghost.transform.position = eventData.position;
     }
 
-    // 💥 drop
+    public void OnEndDrag(PointerEventData eventData)
+    {
+        DragState.IsDraggingAbility = false;
+        if (ghost != null) Destroy(ghost);
+        if (slotIcon != null) slotIcon.color = Color.white;
+
+        // FIXED: Clear text when drag ends
+        PerkManager pm = Object.FindFirstObjectByType<PerkManager>();
+        if (pm != null) pm.ClearPerkDetails();
+    }
+
     public void OnDrop(PointerEventData eventData)
     {
+        if (spellbookWindow == null || !spellbookWindow.activeInHierarchy) return;
         if (eventData.pointerDrag == null) return;
 
-        AbilityUI dragged = eventData.pointerDrag.GetComponent<AbilityUI>();
-        if (dragged == null || dragged.ability == null) return;
+        AbilityUI draggedFromBook = eventData.pointerDrag.GetComponent<AbilityUI>();
+        AbilityDropSlot draggedFromOtherSlot = eventData.pointerDrag.GetComponent<AbilityDropSlot>();
 
-        if (AbilityLoadout.Instance == null) return;
+        bool success = false;
 
-        // 🔒 unlock check
-        if (AbilityUnlocks.Instance != null &&
-            !AbilityUnlocks.Instance.IsUnlocked(dragged.ability))
+        if (draggedFromOtherSlot != null)
         {
-            Debug.LogWarning("[Drop] Locked ability");
-            return;
+            if (draggedFromOtherSlot == this) return;
+
+            Ability incoming = draggedFromOtherSlot.currentAbility;
+            Ability outgoing = this.currentAbility;
+
+            AbilityLoadout.Instance.SetAbility(this.slotIndex, incoming);
+            AbilityLoadout.Instance.SetAbility(draggedFromOtherSlot.slotIndex, outgoing);
+            success = true;
         }
-
-        // 🚫 duplicate check
-        for (int i = 0; i < AbilityLoadout.Instance.equippedAbilities.Length; i++)
+        else if (draggedFromBook != null)
         {
-            if (i == slotIndex) continue;
+            Ability newAbility = draggedFromBook.ability;
+            if (newAbility == null) return;
 
-            if (AbilityLoadout.Instance.equippedAbilities[i] == dragged.ability)
+            for (int i = 0; i < AbilityLoadout.Instance.equippedAbilities.Length; i++)
             {
-                Debug.LogWarning("[Drop] Already equipped");
-                return;
+                if (i != slotIndex && AbilityLoadout.Instance.equippedAbilities[i] == newAbility)
+                {
+                    AbilityLoadout.Instance.SetAbility(i, null);
+                }
             }
+            AbilityLoadout.Instance.SetAbility(slotIndex, newAbility);
+            success = true;
         }
 
-        AbilityLoadout.Instance.SetAbility(slotIndex, dragged.ability);
-        UpdateSlotUI(dragged.ability);
+        if (success && UIShaker.Instance != null)
+            UIShaker.Instance.ShakeUI(0.15f, 12f);
 
         isHovered = false;
     }
 
-    // 🖱️ RIGHT CLICK REMOVE
     public void OnPointerClick(PointerEventData eventData)
     {
-        if (eventData.button != PointerEventData.InputButton.Right)
-            return;
+        if (spellbookWindow == null || !spellbookWindow.activeInHierarchy) return;
 
-        RemoveAbility();
-    }
-
-    private void RemoveAbility()
-    {
-        if (AbilityLoadout.Instance == null) return;
-
-        AbilityLoadout.Instance.SetAbility(slotIndex, null);
-
-        if (slotIcon != null)
+        if (eventData.button == PointerEventData.InputButton.Right)
         {
-            slotIcon.sprite = null;
-            slotIcon.enabled = false;
-        }
+            if (currentAbility != null)
+            {
+                if (UIShaker.Instance != null)
+                    UIShaker.Instance.ShakeUI(0.12f, 8f);
 
-        Debug.Log($"[Slot] Removed ability from slot {slotIndex}");
+                AbilityLoadout.Instance.SetAbility(slotIndex, null);
+            }
+        }
     }
 
-    private void UpdateSlotUI(Ability ability)
+    public void UpdateSlotUI(Ability ability)
     {
+        currentAbility = ability;
+        if (slotIcon == null) return;
+
         if (ability == null)
         {
-            if (slotIcon != null)
-                slotIcon.enabled = false;
-            return;
+            slotIcon.enabled = false;
         }
-
-        if (slotIcon != null)
+        else
         {
             slotIcon.sprite = ability.icon;
             slotIcon.enabled = true;
         }
+    }
+
+    public void OnPointerEnter(PointerEventData eventData) => isHovered = true;
+
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        isHovered = false;
+
+        // FIXED: Only clear if we aren't dragging.
+        if (!DragState.IsDraggingAbility)
+        {
+            PerkManager pm = Object.FindFirstObjectByType<PerkManager>();
+            if (pm != null) pm.ClearPerkDetails();
+        }
+    }
+
+    private IEnumerator LerpGhostScale(Transform target, float targetScale, float duration)
+    {
+        float time = 0;
+        Vector3 startScale = Vector3.one;
+        Vector3 endScale = new Vector3(targetScale, targetScale, 1f);
+
+        while (time < duration)
+        {
+            if (target == null) yield break;
+            target.localScale = Vector3.Lerp(startScale, endScale, time / duration);
+            time += Time.deltaTime;
+            yield return null;
+        }
+        if (target != null) target.localScale = endScale;
     }
 }

@@ -9,6 +9,10 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
     public float health = 50f;
     protected float maxHealth;
 
+    [Header("XP Reward")]
+    public bool givesXP = true;
+    public int xpReward = 15;
+
     [Header("Loot (Base)")]
     public GameObject lootPrefab;
     public int dropAmount = 3;
@@ -58,10 +62,26 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
 
     public virtual void ApplySlow(float slowPercent, float duration, float tickDmg, float tickInterval)
     {
-        // Default: Do nothing (Static items don't move)
+        // Default: Do nothing (Static items like trees don't move)
     }
 
     public bool IsSlowed => false;
+
+    // ---------------- XP LOGIC ----------------
+
+    protected virtual void GrantXP()
+    {
+        // Find the player's LevelManager. 
+        // Note: Ensure your Player object has the "Player" Tag in the Inspector.
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        if (player != null)
+        {
+            if (player.TryGetComponent<LevelManager>(out LevelManager lm))
+            {
+                lm.AddXP(xpReward);
+            }
+        }
+    }
 
     // ---------------- FLASH ----------------
 
@@ -126,12 +146,20 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
 
     // ---------------- DEATH ----------------
 
-    // Trees use a fall sequence, but a crate might just explode. 
-    // Making this virtual let's us change the behavior per item.
     protected virtual void Die()
     {
+        // Notify any systems that this object was destroyed
         NPCGlobalEvents.NotifyDestroyed(gameObject.GetInstanceID());
+
+        // Reset shader
         UpdateShaderFloat(hitIntensityName, 0f);
+
+        // Grant XP if enabled
+        if (givesXP)
+        {
+            GrantXP();
+        }
+
         SpawnLoot();
         Destroy(gameObject);
     }

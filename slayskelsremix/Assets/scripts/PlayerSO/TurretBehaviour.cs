@@ -139,7 +139,6 @@ public partial class TurretBehaviour : MonoBehaviour
         if (ActiveTurrets.Contains(this))
         {
             ActiveTurrets.Remove(this);
-            Debug.Log($"<color=yellow>[Turret]</color> Removed. Count: {ActiveTurrets.Count}");
         }
 
         gameObject.SetActive(false);

@@ -22,7 +22,6 @@ public class DayNightCycle : MonoBehaviour
 
     void Start()
     {
-        Debug.Log("[DayNightCycle] Starting...");
         LoadGame();
     }
 
@@ -45,7 +44,6 @@ public class DayNightCycle : MonoBehaviour
             _rawTime -= 1f;
             DaysPassed++;
 
-            Debug.Log($"[DayNightCycle] New Day Started! Days Passed: {DaysPassed}");
         }
     }
 
@@ -70,7 +68,7 @@ public class DayNightCycle : MonoBehaviour
             int hours = Mathf.FloorToInt(_rawTime * 24f);
             int minutes = Mathf.FloorToInt((_rawTime * 24f - hours) * 60f);
 
-            timeText.text = $"Day {DaysPassed + 1}\n{hours:00}:{minutes:00}";
+            timeText.text = $"Day {DaysPassed + 1}";
         }
     }
 

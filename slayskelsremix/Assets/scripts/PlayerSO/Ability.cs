@@ -8,7 +8,7 @@ public abstract class Ability : ScriptableObject
     public AudioClip launchsound;
     public float fireRate = 0.2f;
     public GameObject prefab;
-  
+ 
 
 
 
