@@ -17,15 +17,6 @@ public class UseableItem : ItemData
             return false;
         }
 
-        // 🔥 pass target awareness into ability system
-        bool success = abilityToExecute.Execute(caster, targetAnchor, true);
-
-        if (!success)
-        {
-            Debug.Log("[Item System] Ability failed to execute.");
-            return false;
-        }
-
         return true;
     }
 }

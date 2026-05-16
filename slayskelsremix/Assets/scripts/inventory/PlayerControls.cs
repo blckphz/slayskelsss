@@ -270,7 +270,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""initialStateCheck"": true
                 },
                 {
-                    ""name"": ""Use"",
+                    ""name"": ""PrimaryItemUse"",
                     ""type"": ""Button"",
                     ""id"": ""eb89bdd8-4988-4545-bdd6-1e61040b9451"",
                     ""expectedControlType"": """",
@@ -413,7 +413,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""Use"",
+                    ""action"": ""PrimaryItemUse"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -431,7 +431,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                 {
                     ""name"": """",
                     ""id"": ""43b0d4e7-5a58-4946-814f-3b8e68f3144c"",
-                    ""path"": ""<Keyboard>/e"",
+                    ""path"": ""<Mouse>/leftButton"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
@@ -442,7 +442,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                 {
                     ""name"": """",
                     ""id"": ""d7d1c2a9-87ec-4f57-98e7-d8a620e37adc"",
-                    ""path"": ""<Keyboard>/r"",
+                    ""path"": ""<Mouse>/rightButton"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
@@ -468,7 +468,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         // Player
         m_Player = asset.FindActionMap("Player", throwIfNotFound: true);
         m_Player_Hotbar = m_Player.FindAction("Hotbar", throwIfNotFound: true);
-        m_Player_Use = m_Player.FindAction("Use", throwIfNotFound: true);
+        m_Player_PrimaryItemUse = m_Player.FindAction("PrimaryItemUse", throwIfNotFound: true);
         m_Player_Scroll = m_Player.FindAction("Scroll", throwIfNotFound: true);
         m_Player_UseHotkey = m_Player.FindAction("UseHotkey", throwIfNotFound: true);
         m_Player_SecondaryItemUse = m_Player.FindAction("SecondaryItemUse", throwIfNotFound: true);
@@ -727,7 +727,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
     private readonly InputActionMap m_Player;
     private List<IPlayerActions> m_PlayerActionsCallbackInterfaces = new List<IPlayerActions>();
     private readonly InputAction m_Player_Hotbar;
-    private readonly InputAction m_Player_Use;
+    private readonly InputAction m_Player_PrimaryItemUse;
     private readonly InputAction m_Player_Scroll;
     private readonly InputAction m_Player_UseHotkey;
     private readonly InputAction m_Player_SecondaryItemUse;
@@ -747,9 +747,9 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         /// </summary>
         public InputAction @Hotbar => m_Wrapper.m_Player_Hotbar;
         /// <summary>
-        /// Provides access to the underlying input action "Player/Use".
+        /// Provides access to the underlying input action "Player/PrimaryItemUse".
         /// </summary>
-        public InputAction @Use => m_Wrapper.m_Player_Use;
+        public InputAction @PrimaryItemUse => m_Wrapper.m_Player_PrimaryItemUse;
         /// <summary>
         /// Provides access to the underlying input action "Player/Scroll".
         /// </summary>
@@ -791,9 +791,9 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @Hotbar.started += instance.OnHotbar;
             @Hotbar.performed += instance.OnHotbar;
             @Hotbar.canceled += instance.OnHotbar;
-            @Use.started += instance.OnUse;
-            @Use.performed += instance.OnUse;
-            @Use.canceled += instance.OnUse;
+            @PrimaryItemUse.started += instance.OnPrimaryItemUse;
+            @PrimaryItemUse.performed += instance.OnPrimaryItemUse;
+            @PrimaryItemUse.canceled += instance.OnPrimaryItemUse;
             @Scroll.started += instance.OnScroll;
             @Scroll.performed += instance.OnScroll;
             @Scroll.canceled += instance.OnScroll;
@@ -817,9 +817,9 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @Hotbar.started -= instance.OnHotbar;
             @Hotbar.performed -= instance.OnHotbar;
             @Hotbar.canceled -= instance.OnHotbar;
-            @Use.started -= instance.OnUse;
-            @Use.performed -= instance.OnUse;
-            @Use.canceled -= instance.OnUse;
+            @PrimaryItemUse.started -= instance.OnPrimaryItemUse;
+            @PrimaryItemUse.performed -= instance.OnPrimaryItemUse;
+            @PrimaryItemUse.canceled -= instance.OnPrimaryItemUse;
             @Scroll.started -= instance.OnScroll;
             @Scroll.performed -= instance.OnScroll;
             @Scroll.canceled -= instance.OnScroll;
@@ -941,12 +941,12 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnHotbar(InputAction.CallbackContext context);
         /// <summary>
-        /// Method invoked when associated input action "Use" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// Method invoked when associated input action "PrimaryItemUse" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
         /// </summary>
         /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
-        void OnUse(InputAction.CallbackContext context);
+        void OnPrimaryItemUse(InputAction.CallbackContext context);
         /// <summary>
         /// Method invoked when associated input action "Scroll" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
         /// </summary>

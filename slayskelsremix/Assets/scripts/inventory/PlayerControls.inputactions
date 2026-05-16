@@ -184,7 +184,7 @@
                     "initialStateCheck": true
                 },
                 {
-                    "name": "Use",
+                    "name": "PrimaryItemUse",
                     "type": "Button",
                     "id": "eb89bdd8-4988-4545-bdd6-1e61040b9451",
                     "expectedControlType": "",
@@ -327,7 +327,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Use",
+                    "action": "PrimaryItemUse",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -345,7 +345,7 @@
                 {
                     "name": "",
                     "id": "43b0d4e7-5a58-4946-814f-3b8e68f3144c",
-                    "path": "<Keyboard>/e",
+                    "path": "<Mouse>/leftButton",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -356,7 +356,7 @@
                 {
                     "name": "",
                     "id": "d7d1c2a9-87ec-4f57-98e7-d8a620e37adc",
-                    "path": "<Keyboard>/r",
+                    "path": "<Mouse>/rightButton",
                     "interactions": "",
                     "processors": "",
                     "groups": "",

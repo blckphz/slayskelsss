@@ -1,0 +1,22 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 771ce3d21dff6744ab8438dc21d9992f, type: 3}
+  m_Name: NewShowel
+  m_EditorClassIdentifier: Assembly-CSharp::UseableItem
+  itemID: 2049
+  itemName: Shovel
+  icon: {fileID: 21300000, guid: a571bd13890e8084ea06db7f8e53fe97, type: 3}
+  itemType: 2
+  maxStackSize: 99
+  isUsable: 1
+  consumeAmount: 0
+  abilityToExecute: {fileID: 11400000, guid: c90ff37560feacf4d968b1faffd14316, type: 2}
