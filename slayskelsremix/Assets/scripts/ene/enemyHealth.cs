@@ -94,7 +94,15 @@ public class enemyHealth : healthMaster, IDamageable
         _flashCoroutine = StartCoroutine(FlashEffect());
     }
 
-    // This implementation satisfies the new IDamageable interface tool overload
+    // NEW OVERLOAD: Satisfies the newly updated IDamageable interface contract!
+    public void TakeDamage(float damage, ToolType toolType, ItemData toolItem)
+    {
+        // Redirects to our main TakeDamage logic. Tool payloads are ignored for standard combat units.
+        // If you ever want tools to deal extra damage to specific enemies, you can check 'toolType' here!
+        TakeDamage(damage, null);
+    }
+
+    // This implementation satisfies the IDamageable interface tool overload
     public void TakeDamage(float damage, ToolType toolType)
     {
         // Redirects to our main TakeDamage logic, tool type is ignored for standard enemies

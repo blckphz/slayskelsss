@@ -3,68 +3,29 @@ using UnityEngine.UI;
 using TMPro;
 using UnityEngine.EventSystems;
 
-public class InventorySlotUI : MonoBehaviour,
-    IBeginDragHandler, IDragHandler, IEndDragHandler, IDropHandler, IPointerClickHandler
+public class InventorySlotUI : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler, IDropHandler
 {
     [Header("UI Elements")]
     public Image icon;
-    public TextMeshProUGUI amountText;
+    public TextMeshProUGUI countText;
+    public Slider durabilitySlider;
+    public Image durabilityFill;
     public Image dragPreviewIcon;
 
-    private ItemData currentItem;
-    private Ability currentAbility;
-    private int currentCount;
+    [Header("Runtime State")]
+    [SerializeField] private ItemData currentItem;
+    [SerializeField] private Ability currentAbility;
+    [SerializeField] private int currentCount;
+    [SerializeField] private float currentDurability;
 
-    // =========================
-    // CLICK INTERACTION
-    // =========================
-    public void OnPointerClick(PointerEventData eventData)
-    {
-        if (currentItem == null || eventData.dragging) return;
+    public bool IsEmpty => currentItem == null && currentAbility == null;
 
-        // Campfire Deposit
-        if (CampfireUI.Instance != null && CampfireUI.Instance.CurrentCampfire != null)
-        {
-            CampfireBehav fire = CampfireUI.Instance.CurrentCampfire;
-            if (fire.fuelItem == null || fire.fuelItem.itemID == currentItem.itemID)
-            {
-                int amount = (eventData.button == PointerEventData.InputButton.Left) ? 1 : currentCount;
-                int added = fire.AddFuel(currentItem, amount);
-                if (added > 0)
-                {
-                    UpdateCount(-added);
-                    if (!fire.isBurning) fire.Ignite();
-                    InvUI.Instance?.SyncToInventory();
-                    PlayerHotbarManager.Instance?.SyncHotbarToData();
-                    return;
-                }
-            }
-        }
-
-        // Chest Interaction
-        ChestInventory chest = ChestUI.Instance != null ? ChestUI.Instance.GetCurrentChest() : null;
-        if (chest != null)
-        {
-            int amountToMove = (eventData.button == PointerEventData.InputButton.Left) ? currentCount : 1;
-            int actual = Mathf.Min(amountToMove, currentCount);
-            if (chest.AddItem(currentItem, actual))
-            {
-                UpdateCount(-actual);
-                ChestUI.Instance.Refresh();
-                InvUI.Instance?.SyncToInventory();
-                PlayerHotbarManager.Instance?.SyncHotbarToData();
-            }
-        }
-    }
-
-    // =========================
-    // SET SLOT
-    // =========================
-    public void SetSlot(ItemData item, Ability ability, int count)
+    public void SetSlot(ItemData item, Ability ability, int count, float durability)
     {
         currentItem = item;
         currentAbility = ability;
         currentCount = count;
+        currentDurability = durability;
 
         if (item == null && ability == null)
         {
@@ -78,27 +39,14 @@ public class InventorySlotUI : MonoBehaviour,
             icon.enabled = true;
             icon.color = Color.white;
         }
-        RefreshUI();
+
+        UpdateSlotVisualElements();
     }
 
-    public void UpdateCount(int amount)
+    public void SetSlot(ItemData item, Ability ability, int count)
     {
-        currentCount += amount;
-        if (currentCount <= 0) ClearSlot();
-        else RefreshUI();
-        PlayerHotbarManager.Instance?.SyncHotbarToData();
-    }
-
-    private void RefreshUI()
-    {
-        if (amountText != null)
-        {
-            amountText.text = (currentItem != null && currentCount > 1) ? currentCount.ToString() : "";
-        }
-        if (icon != null)
-        {
-            icon.color = (currentItem != null || currentAbility != null) ? Color.white : new Color(1, 1, 1, 0);
-        }
+        float targetDurability = (item != null) ? item.maxDurability : 0f;
+        SetSlot(item, ability, count, targetDurability);
     }
 
     public void ClearSlot()
@@ -106,30 +54,79 @@ public class InventorySlotUI : MonoBehaviour,
         currentItem = null;
         currentAbility = null;
         currentCount = 0;
-        if (icon != null) { icon.enabled = false; icon.color = new Color(1, 1, 1, 0); }
-        if (amountText != null) amountText.text = "";
+        currentDurability = 0f;
+
+        if (icon != null)
+        {
+            icon.sprite = null;
+            icon.enabled = false;
+        }
+
+        if (countText != null) countText.enabled = false;
+        if (durabilitySlider != null) durabilitySlider.gameObject.SetActive(false);
     }
 
-    // =========================
-    // GETTERS
-    // =========================
-    public ItemData GetItem() => currentItem;
-    public Ability GetAbility() => currentAbility;
-    public int GetCount() => currentCount;
+    private void UpdateSlotVisualElements()
+    {
+        if (countText != null)
+        {
+            if (currentCount > 1)
+            {
+                countText.text = currentCount.ToString();
+                countText.enabled = true;
+            }
+            else
+            {
+                countText.enabled = false;
+            }
+        }
 
-    // =========================
-    // DRAG SYSTEM
-    // =========================
+        if (durabilitySlider != null)
+        {
+            if (currentItem != null && currentItem.maxDurability > 0)
+            {
+                durabilitySlider.gameObject.SetActive(true);
+                durabilitySlider.maxValue = currentItem.maxDurability;
+                durabilitySlider.value = currentDurability;
+
+                if (durabilityFill != null)
+                {
+                    float percentage = currentDurability / currentItem.maxDurability;
+                    durabilityFill.color = Color.Lerp(Color.red, Color.green, percentage);
+                }
+            }
+            else
+            {
+                durabilitySlider.gameObject.SetActive(false);
+            }
+        }
+    }
+
+    // ==========================================
+    // DRAG AND DROP HANDLERS
+    // ==========================================
+
     public void OnBeginDrag(PointerEventData eventData)
     {
-        if (currentItem == null && currentAbility == null) return;
-        if (dragPreviewIcon != null) { dragPreviewIcon.sprite = icon.sprite; dragPreviewIcon.enabled = true; }
+        if (IsEmpty) return;
+
+        if (dragPreviewIcon != null)
+        {
+            dragPreviewIcon.sprite = icon.sprite;
+            dragPreviewIcon.enabled = true;
+            dragPreviewIcon.raycastTarget = false;
+            dragPreviewIcon.transform.position = eventData.position;
+        }
+
         if (icon != null) icon.color = new Color(1, 1, 1, 0.5f);
     }
 
     public void OnDrag(PointerEventData eventData)
     {
-        if (dragPreviewIcon != null) dragPreviewIcon.transform.position = eventData.position;
+        if (dragPreviewIcon != null && dragPreviewIcon.enabled)
+        {
+            dragPreviewIcon.transform.position = eventData.position;
+        }
     }
 
     public void OnEndDrag(PointerEventData eventData)
@@ -140,38 +137,80 @@ public class InventorySlotUI : MonoBehaviour,
 
     public void OnDrop(PointerEventData eventData)
     {
-        InventorySlotUI dragged = eventData.pointerDrag?.GetComponent<InventorySlotUI>();
+        if (eventData.pointerDrag == null) return;
 
-        if (dragged != null && dragged != this)
+        // -------------------------------------------------------------
+        // CONDITION 1: DROPPING FROM CHEST TO PLAYER INVENTORY
+        // -------------------------------------------------------------
+        ChestSlotUI chestSlot = eventData.pointerDrag.GetComponent<ChestSlotUI>() ?? eventData.pointerDrag.GetComponentInParent<ChestSlotUI>();
+
+        if (chestSlot != null)
         {
-            ItemData draggedItem = dragged.GetItem();
-            Ability draggedAbility = dragged.GetAbility();
-            int draggedCount = dragged.GetCount();
-
-            // Check if we should merge stacks
-            bool isSameItem = draggedItem != null && currentItem != null && draggedItem.itemID == currentItem.itemID;
-
-            if (isSameItem)
+            if (chestSlot.GetItem() != null)
             {
-                // MERGE: Add dragged count to this slot and clear the original
-                UpdateCount(draggedCount);
-                dragged.ClearSlot();
+                ItemData incomingItem = chestSlot.GetItem();
+                int incomingCount = chestSlot.GetCount();
+                float incomingDurability = chestSlot.GetDurability();
+
+                ChestInventory currentChest = ChestUI.Instance != null ? ChestUI.Instance.GetCurrentChest() : null;
+
+                if (currentChest != null)
+                {
+                    InventoryManager.Instance.AddItem(incomingItem, incomingCount, incomingDurability);
+                    currentChest.RemoveItem(incomingItem, incomingCount);
+
+                    chestSlot.ClearSlot();
+
+                    ChestUI.Instance.Refresh();
+                    if (InvUI.Instance != null) InvUI.Instance.RefreshUI();
+                    if (PlayerHotbarManager.Instance != null) PlayerHotbarManager.Instance.RefreshHotbar();
+                }
             }
-            else
+            return; // Finished action sequence
+        }
+
+        // -------------------------------------------------------------
+        // CONDITION 2: DROPPING FROM PLAYER SLOT TO ANOTHER PLAYER SLOT (SWAPPING)
+        // -------------------------------------------------------------
+        InventorySlotUI sourcePlayerSlot = eventData.pointerDrag.GetComponent<InventorySlotUI>() ?? eventData.pointerDrag.GetComponentInParent<InventorySlotUI>();
+
+        if (sourcePlayerSlot != null && sourcePlayerSlot != this) // Don't drop on yourself!
+        {
+            // Cache our current destination data
+            ItemData targetItem = this.currentItem;
+            Ability targetAbility = this.currentAbility;
+            int targetCount = this.currentCount;
+            float targetDurability = this.currentDurability;
+
+            // Cache incoming source data
+            ItemData sourceItem = sourcePlayerSlot.GetItem();
+            Ability sourceAbility = sourcePlayerSlot.GetAbility();
+            int sourceCount = sourcePlayerSlot.GetCount();
+            float sourceDurability = sourcePlayerSlot.GetDurability();
+
+            // Perform the visual/state swap between the two slots
+            this.SetSlot(sourceItem, sourceAbility, sourceCount, sourceDurability);
+            sourcePlayerSlot.SetSlot(targetItem, targetAbility, targetCount, targetDurability);
+
+            // Tell your UI components to save state changes back down to the model layer
+            if (InvUI.Instance != null)
             {
-                // SWAP: Standard exchange of data
-                ItemData tempItem = currentItem;
-                Ability tempAbility = currentAbility;
-                int tempCount = currentCount;
-
-                SetSlot(draggedItem, draggedAbility, draggedCount);
-                dragged.SetSlot(tempItem, tempAbility, tempCount);
+                InvUI.Instance.SyncToInventory(); // Ensures underlying runtime list matches the new layout
+                InvUI.Instance.RefreshUI();
             }
-
-            // Sync and Save changes
-            InvUI.Instance?.SyncToInventory();
-            PlayerHotbarManager.Instance?.SyncHotbarToData();
-            InventoryManager.Instance?.SaveInventory();
+            if (PlayerHotbarManager.Instance != null)
+            {
+                PlayerHotbarManager.Instance.SyncHotbarToData();
+                PlayerHotbarManager.Instance.RefreshHotbar();
+            }
         }
     }
+
+    // ==========================================
+    // DATA LAYER GETTERS
+    // ==========================================
+    public ItemData GetItem() => currentItem;
+    public Ability GetAbility() => currentAbility;
+    public int GetCount() => currentCount;
+    public float GetDurability() => currentDurability;
 }

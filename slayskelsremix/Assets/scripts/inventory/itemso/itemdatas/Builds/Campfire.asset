@@ -17,8 +17,9 @@ MonoBehaviour:
   icon: {fileID: 21300000, guid: 45f0f074f93e39a4f87057f409867c96, type: 3}
   itemType: 1
   maxStackSize: 99
-  isUsable: 1
+  isUsable: 0
   consumeAmount: 1
+  maxDurability: 0
   placeablePrefab: {fileID: 7554350650681072654, guid: 3930914dcb859aa468d831cfae01edfb, type: 3}
   size: {x: 4, y: 1}
-  placementSound: {fileID: 0}
+  placementSound: {fileID: 8300000, guid: 516a69b0c85ebbf48b7eba6994cbebd1, type: 3}

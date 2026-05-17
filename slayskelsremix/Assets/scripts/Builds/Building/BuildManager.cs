@@ -266,7 +266,6 @@ public class BuildManager : MonoBehaviour
         }
 
         List<Collider2D> obstacles = ghost.GetObstacles();
-        Debug.Log($"[BuildManager Check] Checking collision metrics. Obstacles count: {obstacles.Count}");
 
         foreach (var hit in obstacles)
         {

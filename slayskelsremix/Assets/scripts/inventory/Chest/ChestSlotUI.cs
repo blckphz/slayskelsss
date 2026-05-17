@@ -11,11 +11,13 @@ public class ChestSlotUI : MonoBehaviour, IPointerClickHandler, IBeginDragHandle
 
     private ItemData currentItem;
     private int currentCount;
+    private float currentDurability;
 
-    public void SetSlot(ItemData item, int count)
+    public void SetSlot(ItemData item, int count, float durability = -1f)
     {
         currentItem = item;
         currentCount = count;
+        currentDurability = (durability < 0 && item != null) ? item.maxDurability : durability;
 
         if (item == null || count <= 0)
         {
@@ -32,6 +34,7 @@ public class ChestSlotUI : MonoBehaviour, IPointerClickHandler, IBeginDragHandle
     {
         currentItem = null;
         currentCount = 0;
+        currentDurability = 0f;
 
         if (icon != null)
         {
@@ -43,13 +46,13 @@ public class ChestSlotUI : MonoBehaviour, IPointerClickHandler, IBeginDragHandle
 
     public ItemData GetItem() => currentItem;
     public int GetCount() => currentCount;
+    public float GetDurability() => currentDurability;
 
     // --- CLICK TO TRANSFER (CHEST -> PLAYER) ---
     public void OnPointerClick(PointerEventData eventData)
     {
         if (currentItem == null || eventData.dragging) return;
 
-        // Left Click: Transfer Stack | Right Click: Transfer 1
         if (eventData.button == PointerEventData.InputButton.Left)
         {
             TransferToPlayer(currentCount);
@@ -67,15 +70,15 @@ public class ChestSlotUI : MonoBehaviour, IPointerClickHandler, IBeginDragHandle
 
         int amountToMove = Mathf.Min(amount, currentCount);
 
-        // Add to player inventory
-        InventoryManager.Instance.AddItem(currentItem, amountToMove);
+        // 👈 FIXED: Removed the extra 'null' parameter to fit standard 3-parameter AddItem layouts 
+        // (ItemData, int, float)
+        InventoryManager.Instance.AddItem(currentItem, amountToMove, currentDurability);
 
-        // Remove from chest inventory
         chest.RemoveItem(currentItem, amountToMove);
 
-        // Refresh both UI panels
         ChestUI.Instance.Refresh();
         if (InvUI.Instance != null) InvUI.Instance.RefreshUI();
+        if (PlayerHotbarManager.Instance != null) PlayerHotbarManager.Instance.RefreshHotbar();
     }
 
     // --- DRAG AND DROP LOGIC ---
@@ -89,12 +92,16 @@ public class ChestSlotUI : MonoBehaviour, IPointerClickHandler, IBeginDragHandle
             dragPreviewIcon.enabled = true;
             dragPreviewIcon.raycastTarget = false;
         }
+
         if (icon != null) icon.color = new Color(1, 1, 1, 0.5f);
     }
 
     public void OnDrag(PointerEventData eventData)
     {
-        if (dragPreviewIcon != null) dragPreviewIcon.transform.position = eventData.position;
+        if (dragPreviewIcon != null)
+        {
+            dragPreviewIcon.transform.position = eventData.position;
+        }
     }
 
     public void OnEndDrag(PointerEventData eventData)
@@ -105,21 +112,32 @@ public class ChestSlotUI : MonoBehaviour, IPointerClickHandler, IBeginDragHandle
 
     public void OnDrop(PointerEventData eventData)
     {
-        // Handle Item dropped FROM Player Inventory INTO Chest
         InventorySlotUI playerSlot = eventData.pointerDrag?.GetComponent<InventorySlotUI>();
+
+        if (playerSlot == null && eventData.pointerDrag != null)
+        {
+            playerSlot = eventData.pointerDrag.GetComponentInParent<InventorySlotUI>();
+        }
+
         if (playerSlot != null && playerSlot.GetItem() != null)
         {
             ItemData item = playerSlot.GetItem();
             int count = playerSlot.GetCount();
+            float itemDurability = playerSlot.GetDurability();
 
             ChestInventory chest = ChestUI.Instance.GetCurrentChest();
             if (chest != null)
             {
-                if (chest.AddItem(item, count))
+                if (chest.AddItem(item, count, itemDurability))
                 {
                     InventoryManager.Instance.RemoveItem(item, count);
+
+                    if (InvUI.Instance != null) InvUI.Instance.SyncToInventory();
+                    if (PlayerHotbarManager.Instance != null) PlayerHotbarManager.Instance.SyncHotbarToData();
+
                     ChestUI.Instance.Refresh();
-                    InvUI.Instance.RefreshUI();
+                    if (InvUI.Instance != null) InvUI.Instance.RefreshUI();
+                    if (PlayerHotbarManager.Instance != null) PlayerHotbarManager.Instance.RefreshHotbar();
                 }
             }
         }

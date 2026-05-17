@@ -23,17 +23,11 @@ public class ChestInventory : MonoBehaviour, IInteractable
         Invoke(nameof(LoadChest), 0.1f);
     }
 
-    // ==========================================================
-    // 1. FIX FOR InteractionManager (IsEmpty)
-    // ==========================================================
     public bool IsEmpty()
     {
         return chestItems == null || chestItems.Count == 0;
     }
 
-    // ==========================================================
-    // 2. FIX FOR ChestSlotUI (RemoveItem)
-    // ==========================================================
     public bool RemoveItem(ItemData item, int amount)
     {
         for (int i = 0; i < chestItems.Count; i++)
@@ -52,15 +46,11 @@ public class ChestInventory : MonoBehaviour, IInteractable
         return false;
     }
 
-    // ==========================================================
-    // 3. NPC UTILITY METHODS
-    // ==========================================================
     public bool HasItem(int itemID)
     {
         return chestItems.Exists(slot => slot.item != null && slot.item.itemID == itemID && slot.count > 0);
     }
 
-    // Used by NPCBrain to take items by specific index
     public void RemoveItemAtIndex(int index, int amount)
     {
         if (index >= 0 && index < chestItems.Count)
@@ -74,9 +64,6 @@ public class ChestInventory : MonoBehaviour, IInteractable
         }
     }
 
-    // ==========================================================
-    // 4. EXISTING INTERFACES & LOGIC
-    // ==========================================================
     public void Interact(InventoryManager playerInventory)
     {
         if (ChestUI.Instance != null && ChestUI.Instance.GetCurrentChest() == this) CloseChest();
@@ -89,14 +76,15 @@ public class ChestInventory : MonoBehaviour, IInteractable
     public void OpenChest() => ChestUI.Instance?.Open(this);
     public void CloseChest() { SaveChest(); ChestUI.Instance?.Close(); }
 
-    public bool AddItem(ItemData item, int amount)
+    public bool AddItem(ItemData item, int amount, float durability = -1f)
     {
         if (item == null) return false;
 
         bool found = false;
+
         foreach (var slot in chestItems)
         {
-            if (slot.item == item)
+            if (slot.item == item && Mathf.Approximately(slot.durability, durability))
             {
                 slot.count += amount;
                 found = true;
@@ -107,7 +95,7 @@ public class ChestInventory : MonoBehaviour, IInteractable
         if (!found)
         {
             if (chestItems.Count >= maxSlots) return false;
-            chestItems.Add(new ChestSlot(item, amount));
+            chestItems.Add(new ChestSlot(item, amount, durability));
         }
 
         SaveChest();
@@ -126,7 +114,13 @@ public class ChestInventory : MonoBehaviour, IInteractable
         foreach (var slot in chestItems)
         {
             if (slot.item != null)
-                data.savedItems.Add(new SaveSlot { itemId = slot.item.itemID, count = slot.count });
+            {
+                SaveSlot newSave = new SaveSlot();
+                newSave.itemId = slot.item.itemID;
+                newSave.count = slot.count;
+                newSave.currentDurability = slot.durability; // 👈 FIXED: Uses your exact SaveSlot variable name
+                data.savedItems.Add(newSave);
+            }
         }
         File.WriteAllText(savePath, JsonUtility.ToJson(data, true));
     }
@@ -141,7 +135,7 @@ public class ChestInventory : MonoBehaviour, IInteractable
         foreach (var s in data.savedItems)
         {
             ItemData item = db.GetItemByID(s.itemId);
-            if (item != null) chestItems.Add(new ChestSlot(item, s.count));
+            if (item != null) chestItems.Add(new ChestSlot(item, s.count, s.currentDurability)); // 👈 FIXED: Matches your exact SaveSlot variable name
         }
     }
 }

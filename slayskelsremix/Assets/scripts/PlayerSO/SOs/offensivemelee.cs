@@ -3,7 +3,6 @@
 [CreateAssetMenu(fileName = "NewMeleeAbility", menuName = "Abilities/Melee")]
 public class offensivemelee : offensiveability
 {
-    // 🔥 Enum for owner detection
     public enum SwingOwner
     {
         Player,
@@ -23,86 +22,32 @@ public class offensivemelee : offensiveability
 
     public virtual float GetBonusDamage() => 0f;
 
-    // Runtime state (per instance)
-    [Header("Runtime Debug View")]
-    [SerializeField] private int swingIndex;
-    [SerializeField] private float nextSwingTime;
-    [SerializeField] private bool isActive;
-
-    private void OnEnable()
-    {
-        ResetMeleeState();
-    }
-
     public void ResetMeleeState()
     {
-        isActive = false;
-        swingIndex = 0;
-        nextSwingTime = 0f;
+        // Left intentionally blank to preserve dependencies on external controllers safely.
     }
 
     public override bool Execute(Transform caster, Transform targetAnchor, bool isHolding)
     {
-        if (caster == null)
-        {
-            return false;
-        }
+        if (caster == null) return false;
 
+        // Determine if player or enemy is casting
         SwingOwner owner = caster.GetComponent<PlayerAttack>() != null
             ? SwingOwner.Player
             : SwingOwner.NPC;
 
-        // 1. Handle Combo Initialization
-        if (isHolding && !isActive)
-        {
-            isActive = true;
-            swingIndex = 0;
-            nextSwingTime = Time.time;
-        }
+        if (!isHolding) return false;
 
-        // 2. Handle Button Release / Stop Execution
-        if (!isHolding)
-        {
-            if (isActive)
-            {
-                ResetMeleeState();
-            }
-            return false;
-        }
+        int currentSwingIndex = 0;
 
-        // 3. Gatekeeper Diagnostics
-        if (!isActive)
-        {
-            return false;
-        }
-
-        if (Time.time < nextSwingTime)
-        {
-            return false;
-        }
-
-        // 4. Proceed to swing execution
-        PerformSwing(caster, targetAnchor, swingIndex, owner);
-
-        swingIndex++;
-        nextSwingTime = Time.time + swingFreq;
-
-        // 5. Handle Combo Completion
-        if (swingIndex >= maxSwings)
-        {
-            ResetMeleeState();
-            return true;
-        }
+        PerformSwing(caster, targetAnchor, currentSwingIndex, owner);
 
         return true;
     }
 
-    private void PerformSwing(Transform caster, Transform targetAnchor, int index, SwingOwner owner)
+    public void PerformSwing(Transform caster, Transform targetAnchor, int index, SwingOwner owner)
     {
-        if (prefab == null || ObjectPooler.Instance == null)
-        {
-            return;
-        }
+        if (prefab == null || ObjectPooler.Instance == null) return;
 
         Vector3 targetPos = targetAnchor != null
             ? targetAnchor.position
@@ -114,7 +59,6 @@ public class offensivemelee : offensiveability
             ? new Vector2(Mathf.Sign(dir.x), 0)
             : new Vector2(0, Mathf.Sign(dir.y));
 
-        // Calculate offset locally relative to caster
         Vector3 localSpawnOffset = (Vector3)(snappedDir * spawnOffset);
         Vector3 globalSpawnPos = caster.position + localSpawnOffset;
 
@@ -126,19 +70,12 @@ public class offensivemelee : offensiveability
             Quaternion.Euler(0, 0, angle)
         );
 
-        if (woosh == null)
-        {
-            return;
-        }
+        if (woosh == null) return;
 
-        if (!woosh.activeInHierarchy)
-        {
-            woosh.SetActive(true);
-        }
+        if (!woosh.activeInHierarchy) woosh.SetActive(true);
 
         float bonus = owner == SwingOwner.Player ? GetBonusDamage() : 0f;
 
-        // Determine tool type: Use the ToolsSO property if this asset is a tool, otherwise fallback to Axe/Default
         ToolType activeTool = ToolType.Axe;
         if (this is ToolsSO toolAbility)
         {
@@ -151,6 +88,7 @@ public class offensivemelee : offensiveability
             behav.Setup(damage, bonus, index, owner, caster, localSpawnOffset, activeTool);
         }
 
+        // Only handle cosmetic updates here on swing execution. No durability updates!
         if (owner == SwingOwner.Player && CameraShaker.Instance != null)
         {
             CameraShaker.Instance.Shake(0.15f, 0.1f);

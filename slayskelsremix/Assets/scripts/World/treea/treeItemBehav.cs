@@ -59,7 +59,23 @@ public class treeItemBehav : ItemHealth
         }
     }
 
-    // 🟢 OVERRIDE: intercepts calculation to inject the extra tool damage modifier
+    // NEW OVERLOAD: Intercepts calculation to inject tool damage, checking dynamic item asset values
+    public override void TakeDamage(float damage, ToolType usedTool, ItemData toolItem)
+    {
+        if (isDead) return;
+
+        float finalDamage = damage;
+
+        if (usedTool == effectiveTool)
+        {
+            finalDamage += axeBonusDamage;
+        }
+
+        // Forwards final calculations, tool identifiers, AND item asset properties to base context
+        base.TakeDamage(finalDamage, usedTool, toolItem);
+    }
+
+    // Intercepts calculation to inject extra tool damage without specific item asset context
     public override void TakeDamage(float damage, ToolType usedTool)
     {
         if (isDead) return;
@@ -71,7 +87,7 @@ public class treeItemBehav : ItemHealth
             finalDamage += axeBonusDamage;
         }
 
-        base.TakeDamage(finalDamage);
+        base.TakeDamage(finalDamage, usedTool);
     }
 
     public override void TakeDamage(float damage)
@@ -81,13 +97,26 @@ public class treeItemBehav : ItemHealth
         base.TakeDamage(damage);
     }
 
-    protected override void Die()
+    // Overridden setup processing death conditions with tool checks
+    protected override void Die(ToolType killerTool)
     {
         if (isDead) return;
         isDead = true;
 
         NPCGlobalEvents.NotifyDestroyed(gameObject.GetInstanceID());
-        StartCoroutine(FallSequence());
+
+        if (givesXP) GrantXP();
+
+        // Check if the finishing tool used matches the required harvest tool
+        bool killedWithCorrectTool = (killerTool == effectiveTool);
+
+        StartCoroutine(FallSequence(killedWithCorrectTool));
+    }
+
+    // Fallback requirement for base implementation rules
+    protected override void Die()
+    {
+        Die(ToolType.None);
     }
 
     private void SpawnStumpOnly()
@@ -101,7 +130,7 @@ public class treeItemBehav : ItemHealth
         Destroy(gameObject);
     }
 
-    private IEnumerator FallSequence()
+    private IEnumerator FallSequence(bool bonusLoot)
     {
         if (bottomPrefab != null)
         {
@@ -129,18 +158,29 @@ public class treeItemBehav : ItemHealth
         if (top != null)
         {
             yield return StartCoroutine(RotateTop(top.transform, dir));
-            SpawnLoot();
+
+            // Runs custom specialized wood production calculation
+            SpawnTreeLoot(bonusLoot);
             Destroy(top);
         }
 
         Destroy(gameObject);
     }
 
-    public override void SpawnLoot()
+    // Dedicated tree resource controller managing tool dynamic additions
+    private void SpawnTreeLoot(bool bonusLoot)
     {
         if (woodPrefab != null)
         {
+            // Base generation drop rules (Randomly yields 2 or 3 resources)
             int amount = Random.Range(2, 4);
+
+            // Conditional extra item injection step
+            if (bonusLoot)
+            {
+                amount += correctToolUsageBonus;
+            }
+
             for (int i = 0; i < amount; i++)
             {
                 GameObject loot = Instantiate(woodPrefab, transform.position + (Vector3)Random.insideUnitCircle * 0.5f, Quaternion.identity);
@@ -153,6 +193,12 @@ public class treeItemBehav : ItemHealth
         }
     }
 
+    // Satisfies abstract declaration needs while directing processes correctly
+    public override void SpawnLoot()
+    {
+        SpawnTreeLoot(false);
+    }
+
     private Vector2 GetFallDirection()
     {
         if (player == null) return Vector2.right;
@@ -162,11 +208,7 @@ public class treeItemBehav : ItemHealth
     private IEnumerator RotateTop(Transform top, Vector2 dir)
     {
         float progress = 0f;
-        Quaternion startRot = top.rotation;
-        float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
-        Quaternion endRot = Quaternion.Euler(0, 0, angle - 90f);
-        Vector3 startPos = top.position;
-        Vector3 endPos = startPos + (Vector3)(dir * fallDistance);
+        RulesRotate(top, dir, out Quaternion startRot, out Quaternion endRot, out Vector3 startPos, out Vector3 endPos);
 
         while (progress < 1f)
         {
@@ -180,13 +222,22 @@ public class treeItemBehav : ItemHealth
         if (topSR != null) yield return StartCoroutine(FadeOut(topSR));
     }
 
+    private void RulesRotate(Transform top, Vector2 dir, out Quaternion startRot, out Quaternion endRot, out Vector3 startPos, out Vector3 endPos)
+    {
+        startRot = top.rotation;
+        float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+        endRot = Quaternion.Euler(0, 0, angle - 90f);
+        startPos = top.position;
+        endPos = startPos + (Vector3)(dir * fallDistance);
+    }
+
     private IEnumerator FadeOut(SpriteRenderer sr)
     {
         Color col = sr.color;
         float elapsed = 0f;
         while (elapsed < fadeDuration)
         {
-            elapsed += Time.deltaTime; // Fixed your original script line here which was tracking 'allowed'
+            elapsed += Time.deltaTime;
             sr.color = new Color(col.r, col.g, col.b, Mathf.Lerp(1f, 0f, elapsed / fadeDuration));
             yield return null;
         }

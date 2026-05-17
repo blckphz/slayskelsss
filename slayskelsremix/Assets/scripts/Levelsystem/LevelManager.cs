@@ -41,7 +41,6 @@ public class LevelManager : MonoBehaviour
     public void AddXP(int amount)
     {
         currentXP += amount;
-        Debug.Log($"{gameObject.name} gained {amount} XP!");
 
         while (currentXP >= xpToNextLevel)
         {

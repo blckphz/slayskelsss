@@ -9,24 +9,23 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8ff8f9e65ec154a4abb624f34ee02c96, type: 3}
-  m_Name: ShowelSO
-  m_EditorClassIdentifier: Assembly-CSharp::ShowelSO
-  abilityName: Showel
-  description: showel
-  icon: {fileID: 21300000, guid: a571bd13890e8084ea06db7f8e53fe97, type: 3}
+  m_Script: {fileID: 11500000, guid: 19fbd775e67f5da46b34110845dff521, type: 3}
+  m_Name: Axe
+  m_EditorClassIdentifier: Assembly-CSharp::ToolsSO
+  abilityName: axe
+  description: 
+  icon: {fileID: 21300000, guid: 24f0328ae85823e4593ed8ac8c5bf864, type: 3}
   launchsound: {fileID: 0}
-  fireRate: 1.13
+  fireRate: 0.4
   isOnCooldown: 0
   prefab: {fileID: 233725004081931323, guid: 49947f31aaae6ec46b59d342ab70058a, type: 3}
-  damage: 5
-  customAudioLogic: 1
+  damage: 10
+  customAudioLogic: 0
   maxSwings: 2
-  swingFreq: 0.31
+  swingFreq: 0.2
   spawnOffset: 1.5
   rotationOffset: 90
   swingIndex: 1
-  nextSwingTime: 80.3375
+  nextSwingTime: 23.431807
   isActive: 1
-  toolType: 4
-  holeBuild: {fileID: 11400000, guid: 058c1c778993d494c8ff4b1f4dd93b48, type: 2}
+  toolType: 2

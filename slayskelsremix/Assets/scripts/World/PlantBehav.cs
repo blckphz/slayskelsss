@@ -12,6 +12,7 @@ public class PlantBehav : MonoBehaviour, ISaveableBuilding
     [Header("Live Stats (Saved)")]
     public int growthStage = 0;
     public float growthProgress = 0f;
+    public int currentDurability = 100; // Optional: internal health if plants can be destroyed
 
     private SpriteRenderer sr;
 
@@ -36,7 +37,6 @@ public class PlantBehav : MonoBehaviour, ISaveableBuilding
             growthProgress -= growTimePerStage;
             growthStage++;
 
-
             UpdateVisuals();
 
             // Auto-save when plant changes
@@ -44,36 +44,39 @@ public class PlantBehav : MonoBehaviour, ISaveableBuilding
         }
     }
 
-    // =========================
-    // SAVE SYSTEM
-    // =========================
+    // ==========================================
+    // SAVE SYSTEM (INTERFACE IMPLEMENTATION)
+    // ==========================================
 
     public int GetItemID()
     {
-        return seedData.itemID;
+        return seedData != null ? seedData.itemID : -1;
     }
 
-    public void GetSaveData(out int ammo, out float progress)
+    public void GetSaveData(out int ammo, out float progress, out int durability)
     {
-        // Save growth stage
+        // Save growth stage into the "ammo" slot
         ammo = growthStage;
 
         // Save partial growth progress
         progress = growthProgress;
+
+        // Satisfy interface signature: Use currentDurability or pass a 0 fallback
+        durability = currentDurability;
     }
 
-    public void LoadSaveData(int savedStage, float savedProgress)
+    public void LoadSaveData(int savedStage, float savedProgress, int savedDurability)
     {
         growthStage = savedStage;
         growthProgress = savedProgress;
+        currentDurability = savedDurability;
 
         UpdateVisuals();
-
     }
 
-    // =========================
+    // ==========================================
     // VISUALS
-    // =========================
+    // ==========================================
 
     private void UpdateVisuals()
     {
@@ -88,9 +91,9 @@ public class PlantBehav : MonoBehaviour, ISaveableBuilding
         }
     }
 
-    // =========================
+    // ==========================================
     // CLEANUP
-    // =========================
+    // ==========================================
 
     private void OnDestroy()
     {

@@ -14,7 +14,13 @@ public class ItemData : ScriptableObject
     public bool isUsable = true;
     public int consumeAmount = 1;
 
-    // 🔥 MUST return success/failure
+    [Tooltip("Set to 0 if the item is unbreakable (e.g., resources or basic consumables)")]
+    public int maxDurability;
+
+    [Tooltip("The current runtime durability of this specific tool instance")]
+    public float currentDurability; // Added to support your durability logging!
+
+    // Returns true if the action successfully executed
     public virtual bool Use(Transform caster, Transform targetAnchor, GameObject target)
     {
         return true;

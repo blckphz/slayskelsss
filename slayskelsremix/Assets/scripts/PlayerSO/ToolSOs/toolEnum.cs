@@ -6,5 +6,5 @@ public enum ToolType
     Pickaxe,
     Axe,
     Sickle,
-    stick
+    None
 }

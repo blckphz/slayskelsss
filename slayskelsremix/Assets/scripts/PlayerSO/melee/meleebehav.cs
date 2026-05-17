@@ -92,8 +92,16 @@ public class meleebehav : MonoBehaviour
             if (target.IsSlowed)
                 finalDamage += bonusDamage;
 
-            // Pass both the damage and the associated tool type to the target system
-            target.TakeDamage(finalDamage, associatedTool);
+            // 1. Fetch the active runtime tool data if the player swung the attack
+            ItemData currentToolItem = null;
+            if (owner == offensivemelee.SwingOwner.Player && PlayerHotbarManager.Instance != null)
+            {
+                currentToolItem = PlayerHotbarManager.Instance.GetSelectedItem();
+            }
+
+            // 2. CRITICAL FIX: Pass the item asset along with damage calculations and tool types
+            target.TakeDamage(finalDamage, associatedTool, currentToolItem);
+
             hitEnemies.Add(target);
 
             if (owner == offensivemelee.SwingOwner.Player && CameraShaker.Instance != null)

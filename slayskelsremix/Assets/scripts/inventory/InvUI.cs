@@ -1,5 +1,5 @@
-﻿using UnityEngine;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 public class InvUI : MonoBehaviour
 {
@@ -42,8 +42,8 @@ public class InvUI : MonoBehaviour
             if (i < inv.Count)
             {
                 // Set the UI slot to match the data list
-                // Main inventory usually doesn't show abilities, so we pass null
-                slots[i].SetSlot(inv[i].item, null, inv[i].count);
+                // Main inventory now explicitly tracks and passes floating-point item durability stats 
+                slots[i].SetSlot(inv[i].item, null, inv[i].count, inv[i].currentDurability);
             }
             else
             {
@@ -67,11 +67,12 @@ public class InvUI : MonoBehaviour
         {
             ItemData item = slot.GetItem();
             int count = slot.GetCount();
+            float durability = slot.GetDurability(); // 👈 Fixed: Captures the float cleanly without casting errors
 
             if (item != null && count > 0)
             {
                 inventoryManager.inventory.Add(
-                    new InventoryManager.InventorySlot(item, count)
+                    new InventoryManager.InventorySlot(item, count, durability)
                 );
             }
         }
