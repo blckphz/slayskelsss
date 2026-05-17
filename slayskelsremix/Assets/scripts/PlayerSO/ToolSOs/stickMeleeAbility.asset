@@ -16,11 +16,17 @@ MonoBehaviour:
   description: sticky
   icon: {fileID: 21300000, guid: 6187cefa0ca226948b6a46b18df2c5b9, type: 3}
   launchsound: {fileID: 0}
-  fireRate: 0.2
+  fireRate: 2.2
+  isOnCooldown: 0
   prefab: {fileID: 233725004081931323, guid: 49947f31aaae6ec46b59d342ab70058a, type: 3}
   damage: 2
+  weaponToolType: 4
   customAudioLogic: 1
   maxSwings: 3
   swingFreq: 0.2
   spawnOffset: 1.5
   rotationOffset: 90
+  swingIndex: 0
+  nextSwingTime: 0
+  isActive: 0
+  tooltype: 0

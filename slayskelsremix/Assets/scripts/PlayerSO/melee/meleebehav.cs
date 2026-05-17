@@ -15,6 +15,7 @@ public class meleebehav : MonoBehaviour
     private bool chargeConsumedThisSwing = false;
 
     private offensivemelee.SwingOwner owner;
+    private ToolType associatedTool; // Clear reference tracker variable
 
     private void Awake()
     {
@@ -22,18 +23,24 @@ public class meleebehav : MonoBehaviour
         prefabScale = transform.localScale;
     }
 
-    // 🔥 NOW RECEIVES OWNER
-    public void Setup(float dmg, float bDmg, int swingIndex, offensivemelee.SwingOwner swingOwner)
+    public void Setup(float dmg, float bDmg, int swingIndex, offensivemelee.SwingOwner swingOwner, Transform parentTransform, Vector3 localOffset, ToolType toolType)
     {
         damage = dmg;
         bonusDamage = bDmg;
         owner = swingOwner;
+        associatedTool = toolType;
 
         hitEnemies.Clear();
         chargeConsumedThisSwing = false;
 
+        // Attach to parent & apply local tracking offset
+        if (parentTransform != null)
+        {
+            transform.SetParent(parentTransform);
+            transform.localPosition = localOffset;
+        }
 
-        // ⚔️ CHARGE CONSUMPTION ONLY FOR PLAYER
+        // Charge consumption only for player
         if (owner == offensivemelee.SwingOwner.Player)
         {
             if (chainController.isUnlocked)
@@ -41,8 +48,6 @@ public class meleebehav : MonoBehaviour
                 if (chainController.hitCounter > 0)
                 {
                     chainController.hitCounter--;
-
-
                     chargeConsumedThisSwing = true;
                 }
             }
@@ -79,7 +84,6 @@ public class meleebehav : MonoBehaviour
         {
             float finalDamage = damage;
 
-            // Bonus Damage Logic
             if (chainController.isUnlocked)
             {
                 finalDamage += chainController.staticBonusDmg;
@@ -88,11 +92,10 @@ public class meleebehav : MonoBehaviour
             if (target.IsSlowed)
                 finalDamage += bonusDamage;
 
-            target.TakeDamage(finalDamage);
+            // Pass both the damage and the associated tool type to the target system
+            target.TakeDamage(finalDamage, associatedTool);
             hitEnemies.Add(target);
 
-            // --- SCREEN SHAKE ON IMPACT ---
-            // Only shake if the owner is the player and the shaker exists
             if (owner == offensivemelee.SwingOwner.Player && CameraShaker.Instance != null)
             {
                 CameraShaker.Instance.Shake(0.35f, 0.12f);
@@ -122,7 +125,6 @@ public class meleebehav : MonoBehaviour
     void Deactivate()
     {
         transform.localScale = prefabScale;
-        transform.SetParent(null);
         gameObject.SetActive(false);
     }
 }

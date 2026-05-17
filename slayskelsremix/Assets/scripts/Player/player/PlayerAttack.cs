@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections; // 🔥 Added for IEnumerator
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -10,12 +11,10 @@ public class PlayerAttack : MonoBehaviour
     public float screenshakeIntensity = 0.5f;
     public float screenshakeDuration = 0.2f;
 
-
     void Update()
     {
         if (AbilityLoadout.Instance == null) return;
 
-        // Loop through the 4 slots
         for (int i = 0; i < fireActions.Length; i++)
         {
             if (i >= AbilityLoadout.Instance.equippedAbilities.Length) break;
@@ -32,28 +31,33 @@ public class PlayerAttack : MonoBehaviour
     {
         if (actionRef == null || actionRef.action == null) return;
 
+        // 🔥 CHECK 1: Respect the ScriptableObject's cooldown flag
+        if (ability.isOnCooldown) return;
+
         bool isHeld = actionRef.action.IsPressed();
         float cdTimestamp = GetCooldown(ability);
         bool isWeaponReady = Time.time >= cdTimestamp;
 
         if (ability is offensivemelee melee)
         {
-            // Execute returns true if the combo is finished or a specific swing logic triggers completion
-            bool comboFinished = melee.Execute(transform, aimScript.anchor, isHeld && isWeaponReady);
+            bool wasSwingExecuted = melee.Execute(transform, aimScript.anchor, isHeld && isWeaponReady);
 
-            if (isWeaponReady && (comboFinished || actionRef.action.WasReleasedThisFrame()))
+            bool reachedComboEnd = (melee.maxSwings > 0 && typeof(offensivemelee)
+                .GetField("swingIndex", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+                .GetValue(melee) is int index && index == 0);
+
+            if (isWeaponReady && (reachedComboEnd || actionRef.action.WasReleasedThisFrame()))
             {
                 ApplyCooldown(ability);
+                melee.ResetMeleeState();
             }
         }
         else
         {
             if (isHeld && isWeaponReady)
             {
-                // Execute the ability
                 bool success = ability.Execute(transform, aimScript.anchor, true);
 
-                // If the ability returns true (it actually fired), start cooldown and shake
                 if (success)
                 {
                     ApplyCooldown(ability);
@@ -70,18 +74,26 @@ public class PlayerAttack : MonoBehaviour
 
     private void ApplyCooldown(Ability ability)
     {
-        // Set the cooldown timer
         abilityCooldowns[ability] = Time.time + ability.fireRate;
 
+        // 🔥 CHECK 2: Start the routine to handle the bool flag flip
+        StartCoroutine(AbilityCooldownRoutine(ability, ability.fireRate));
+
         // --- SCREEN SHAKE LOGIC ---
-        // Trigger the shake based on the variables in your Ability ScriptableObject
         if (CameraShaker.Instance != null && screenshakeIntensity > 0)
         {
             CameraShaker.Instance.Shake(screenshakeIntensity, screenshakeDuration);
         }
 
-        // Trigger character animations/effects
         if (charsetter.Instance != null)
             charsetter.Instance.TriggerAbilityUsed(ability);
+    }
+
+    // 🔥 New Coroutine to safely reset the ScriptableObject's state over time
+    private IEnumerator AbilityCooldownRoutine(Ability ability, float duration)
+    {
+        ability.isOnCooldown = true;
+        yield return new WaitForSeconds(duration);
+        ability.isOnCooldown = false;
     }
 }

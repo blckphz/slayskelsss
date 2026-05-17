@@ -6,7 +6,8 @@ public abstract class Ability : ScriptableObject
     public string description;
     public Sprite icon;
     public AudioClip launchsound;
-    public float fireRate = 0.2f;
+    public float fireRate;
+    public bool isOnCooldown;
     public GameObject prefab;
  
 

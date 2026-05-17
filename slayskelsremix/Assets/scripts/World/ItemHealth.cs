@@ -1,8 +1,6 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections;
 
-// "abstract" means this script is a template and cannot be attached to a GameObject directly.
-// You must create a subclass (like treeItemBehav) to use it.
 public abstract class ItemHealth : MonoBehaviour, IDamageable
 {
     [Header("Health")]
@@ -42,11 +40,23 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
         propertyBlock = new MaterialPropertyBlock();
         originalLocalPosition = transform.localPosition;
         maxHealth = health;
+
+        if (spriteRenderer == null)
+        {
+            Debug.LogWarning($"[ItemHealth] {gameObject.name} is missing a SpriteRenderer!", gameObject);
+        }
     }
 
-    // "virtual" allows child scripts to use "override" to add their own logic.
+    public virtual void TakeDamage(float damage, ToolType toolType)
+    {
+        Debug.Log($"[ItemHealth] {gameObject.name} hit by ToolType: {toolType} with initial damage: {damage}");
+        TakeDamage(damage);
+    }
+
     public virtual void TakeDamage(float damage)
     {
+        Debug.Log($"[ItemHealth] {gameObject.name} processing standard damage. Current Health: {health}/{maxHealth}, Incoming Damage: {damage}");
+
         health -= damage;
         health = Mathf.Clamp(health, 0, maxHealth);
 
@@ -56,6 +66,7 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
 
         if (health <= 0)
         {
+            Debug.Log($"[ItemHealth] {gameObject.name} health reached 0. Triggering Die().");
             Die();
         }
     }
@@ -67,23 +78,26 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
 
     public bool IsSlowed => false;
 
-    // ---------------- XP LOGIC ----------------
-
     protected virtual void GrantXP()
     {
-        // Find the player's LevelManager. 
-        // Note: Ensure your Player object has the "Player" Tag in the Inspector.
         GameObject player = GameObject.FindGameObjectWithTag("Player");
         if (player != null)
         {
             if (player.TryGetComponent<LevelManager>(out LevelManager lm))
             {
+                Debug.Log($"[ItemHealth] Granting {xpReward} XP to player from {gameObject.name}.");
                 lm.AddXP(xpReward);
             }
+            else
+            {
+                Debug.LogWarning($"[ItemHealth] Player found, but LevelManager component is missing!", player);
+            }
+        }
+        else
+        {
+            Debug.LogWarning($"[ItemHealth] Unable to grant XP! No GameObject found with tag 'Player'.");
         }
     }
-
-    // ---------------- FLASH ----------------
 
     protected void TriggerFlash()
     {
@@ -117,8 +131,6 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
         spriteRenderer.SetPropertyBlock(propertyBlock);
     }
 
-    // ---------------- SHAKE ----------------
-
     protected void TriggerShake()
     {
         if (shakeCoroutine != null)
@@ -144,17 +156,12 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
         transform.localPosition = originalLocalPosition;
     }
 
-    // ---------------- DEATH ----------------
-
     protected virtual void Die()
     {
-        // Notify any systems that this object was destroyed
+        Debug.Log($"[ItemHealth] {gameObject.name} has died. Notifying systems and executing cleanup.");
         NPCGlobalEvents.NotifyDestroyed(gameObject.GetInstanceID());
-
-        // Reset shader
         UpdateShaderFloat(hitIntensityName, 0f);
 
-        // Grant XP if enabled
         if (givesXP)
         {
             GrantXP();
@@ -166,8 +173,13 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
 
     public virtual void SpawnLoot()
     {
-        if (lootPrefab == null) return;
+        if (lootPrefab == null)
+        {
+            Debug.LogWarning($"[ItemHealth] {gameObject.name} has no lootPrefab assigned.", gameObject);
+            return;
+        }
 
+        Debug.Log($"[ItemHealth] Spawning base loot for {gameObject.name}. Count: {dropAmount}");
         for (int i = 0; i < dropAmount; i++)
         {
             GameObject loot = Instantiate(lootPrefab, transform.position, Quaternion.identity);
@@ -180,11 +192,15 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
         }
     }
 
-    // ---------------- UI ----------------
-
     protected void ShowDamageText(float damage)
     {
-        if (damageTextPrefab != null && damage > 0)
+        if (damageTextPrefab == null)
+        {
+            Debug.LogWarning($"[ItemHealth] {gameObject.name} is missing a damageTextPrefab assignment.", gameObject);
+            return;
+        }
+
+        if (damage > 0)
         {
             GameObject textObj = Instantiate(
                 damageTextPrefab,

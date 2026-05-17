@@ -31,8 +31,9 @@ public class BuildManager : MonoBehaviour
     private ghostBuildPreview ghost;
     private bool isCurrentItemSmall;
 
-    // 🔥 Added to protect ability-driven placements from being cancelled by CheckHotbar
     private bool placementForcedByAbility;
+    // 🔥 Track the specific tool asset instance that initialized this placement state
+    private ItemData originalToolItem;
 
     void Awake()
     {
@@ -88,15 +89,32 @@ public class BuildManager : MonoBehaviour
         if (PlayerHotbarManager.Instance == null)
             return;
 
-        // If an ability forced the placement mode, ignore hotbar checks until canceled/placed
+        ItemData currentHotbarItem = PlayerHotbarManager.Instance.GetSelectedItem();
+
+        // ========================================================
+        // STATE CHECK 1: ABILITY DRIVEN PLACEMENT (E.G. SHOVEL)
+        // ========================================================
         if (placementForcedByAbility && isPlacing)
         {
-            return;
+            // 🔥 CRITICAL FIX: If the selected hotbar item is no longer the tool that started this, cancel it!
+            if (currentHotbarItem != originalToolItem)
+            {
+                Debug.Log($"[BuildManager] Hotbar selection switched away from original tool ({originalToolItem?.name ?? "None"} -> {currentHotbarItem?.name ?? "None"}). Clearing ghost.");
+                Cancel();
+
+                // Don't early return here; allow the code below to see if the NEW item wants to start its own build ghost immediately
+            }
+            else
+            {
+                // We are still holding the correct tool, keep holding the ability placement active safely
+                return;
+            }
         }
 
-        ItemData item = PlayerHotbarManager.Instance.GetSelectedItem();
-
-        if (item is buildSO build)
+        // ========================================================
+        // STATE CHECK 2: STANDARD ITEM PLACEMENT (E.G. PLACING A WALL)
+        // ========================================================
+        if (currentHotbarItem is buildSO build)
         {
             if (currentItem == null || currentItem.itemName != build.itemName)
             {
@@ -106,7 +124,7 @@ public class BuildManager : MonoBehaviour
         }
         else if (isPlacing)
         {
-            Debug.Log($"[BuildManager] Selected item is not a buildSO (Currently: {item?.name ?? "None"}). Canceling placement.");
+            Debug.Log($"[BuildManager] Selected item is not a buildSO (Currently: {currentHotbarItem?.name ?? "None"}). Canceling placement.");
             Cancel();
         }
     }
@@ -120,11 +138,15 @@ public class BuildManager : MonoBehaviour
 
     private void StartPlacingInternal(buildSO item, bool forcedByAbility)
     {
+        // Capture what tool was actively highlighted before wiping clean layouts
+        ItemData trackingTool = PlayerHotbarManager.Instance != null ? PlayerHotbarManager.Instance.GetSelectedItem() : null;
+
         Cancel();
 
         currentItem = item;
         isPlacing = true;
         placementForcedByAbility = forcedByAbility;
+        originalToolItem = forcedByAbility ? trackingTool : null;
 
         if (item.placeablePrefab == null)
         {
@@ -222,7 +244,6 @@ public class BuildManager : MonoBehaviour
             BuildingSaveManager.Instance.SaveAfterChange();
         }
 
-        // Only spend stock from the hotbar if it was physically selected, not when called from a tool
         if (!placementForcedByAbility)
         {
             Debug.Log($"[BuildManager] Consuming stock from direct hotbar item. Count: {currentItem.consumeAmount}");
@@ -233,7 +254,6 @@ public class BuildManager : MonoBehaviour
             Debug.Log("[BuildManager] Placement authorized by specialized tool ability. Inventory stock consumption skipped.");
         }
 
-        // Clean layout state following a successful build
         Cancel();
     }
 
@@ -292,5 +312,6 @@ public class BuildManager : MonoBehaviour
         currentItem = null;
         isPlacing = false;
         placementForcedByAbility = false;
+        originalToolItem = null; // Clean instance variable references safely
     }
 }

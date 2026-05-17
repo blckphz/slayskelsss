@@ -1,14 +1,9 @@
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "NewShovelAbility", menuName = "Abilities/Tools/Tool")]
+[CreateAssetMenu(fileName = "NewToolAbility", menuName = "Abilities/Tools/BaseTool")]
 public class ToolsSO : offensivemelee
 {
-    public enum ToolType
-    {
-        Shovel,
-        Pickaxe,
-        Axe,
-        Sickle
-    }
-
+    [Header("Tool Configuration")]
+    [Tooltip("The main tool identity classification used by harvesting targets.")]
+    public ToolType toolType;
 }

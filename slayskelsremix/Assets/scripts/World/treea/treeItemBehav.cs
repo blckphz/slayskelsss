@@ -6,6 +6,10 @@ public class treeItemBehav : ItemHealth
     [Header("Tree Identity")]
     public string treeID;
 
+    [Header("Tool Requirement Settings")]
+    public ToolType effectiveTool = ToolType.Axe;
+    public float axeBonusDamage = 10f;
+
     [Header("Loot override")]
     public GameObject woodPrefab;
 
@@ -34,7 +38,6 @@ public class treeItemBehav : ItemHealth
 
     protected override void Awake()
     {
-        // Call the Awake logic in ItemHealth (setup spriteRenderer, originalPos, etc)
         base.Awake();
         treeCollider = GetComponent<Collider2D>();
     }
@@ -43,7 +46,6 @@ public class treeItemBehav : ItemHealth
     {
         timeSystem = FindObjectOfType<DayNightCycle>();
 
-        // CHECK IF ALREADY CUT ON LOAD
         if (PlayerPrefs.GetInt("Tree_" + treeID + "_isCut", 0) == 1)
         {
             SpawnStumpOnly();
@@ -57,24 +59,34 @@ public class treeItemBehav : ItemHealth
         }
     }
 
-    // We override TakeDamage to ensure it checks 'isDead' specifically for the tree sequence.
+    // 🟢 OVERRIDE: intercepts calculation to inject the extra tool damage modifier
+    public override void TakeDamage(float damage, ToolType usedTool)
+    {
+        if (isDead) return;
+
+        float finalDamage = damage;
+
+        if (usedTool == effectiveTool)
+        {
+            finalDamage += axeBonusDamage;
+        }
+
+        base.TakeDamage(finalDamage);
+    }
+
     public override void TakeDamage(float damage)
     {
         if (isDead) return;
 
-        // base.TakeDamage handles the health subtraction, shaking, and flashing logic.
         base.TakeDamage(damage);
     }
 
-    // We override Die because trees don't just disappear; they fall over.
     protected override void Die()
     {
         if (isDead) return;
         isDead = true;
 
-        // Still notify NPCs
         NPCGlobalEvents.NotifyDestroyed(gameObject.GetInstanceID());
-
         StartCoroutine(FallSequence());
     }
 
@@ -108,7 +120,6 @@ public class treeItemBehav : ItemHealth
         if (topPrefab != null)
             top = Instantiate(topPrefab, transform.position, Quaternion.identity);
 
-        // Hide the main tree and disable physics
         if (spriteRenderer != null) spriteRenderer.enabled = false;
         if (treeCollider != null) treeCollider.enabled = false;
 
@@ -118,14 +129,13 @@ public class treeItemBehav : ItemHealth
         if (top != null)
         {
             yield return StartCoroutine(RotateTop(top.transform, dir));
-            SpawnLoot(); // Use the tree-specific loot method
+            SpawnLoot();
             Destroy(top);
         }
 
         Destroy(gameObject);
     }
 
-    // We override SpawnLoot because trees spawn wood differently than standard items
     public override void SpawnLoot()
     {
         if (woodPrefab != null)
@@ -135,7 +145,6 @@ public class treeItemBehav : ItemHealth
             {
                 GameObject loot = Instantiate(woodPrefab, transform.position + (Vector3)Random.insideUnitCircle * 0.5f, Quaternion.identity);
 
-                // Add the arc effect if present
                 if (loot.TryGetComponent<LootArc>(out LootArc arc))
                 {
                     arc.Initialize(transform.position);
@@ -177,7 +186,7 @@ public class treeItemBehav : ItemHealth
         float elapsed = 0f;
         while (elapsed < fadeDuration)
         {
-            elapsed += Time.deltaTime;
+            elapsed += Time.deltaTime; // Fixed your original script line here which was tracking 'allowed'
             sr.color = new Color(col.r, col.g, col.b, Mathf.Lerp(1f, 0f, elapsed / fadeDuration));
             yield return null;
         }

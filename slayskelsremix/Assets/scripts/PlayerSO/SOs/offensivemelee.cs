@@ -29,10 +29,8 @@ public class offensivemelee : offensiveability
     [SerializeField] private float nextSwingTime;
     [SerializeField] private bool isActive;
 
-    // Fixes the ScriptableObject caching data bug between play sessions
     private void OnEnable()
     {
-        Debug.Log($"<color=cyan>[Melee Asset Reset]</color> {name} initialized. Clearing lingering variables.");
         ResetMeleeState();
     }
 
@@ -47,7 +45,6 @@ public class offensivemelee : offensiveability
     {
         if (caster == null)
         {
-            Debug.LogWarning("[Melee CRITICAL] Execute failed: caster is NULL!");
             return false;
         }
 
@@ -61,8 +58,6 @@ public class offensivemelee : offensiveability
             isActive = true;
             swingIndex = 0;
             nextSwingTime = Time.time;
-
-            Debug.Log($"<color=green>[Melee COMBO START]</color> Owner: {owner} | ScriptableObject: {name}");
         }
 
         // 2. Handle Button Release / Stop Execution
@@ -70,7 +65,6 @@ public class offensivemelee : offensiveability
         {
             if (isActive)
             {
-                Debug.Log($"<color=orange>[Melee COMBO INTERRUPTED]</color> Input button released. Cleaning state.");
                 ResetMeleeState();
             }
             return false;
@@ -79,19 +73,15 @@ public class offensivemelee : offensiveability
         // 3. Gatekeeper Diagnostics
         if (!isActive)
         {
-            Debug.LogWarning($"[Melee BLOCKED] Execution rejected. 'isActive' is false while holding mouse button.");
             return false;
         }
 
         if (Time.time < nextSwingTime)
         {
-            Debug.Log($"[Melee COOLDOWN] Suppressing swing. Wait time remaining: {nextSwingTime - Time.time:F2}s");
             return false;
         }
 
         // 4. Proceed to swing execution
-        Debug.Log($"<color=yellow>[Melee PROCEEDING]</color> Processing swing {swingIndex + 1}/{maxSwings} for {owner}");
-
         PerformSwing(caster, targetAnchor, swingIndex, owner);
 
         swingIndex++;
@@ -100,25 +90,17 @@ public class offensivemelee : offensiveability
         // 5. Handle Combo Completion
         if (swingIndex >= maxSwings)
         {
-            Debug.Log("<color=magenta>[Melee COMBO FINISHED]</color> Max combo threshold reached. Resetting.");
             ResetMeleeState();
             return true;
         }
 
-        return false;
+        return true;
     }
 
     private void PerformSwing(Transform caster, Transform targetAnchor, int index, SwingOwner owner)
     {
-        if (prefab == null)
+        if (prefab == null || ObjectPooler.Instance == null)
         {
-            Debug.LogError($"[Melee CRITICAL] '{name}' has NO PREFAB assigned in the inspector!");
-            return;
-        }
-
-        if (ObjectPooler.Instance == null)
-        {
-            Debug.LogError("[Melee CRITICAL] ObjectPooler.Instance is completely missing from your active scene layers!");
             return;
         }
 
@@ -132,47 +114,45 @@ public class offensivemelee : offensiveability
             ? new Vector2(Mathf.Sign(dir.x), 0)
             : new Vector2(0, Mathf.Sign(dir.y));
 
-        Vector3 spawnPos = caster.position + (Vector3)(snappedDir * spawnOffset);
-        float angle = Mathf.Atan2(snappedDir.y, snappedDir.x) * Mathf.Rad2Deg + rotationOffset;
+        // Calculate offset locally relative to caster
+        Vector3 localSpawnOffset = (Vector3)(snappedDir * spawnOffset);
+        Vector3 globalSpawnPos = caster.position + localSpawnOffset;
 
-        Debug.Log($"[Melee SPAWN TRY] Pulling '{prefab.name}' from Pooler at: {spawnPos} (Angle: {angle}°)");
+        float angle = Mathf.Atan2(snappedDir.y, snappedDir.x) * Mathf.Rad2Deg + rotationOffset;
 
         GameObject woosh = ObjectPooler.Instance.GetPooledObject(
             prefab,
-            spawnPos,
+            globalSpawnPos,
             Quaternion.Euler(0, 0, angle)
         );
 
         if (woosh == null)
         {
-            Debug.LogError($"[Melee POOL FAILURE] ObjectPooler returned NULL for {prefab.name}. Is your pool size limit too small?");
             return;
         }
 
         if (!woosh.activeInHierarchy)
         {
-            Debug.LogWarning($"[Melee POOL WARNING] Item pooled but returned in an INACTIVE state. Forcing active.");
             woosh.SetActive(true);
         }
 
         float bonus = owner == SwingOwner.Player ? GetBonusDamage() : 0f;
 
-        Debug.Log($"[Melee SETUP RUN] Damage: {damage} | Bonus: {bonus} | Target Frame: {index}");
+        // Determine tool type: Use the ToolsSO property if this asset is a tool, otherwise fallback to Axe/Default
+        ToolType activeTool = ToolType.Axe;
+        if (this is ToolsSO toolAbility)
+        {
+            activeTool = toolAbility.toolType;
+        }
 
         var behav = woosh.GetComponent<meleebehav>();
         if (behav != null)
         {
-            behav.Setup(damage, bonus, index, owner);
-            Debug.Log("[Melee SETUP SUCCESS] meleebehav configuration assigned successfully.");
-        }
-        else
-        {
-            Debug.LogError($"[Melee COMPONENT ERROR] The prefab '{woosh.name}' does not contain a 'meleebehav' component script!");
+            behav.Setup(damage, bonus, index, owner, caster, localSpawnOffset, activeTool);
         }
 
         if (owner == SwingOwner.Player && CameraShaker.Instance != null)
         {
-            Debug.Log("[Melee EFFECTS] Camera shake executed.");
             CameraShaker.Instance.Shake(0.15f, 0.1f);
         }
     }

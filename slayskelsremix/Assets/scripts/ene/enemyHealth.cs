@@ -94,6 +94,13 @@ public class enemyHealth : healthMaster, IDamageable
         _flashCoroutine = StartCoroutine(FlashEffect());
     }
 
+    // This implementation satisfies the new IDamageable interface tool overload
+    public void TakeDamage(float damage, ToolType toolType)
+    {
+        // Redirects to our main TakeDamage logic, tool type is ignored for standard enemies
+        TakeDamage(damage, null);
+    }
+
     // This implementation is for the IDamageable interface specifically
     public void TakeDamage(float damage)
     {

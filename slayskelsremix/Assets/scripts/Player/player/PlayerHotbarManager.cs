@@ -33,7 +33,17 @@ public class PlayerHotbarManager : MonoBehaviour
         }
 
         controls = new PlayerControls();
-        Debug.Log("[Hotbar] Initialized");
+
+        // 💡 Safety Reset: Clear any leftover dirty data from previous editor play sessions
+        foreach (var slot in hotbarSlots)
+        {
+            if (slot != null && slot.GetAbility() != null)
+            {
+                slot.GetAbility().isOnCooldown = false;
+            }
+        }
+
+        Debug.Log("[Hotbar] Initialized and dirty states cleared.");
     }
 
     private IEnumerator Start()
@@ -125,11 +135,21 @@ public class PlayerHotbarManager : MonoBehaviour
         if (slot.GetAbility() != null)
         {
             Ability ability = slot.GetAbility();
+
+            if (ability.isOnCooldown)
+            {
+                Debug.Log($"[Hotbar] {ability.abilityName} is still on cooldown.");
+                return;
+            }
+
             Debug.Log($"[Hotbar] Direct Ability found: {ability.name}");
 
             if (ability.Execute(caster, targetAnchor, true))
             {
+                // Ranged/Standard abilities go straight to full fireRate cooldown
                 nextFireTime = Time.time + ability.fireRate;
+                StartCoroutine(AbilityCooldownRoutine(ability));
+
                 Debug.Log($"[Hotbar] Direct Ability executed -> cooldown {ability.fireRate}");
             }
             else
@@ -157,14 +177,40 @@ public class PlayerHotbarManager : MonoBehaviour
         if (item is UseableItem useableItem && useableItem.abilityToExecute != null)
         {
             Ability boundAbility = useableItem.abilityToExecute;
+
+            if (boundAbility.isOnCooldown)
+            {
+                Debug.Log($"[Hotbar] Embedded ability {boundAbility.abilityName} is still on cooldown.");
+                return;
+            }
+
             Debug.Log($"[Hotbar] Item containing embedded action found: {item.name} -> Firing Ability: {boundAbility.name}");
 
             if (boundAbility.Execute(caster, targetAnchor, true))
             {
-                float toolRate = boundAbility is offensivemelee melee ? melee.swingFreq : boundAbility.fireRate;
-                nextFireTime = Time.time + toolRate;
+                if (boundAbility is offensivemelee melee)
+                {
+                    // 🎯 The time allowed between individual swings is determined by swingFreq
+                    nextFireTime = Time.time + melee.swingFreq;
 
-                Debug.Log($"[Hotbar] Embedded tool execution approved. Cooldown tracked for: {toolRate}s");
+                    bool reachedComboEnd = (melee.maxSwings > 0 && typeof(offensivemelee)
+                        .GetField("swingIndex", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+                        .GetValue(melee) is int index && index == 0);
+
+                    // 🎯 When the combo finishes, lock the weapon down for the length of fireRate
+                    if (reachedComboEnd)
+                    {
+                        StartCoroutine(AbilityCooldownRoutine(boundAbility));
+                        melee.ResetMeleeState();
+                    }
+                }
+                else
+                {
+                    // Standard tools/weapons use fireRate directly for single-use recovery
+                    nextFireTime = Time.time + boundAbility.fireRate;
+                    StartCoroutine(AbilityCooldownRoutine(boundAbility));
+                }
+
             }
             else
             {
@@ -173,15 +219,28 @@ public class PlayerHotbarManager : MonoBehaviour
             return;
         }
 
+        // CHECK 3: CONSUMABLES (Items without an underlying ability asset)
         float defaultCooldown = item is UseableItem u ? u.useRate : 0.5f;
 
-        Debug.Log($"[Hotbar] Using consumable item asset: {item.name} | Stack Count: {slot.GetCount()} | Cooldown: {defaultCooldown}");
-        Debug.Log("[Hotbar] -> Consuming item stack unit");
 
         UseSelectedStack(item.consumeAmount);
         nextFireTime = Time.time + defaultCooldown;
+    }
 
-        Debug.Log("[Hotbar] Item execution finished");
+    // 🎯 Cooldown length is strictly dependent on fireRate
+    private IEnumerator AbilityCooldownRoutine(Ability ability)
+    {
+        ability.isOnCooldown = true;
+        yield return new WaitForSeconds(ability.fireRate);
+        ability.isOnCooldown = false;
+    }
+
+    // 🔥 Copy the same coroutine tracker helper down into the bottom of PlayerHotbarManager
+    private IEnumerator AbilityCooldownRoutine(Ability ability, float duration)
+    {
+        ability.isOnCooldown = true;
+        yield return new WaitForSeconds(duration);
+        ability.isOnCooldown = false;
     }
 
     private void ExecuteSecondaryActiveSlot()
