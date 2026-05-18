@@ -38,14 +38,12 @@ public class BuildManager : MonoBehaviour
     void Awake()
     {
         Instance = this;
-        Debug.Log("[BuildManager] Instance initialized.");
     }
 
     void Start()
     {
         if (astar != null)
         {
-            Debug.Log("[BuildManager] Scanning pathfinding graphs on startup.");
             AstarPath.active.Scan();
         }
     }
@@ -280,7 +278,6 @@ public class BuildManager : MonoBehaviour
                 continue;
             }
 
-            Debug.Log($"[BuildManager Check] Placement blocked by overlapping object: {hit.gameObject.name} on layer: {LayerMask.LayerToName(hitLayer)}");
             return false;
         }
 
@@ -302,7 +299,6 @@ public class BuildManager : MonoBehaviour
     {
         if (previewObject)
         {
-            Debug.Log($"[BuildManager] Destroying build preview object for: {currentItem?.name ?? "Unknown"}");
             Destroy(previewObject);
         }
 

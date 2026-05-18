@@ -5,14 +5,23 @@ public class InvUI : MonoBehaviour
 {
     public static InvUI Instance;
 
+    [System.Serializable]
+    public struct SlotUIData
+    {
+        [Tooltip("The actual Inventory Slot UI component.")]
+        public InventorySlotUI slotUI;
+    }
+
     [Header("References")]
     public InventoryManager inventoryManager;
-    public InventorySlotUI[] slots;
     public BuildManager buildManager;
+
+    [Header("Manual Slot UI Mapping")]
+    [Tooltip("Manually assign each slot and its exact paired durability group here.")]
+    public SlotUIData[] slotMappings;
 
     private void Awake()
     {
-        // Singleton pattern to ensure only one InvUI exists
         if (Instance == null)
         {
             Instance = this;
@@ -25,49 +34,54 @@ public class InvUI : MonoBehaviour
 
     private void Start()
     {
-        // Initial fill of the UI on game start
         RefreshUI();
     }
 
     // ---------------- UI REFRESH ----------------
-    // Call this when the underlying data changes via script (e.g., picking up an item)
     public void RefreshUI()
     {
-        if (inventoryManager == null) return;
+        if (inventoryManager == null || slotMappings == null) return;
 
         var inv = inventoryManager.inventory;
 
-        for (int i = 0; i < slots.Length; i++)
+        for (int i = 0; i < slotMappings.Length; i++)
         {
+            InventorySlotUI slot = slotMappings[i].slotUI;
+
+            if (slot == null) continue;
+
             if (i < inv.Count)
             {
-                // Set the UI slot to match the data list
-                // Main inventory now explicitly tracks and passes floating-point item durability stats 
-                slots[i].SetSlot(inv[i].item, null, inv[i].count, inv[i].currentDurability);
+                ItemData currentItem = inv[i].item;
+
+                // Update the slot data structures
+                slot.SetSlot(currentItem, null, inv[i].count, inv[i].currentDurability);
+
+                // Manually toggle the explicitly mapped group
+            
             }
             else
             {
-                // If there's no data for this index, make sure the slot looks empty
-                slots[i].ClearSlot();
+                slot.ClearSlot();
+            
             }
         }
     }
 
     // ---------------- SYNC ----------------
-    // Call this after a manual UI change (like Drag & Drop) to update the data
     public void SyncToInventory()
     {
-        if (inventoryManager == null) return;
+        if (inventoryManager == null || slotMappings == null) return;
 
-        // 1. Wipe the current data list in the manager
         inventoryManager.inventory.Clear();
 
-        // 2. Rebuild the list based EXACTLY on what the user positioned in the UI
-        foreach (var slot in slots)
+        foreach (var mapping in slotMappings)
         {
-            ItemData item = slot.GetItem();
-            int count = slot.GetCount();
-            float durability = slot.GetDurability(); // 👈 Fixed: Captures the float cleanly without casting errors
+            if (mapping.slotUI == null) continue;
+
+            ItemData item = mapping.slotUI.GetItem();
+            int count = mapping.slotUI.GetCount();
+            float durability = mapping.slotUI.GetDurability();
 
             if (item != null && count > 0)
             {
@@ -75,17 +89,18 @@ public class InvUI : MonoBehaviour
                     new InventoryManager.InventorySlot(item, count, durability)
                 );
             }
+            else
+            {
+                inventoryManager.inventory.Add(
+                    new InventoryManager.InventorySlot(null, 0, 0f)
+                );
+            }
         }
 
-        // 3. Save the new state to the JSON file
         inventoryManager.SaveInventory();
-
-        // NOTE: We do NOT call RefreshUI() here to prevent "Snap Back" glitches.
-        // The slots already visually represent the correct state after the Drop.
     }
 
     // ---------------- USE ITEM ----------------
-
     public void UseItem(ItemData item)
     {
         if (item == null) return;
@@ -112,13 +127,11 @@ public class InvUI : MonoBehaviour
     public void UseConsumable(ItemData item)
     {
         Debug.Log($"[InvUI] Consumed {item.itemName}");
-
-        // Remove the item from the data logic
         bool wasRemoved = inventoryManager.RemoveItem(item, 1);
 
-        // If an item was successfully removed via code, we must refresh the visuals
         if (wasRemoved)
         {
+            SyncToInventory();
             RefreshUI();
         }
     }

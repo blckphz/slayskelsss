@@ -11,7 +11,7 @@ public class InventoryManager : MonoBehaviour
     {
         public ItemData item;
         public int count;
-        public float currentDurability; // Upgraded to float to match real-time UI/hotbar decay loops
+        public float currentDurability;
 
         public InventorySlot(ItemData d, int c, float dur)
         {
@@ -58,21 +58,17 @@ public class InventoryManager : MonoBehaviour
     }
 
     // ==========================================
-    // ITEM MANAGEMENT
+    // UPGRADED STACK-CONSCIOUS ADD SYSTEM
     // ==========================================
-
-    // FIXED: Added optional parameter 'customDurability' to accept specific tracking metrics from the Chest
     public void AddItem(ItemData data, int amount, float customDurability = -1f)
     {
-        if (data == null) return;
+        if (data == null || amount <= 0) return;
 
-        // CRITICAL: Items with durability MUST be handled individually.
-        // They are assigned an isolated slot so their distinct durability values don't mix.
+        // Items with durability must retain an individual standalone tracking slot
         if (data.maxDurability > 0)
         {
             for (int i = 0; i < amount; i++)
             {
-                // If a valid custom durability was passed from a chest slot, preserve it. Otherwise, use maximum template health.
                 float appliedDurability = (customDurability < 0) ? data.maxDurability : customDurability;
                 inventory.Add(new InventorySlot(data, 1, appliedDurability));
             }
@@ -80,18 +76,36 @@ public class InventoryManager : MonoBehaviour
             return;
         }
 
-        // Standard resource pathing (Wood, Stone, etc.) matches via existing stacks
+        // Standard resources stack pooling with respect to maxStackSize constraints
+        int remainingAmount = amount;
+
+        // Step 1: Attempt to fill pre-existing stacks that have open room left
         foreach (var slot in inventory)
         {
             if (slot.item != null && slot.item.itemID == data.itemID)
             {
-                slot.count += amount;
-                RefreshAll();
-                return;
+                int maxStack = data.maxStackSize;
+                if (slot.count < maxStack)
+                {
+                    int spaceLeft = maxStack - slot.count;
+                    int addAmount = Mathf.Min(spaceLeft, remainingAmount);
+
+                    slot.count += addAmount;
+                    remainingAmount -= addAmount;
+
+                    if (remainingAmount <= 0) break;
+                }
             }
         }
 
-        inventory.Add(new InventorySlot(data, amount, 0f));
+        // Step 2: If items remain, assign them to new slots, breaking them up by max stack capacities
+        while (remainingAmount > 0)
+        {
+            int nextStackSize = Mathf.Min(remainingAmount, data.maxStackSize);
+            inventory.Add(new InventorySlot(data, nextStackSize, 0f));
+            remainingAmount -= nextStackSize;
+        }
+
         RefreshAll();
     }
 
@@ -167,10 +181,6 @@ public class InventoryManager : MonoBehaviour
         RefreshAll();
     }
 
-    /// <summary>
-    /// Legacy fallback loop. Modern updates route primarily directly into PlayerHotbarManager slots,
-    /// but this maintains internal data compatibility layers safely using floating point reduction.
-    /// </summary>
     public void DegradeEquippedToolDurability(float amount, int activeHotbarIndex)
     {
         if (activeHotbarIndex < 0 || activeHotbarIndex >= hotbarData.Count) return;
@@ -205,7 +215,6 @@ public class InventoryManager : MonoBehaviour
     // ==========================================
     // SAVE / LOAD SYSTEM
     // ==========================================
-
     public void SaveInventory()
     {
         InventorySaveData saveData = new InventorySaveData();
@@ -218,7 +227,7 @@ public class InventoryManager : MonoBehaviour
                 {
                     itemId = slot.item.itemID,
                     count = slot.count,
-                    currentDurability = slot.currentDurability // Ensure your SaveSlot class uses a float here!
+                    currentDurability = slot.currentDurability
                 });
             }
         }
@@ -231,7 +240,7 @@ public class InventoryManager : MonoBehaviour
                 itemId = h.item != null ? h.item.itemID : -1,
                 abilityName = h.ability != null ? h.ability.name : "",
                 count = h.count,
-                currentDurability = h.currentDurability // Ensure your HotbarSaveSlot class uses a float here!
+                currentDurability = h.currentDurability
             });
         }
 

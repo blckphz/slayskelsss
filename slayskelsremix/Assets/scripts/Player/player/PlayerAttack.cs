@@ -1,4 +1,4 @@
-﻿using System.Collections; // 🔥 Added for IEnumerator
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -31,38 +31,47 @@ public class PlayerAttack : MonoBehaviour
     {
         if (actionRef == null || actionRef.action == null) return;
 
-        // 🔥 CHECK 1: Respect the ScriptableObject's cooldown flag
+        // CRITICAL: Block input if the big fireRate cooldown asset flag is active
         if (ability.isOnCooldown) return;
 
         bool isHeld = actionRef.action.IsPressed();
         float cdTimestamp = GetCooldown(ability);
         bool isWeaponReady = Time.time >= cdTimestamp;
 
-        if (ability is offensivemelee melee)
+        if (isHeld && isWeaponReady)
         {
-            bool wasSwingExecuted = melee.Execute(transform, aimScript.anchor, isHeld && isWeaponReady);
+            // Execute returns true ONLY when the combo completely finishes its last hit
+            bool comboFinished = ability.Execute(transform, aimScript.anchor, true);
 
-            bool reachedComboEnd = (melee.maxSwings > 0 && typeof(offensivemelee)
-                .GetField("swingIndex", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
-                .GetValue(melee) is int index && index == 0);
-
-            if (isWeaponReady && (reachedComboEnd || actionRef.action.WasReleasedThisFrame()))
+            if (ability is offensivemelee melee)
             {
-                ApplyCooldown(ability);
-                melee.ResetMeleeState();
-            }
-        }
-        else
-        {
-            if (isHeld && isWeaponReady)
-            {
-                bool success = ability.Execute(transform, aimScript.anchor, true);
-
-                if (success)
+                if (comboFinished)
                 {
-                    ApplyCooldown(ability);
+                    // Combo Finished: Apply the BIG cooldown (fireRate)
+                    abilityCooldowns[ability] = Time.time + ability.fireRate;
+                    StartCoroutine(BigCooldownRoutine(ability, ability.fireRate));
+                }
+                else
+                {
+                    // Mid-Combo: Just space out the next swing locally using swingFreq
+                    abilityCooldowns[ability] = Time.time + melee.swingFreq;
                 }
             }
+            else
+            {
+                // Standard ranged/berry actions use the traditional fireRate structure instantly
+                abilityCooldowns[ability] = Time.time + ability.fireRate;
+                StartCoroutine(BigCooldownRoutine(ability, ability.fireRate));
+            }
+
+            // Trigger visual cosmetics per swing
+            TriggerCosmetics(ability);
+        }
+
+        // Reset tracking if button is released mid-combo execution
+        if (actionRef.action.WasReleasedThisFrame() && ability is offensivemelee manualMelee)
+        {
+            manualMelee.ResetMeleeState();
         }
     }
 
@@ -72,14 +81,8 @@ public class PlayerAttack : MonoBehaviour
         return abilityCooldowns[ability];
     }
 
-    private void ApplyCooldown(Ability ability)
+    private void TriggerCosmetics(Ability ability)
     {
-        abilityCooldowns[ability] = Time.time + ability.fireRate;
-
-        // 🔥 CHECK 2: Start the routine to handle the bool flag flip
-        StartCoroutine(AbilityCooldownRoutine(ability, ability.fireRate));
-
-        // --- SCREEN SHAKE LOGIC ---
         if (CameraShaker.Instance != null && screenshakeIntensity > 0)
         {
             CameraShaker.Instance.Shake(screenshakeIntensity, screenshakeDuration);
@@ -89,8 +92,8 @@ public class PlayerAttack : MonoBehaviour
             charsetter.Instance.TriggerAbilityUsed(ability);
     }
 
-    // 🔥 New Coroutine to safely reset the ScriptableObject's state over time
-    private IEnumerator AbilityCooldownRoutine(Ability ability, float duration)
+    // This handles the scriptable object's big asset cooldown lock
+    private IEnumerator BigCooldownRoutine(Ability ability, float duration)
     {
         ability.isOnCooldown = true;
         yield return new WaitForSeconds(duration);

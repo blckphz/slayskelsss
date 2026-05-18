@@ -42,7 +42,6 @@ public class PlayerHotbarManager : MonoBehaviour
             }
         }
 
-        Debug.Log("[Hotbar] Initialized and dirty states cleared.");
     }
 
     private IEnumerator Start()
@@ -122,7 +121,6 @@ public class PlayerHotbarManager : MonoBehaviour
 
             if (boundAbility.Execute(caster, targetAnchor, true))
             {
-                // Attack is executed, timing handles combos seamlessly
                 if (boundAbility is offensivemelee melee)
                 {
                     nextFireTime = Time.time + melee.swingFreq;
@@ -170,6 +168,18 @@ public class PlayerHotbarManager : MonoBehaviour
         }
     }
 
+    // ================= DATA LAYER GETTERS =================
+
+    /// <summary>
+    /// Gets the runtime durability value of the currently active tool slot.
+    /// Used by health tracking logs.
+    /// </summary>
+    public float GetActiveToolDurability()
+    {
+        if (selectedIndex >= hotbarSlots.Count) return 0f;
+        return hotbarSlots[selectedIndex].GetDurability();
+    }
+
     // ================= DURABILITY DAMAGE HANDLER (ON-KILL ONLY) =================
 
     /// <summary>
@@ -182,7 +192,8 @@ public class PlayerHotbarManager : MonoBehaviour
         var slot = hotbarSlots[selectedIndex];
         ItemData item = slot.GetItem();
 
-        if (item == null || item.maxDurability <= 0) return;
+        // FIX: Safely exit early if there is no item or if it's flagged as unbreakable
+        if (item == null || item.IsUnbreakable) return;
 
         float updatedDurability = slot.GetDurability() - amount;
         updatedDurability = Mathf.Clamp(updatedDurability, 0f, item.maxDurability);
@@ -211,7 +222,6 @@ public class PlayerHotbarManager : MonoBehaviour
         if (InventoryManager.Instance != null)
         {
             InventoryManager.Instance.SaveInventory();
-            Debug.Log($"[Hotbar] Tool durability updated down to ({updatedDurability}/{item.maxDurability}) following a target kill.");
         }
 
         NotifySelectionChanged();

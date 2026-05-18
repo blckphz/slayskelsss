@@ -1,7 +1,7 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 [CreateAssetMenu(fileName = "New Berry", menuName = "Abilities/Berry")]
-public class berrySO : offensiveRanged
+public class berrySO : offensiveRanged, IItemDescriptionProvider
 {
     [Header("Eat Settings")]
     public float healAmount = 20f;
@@ -9,19 +9,37 @@ public class berrySO : offensiveRanged
     [Header("Planting Settings")]
     public GameObject plantPrefab; // The crop prefab to spawn
 
+    // ✅ MODULAR INTERFACE WITH STATS & DESCRIPTION
+    public string GetDetailedDescription()
+    {
+        string lines = "";
+
+        // Show core numerical values
+        lines += $"<color=#FF6B6B>Damage:</color> {damage}\n";
+        lines += $"<color=#A2E8DD>Fire Rate:</color> {fireRate}s\n";
+        lines += "------------------\n"; // Visual barrier
+
+        // Custom action keys
+        lines += "<color=#FFA500><b>[PRIMARY ACTIONS]</b></color>\n";
+        lines += "• <color=#A2E8DD>Plant:</color> Place in dug holes to grow crops.\n";
+        lines += $"• <color=#FF6B6B>Throw:</color> Toss at enemies for ranged impact.\n\n";
+
+        lines += "<color=#FFA500><b>[SECONDARY ACTION]</b></color>\n";
+        lines += $"• <color=#4CAF50>Eat:</color> Restores <color=#98FB98>+{healAmount} HP</color>.\n\n";
+
+        return lines;
+    }
+
     // PRIMARY ACTION (Left Click or Interact)
     public override bool Execute(Transform caster, Transform targetAnchor, bool isHolding)
     {
-        // 1. Try to see if we are looking at a hole via the interaction system
         GameObject currentTarget = PlayerHotbarManager.Instance.interaction.CurrentTarget;
 
         if (currentTarget != null && currentTarget.TryGetComponent(out EarthHoleDigBehav hole))
         {
-            // If it's a hole, try to plant
             return hole.PlantSeed(plantPrefab);
         }
 
-        // 2. Fallback: Throw the berry if not looking at a hole
         if (prefab == null) return false;
 
         Vector2 direction = (targetAnchor.position - caster.position).normalized;

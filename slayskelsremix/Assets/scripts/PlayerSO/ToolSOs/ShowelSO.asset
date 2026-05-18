@@ -16,17 +16,14 @@ MonoBehaviour:
   description: showel
   icon: {fileID: 21300000, guid: a571bd13890e8084ea06db7f8e53fe97, type: 3}
   launchsound: {fileID: 0}
-  fireRate: 1.13
+  fireRate: 1.95
   isOnCooldown: 0
   prefab: {fileID: 233725004081931323, guid: 49947f31aaae6ec46b59d342ab70058a, type: 3}
   damage: 5
   customAudioLogic: 1
   maxSwings: 2
-  swingFreq: 0.31
+  swingFreq: 1.44
   spawnOffset: 1.5
   rotationOffset: 90
-  swingIndex: 1
-  nextSwingTime: 80.3375
-  isActive: 1
   toolType: 4
   holeBuild: {fileID: 11400000, guid: 058c1c778993d494c8ff4b1f4dd93b48, type: 2}

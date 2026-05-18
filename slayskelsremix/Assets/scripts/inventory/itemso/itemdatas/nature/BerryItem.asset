@@ -19,4 +19,5 @@ MonoBehaviour:
   maxStackSize: 99
   isUsable: 1
   consumeAmount: 1
+  maxDurability: 0
   abilityToExecute: {fileID: 11400000, guid: b92b3415295c6fb40a80b6cd6aac2e0c, type: 2}

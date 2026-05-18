@@ -56,13 +56,11 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
     /// </summary>
     public virtual void TakeDamage(float damage, ToolType toolType, ItemData toolItem)
     {
-        Debug.Log($"[ItemHealth] {gameObject.name} hit by ToolType: {toolType} using item: {toolItem?.itemName ?? "None"} with initial damage: {damage}");
-
         // 1. Log the state before modifications
         LogToolDurability(toolItem);
 
-        // 2. Reduce the tool's durability if it's valid and tracked
-        if (toolItem != null && toolItem.maxDurability > 0 && PlayerHotbarManager.Instance != null)
+        // 2. Reduce the tool's durability ONLY if it is valid and NOT unbreakable (maxDurability > 0)
+        if (toolItem != null && !toolItem.IsUnbreakable && PlayerHotbarManager.Instance != null)
         {
             PlayerHotbarManager.Instance.ReduceActiveToolDurability(1f);
         }
@@ -92,8 +90,6 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
 
     private void ProcessDamage(float damage, ToolType toolType)
     {
-        Debug.Log($"[ItemHealth] {gameObject.name} processing damage. Current Health: {health}/{maxHealth}, Incoming Damage: {damage}");
-
         health -= damage;
         health = Mathf.Clamp(health, 0, maxHealth);
 
@@ -103,7 +99,6 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
 
         if (health <= 0)
         {
-            Debug.Log($"[ItemHealth] {gameObject.name} health reached 0. Triggering Die.");
             Die(toolType);
         }
     }
@@ -112,16 +107,25 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
     {
         if (tool == null) return;
 
-        if (tool.maxDurability > 0)
+        // UPDATED: Use the new IsUnbreakable property to route logging paths safely
+        if (!tool.IsUnbreakable)
         {
-            float durabilityPercent = (tool.currentDurability / tool.maxDurability) * 100f;
-            durabilityPercent = Mathf.Clamp(durabilityPercent, 0f, 100f);
+            // Fetch the actual current tracking durability value from the Hotbar Manager instance layer
+            if (PlayerHotbarManager.Instance != null)
+            {
+                // Assuming your hotbar manager has a method to read current active durability. 
+                // Adjust this syntax if your manager exposes it via an active slot reference instead!
+                float currentRuntimeDurability = PlayerHotbarManager.Instance.GetActiveToolDurability();
 
-            Debug.Log($"<color=yellow>[Tool Check]</color> {tool.itemName} is currently at {durabilityPercent:F0}% durability. ({tool.currentDurability}/{tool.maxDurability})");
+                float durabilityPercent = (currentRuntimeDurability / tool.maxDurability) * 100f;
+                durabilityPercent = Mathf.Clamp(durabilityPercent, 0f, 100f);
+
+                Debug.Log($"<color=yellow>[Tool Check]</color> {tool.itemName} Durability: {currentRuntimeDurability}/{tool.maxDurability} ({durabilityPercent:F0}%)");
+            }
         }
         else
         {
-            Debug.Log($"<color=white>[Tool Check]</color> {tool.itemName} does not track durability properties.");
+            Debug.Log($"<color=white>[Tool Check]</color> {tool.itemName} is unbreakable and does not track durability properties.");
         }
     }
 

@@ -42,7 +42,6 @@ public class PerkManager : MonoBehaviour
         if (upgradePanel != null)
         {
             upgradePanel.SetActive(false);
-            Debug.Log("[PerkManager] Upgrade panel set inactive.");
         }
     }
 
@@ -57,7 +56,6 @@ public class PerkManager : MonoBehaviour
         }
 
         toggleAction.action.Enable();
-        Debug.Log("[PerkManager] Toggle action enabled.");
     }
 
     private void OnDisable()
