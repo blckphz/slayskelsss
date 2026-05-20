@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 public class BushBehav : ItemHealth
 {
@@ -6,15 +6,16 @@ public class BushBehav : ItemHealth
     public string bushID;
 
     [Header("Bush Visuals")]
-    public Sprite fullSprite;       // The sprite with berries
-    public Sprite harvestedSprite;  // The empty bush sprite
+    public Sprite fullSprite;
+    public Sprite harvestedSprite;
 
     [Header("Bush Settings")]
     public int berriesOnFirstHit = 3;
-    public float regrowDays = 1.0f; // How many days to regrow? (1.0 = 24 hours)
+    public float regrowDays = 1.0f;
 
-    private bool isHarvested = false;
+    public bool isHarvested = false;
     private float timeAtHarvest = -1f;
+
     public bool IsHarvested => isHarvested;
 
     private DayNightCycle timeSystem;
@@ -27,7 +28,6 @@ public class BushBehav : ItemHealth
 
     void Update()
     {
-        // Only check for regrowth if it's harvested and the bush isn't "dead"
         if (isHarvested && health > 0)
         {
             CheckForRegrowth();
@@ -38,7 +38,6 @@ public class BushBehav : ItemHealth
     {
         if (timeSystem == null) return;
 
-        // If the current TotalTime is greater than harvest time + duration, regrow
         if (timeSystem.TotalTime >= timeAtHarvest + regrowDays)
         {
             Regrow();
@@ -53,21 +52,35 @@ public class BushBehav : ItemHealth
         if (fullSprite != null && spriteRenderer != null)
         {
             spriteRenderer.sprite = fullSprite;
-            health = maxHealth; // Reset health when regrowing
-
+            health = maxHealth;
         }
 
-        // Optional: Save after regrowth so it stays full on next load
         if (BuildingSaveManager.Instance != null)
             BuildingSaveManager.Instance.SaveAfterChange();
+    }
+
+    // ✅ FIX: THIS is the missing override that was breaking everything
+    public override void TakeDamage(float damage, ToolType toolType, ItemData toolItem)
+    {
+        if (!isHarvested)
+            HarvestBush();
+
+        base.TakeDamage(damage, toolType, toolItem);
+    }
+
+    public override void TakeDamage(float damage, ToolType toolType)
+    {
+        if (!isHarvested)
+            HarvestBush();
+
+        base.TakeDamage(damage, toolType);
     }
 
     public override void TakeDamage(float damage)
     {
         if (!isHarvested)
-        {
             HarvestBush();
-        }
+
         base.TakeDamage(damage);
     }
 
@@ -75,29 +88,26 @@ public class BushBehav : ItemHealth
     {
         isHarvested = true;
 
-        // Mark the exact time it was harvested from the DayNightCycle
         if (timeSystem != null)
             timeAtHarvest = timeSystem.TotalTime;
 
         if (harvestedSprite != null && spriteRenderer != null)
-        {
             spriteRenderer.sprite = harvestedSprite;
-        }
 
         DropInitialBerries();
 
         if (BuildingSaveManager.Instance != null)
-        {
             BuildingSaveManager.Instance.SaveAfterChange();
-        }
     }
 
     private void DropInitialBerries()
     {
         if (lootPrefab == null) return;
+
         for (int i = 0; i < berriesOnFirstHit; i++)
         {
             GameObject loot = Instantiate(lootPrefab, transform.position, Quaternion.identity);
+
             if (loot.TryGetComponent<LootArc>(out LootArc arc))
                 arc.Initialize(transform.position);
         }
@@ -107,28 +117,27 @@ public class BushBehav : ItemHealth
     {
         if (data == null) return;
 
-        this.isHarvested = data.isHarvested;
-        this.health = data.health;
-        this.timeAtHarvest = data.timeAtHarvest;
+        isHarvested = data.isHarvested;
+        health = data.health;
+        timeAtHarvest = data.timeAtHarvest;
 
         if (isHarvested && harvestedSprite != null && spriteRenderer != null)
             spriteRenderer.sprite = harvestedSprite;
         else if (!isHarvested && fullSprite != null && spriteRenderer != null)
             spriteRenderer.sprite = fullSprite;
 
-        if (this.health <= 0)
+        if (health <= 0)
             gameObject.SetActive(false);
     }
 
-    // Update your GetSaveData method in BuildingSaveManager to include timeAtHarvest
     public BushSaveData GetSaveData()
     {
         return new BushSaveData
         {
-            bushID = this.bushID,
-            isHarvested = this.isHarvested,
-            health = this.health,
-            timeAtHarvest = this.timeAtHarvest
+            bushID = bushID,
+            isHarvested = isHarvested,
+            health = health,
+            timeAtHarvest = timeAtHarvest
         };
     }
 }

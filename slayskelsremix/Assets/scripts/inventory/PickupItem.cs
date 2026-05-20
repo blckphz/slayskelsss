@@ -11,12 +11,14 @@ public class PickupItem : MonoBehaviour
 
     private Highlightable highlight;
 
+    // NEW: prevents double pickup
+    private bool isPickedUp = false;
+
     private void Awake()
     {
         highlight = GetComponent<Highlightable>();
     }
 
-    // Public getter so npcJobBrain can check if this is Wood
     public ItemData GetItemData() => woodData;
 
     public string GetPrompt()
@@ -28,10 +30,9 @@ public class PickupItem : MonoBehaviour
 
     public void Interact(InventoryManager playerInventory)
     {
-        if (woodData == null) return;
+        if (woodData == null || isPickedUp) return;
 
-        playerInventory.AddItem(woodData, amount);
-        Destroy(gameObject);
+        Pickup(playerInventory);
     }
 
     public void OnFocus() => highlight?.SetHighlighted(true);
@@ -39,31 +40,37 @@ public class PickupItem : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (!autoPickupOnCollision) return;
+        if (!autoPickupOnCollision || isPickedUp) return;
 
-        // --- Player Pickup ---
+        // Player pickup
         if (collision.TryGetComponent(out InventoryManager playerInv))
         {
-            playerInv.AddItem(woodData, amount);
-            Destroy(gameObject);
+            Pickup(playerInv);
             return;
         }
 
-        // --- NPC Pickup ---
+        // NPC pickup
         if (collision.TryGetComponent(out NpcInvBrain npcInv))
         {
             npcInv.AddItem(woodData, amount);
 
-            // Notify the brain to re-evaluate its job now that it has items
             if (collision.TryGetComponent(out NPCBrain brain))
             {
                 brain.WakeUp();
             }
 
-            // Clean up global events if you are using them for pathfinding tracking
-            // NPCGlobalEvents.NotifyDestroyed(gameObject.GetInstanceID()); 
-
+            isPickedUp = true;
             Destroy(gameObject);
         }
+    }
+
+    private void Pickup(InventoryManager playerInventory)
+    {
+        if (woodData == null || isPickedUp) return;
+
+        isPickedUp = true;
+
+        playerInventory.AddItem(woodData, amount);
+        Destroy(gameObject);
     }
 }
