@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -7,7 +6,9 @@ public class PlayerAttack : MonoBehaviour
 {
     public PlayerAim aimScript;
     public InputActionReference[] fireActions;
-    public Dictionary<Ability, float> abilityCooldowns = new Dictionary<Ability, float>();
+
+    private Dictionary<Ability, float> cooldownEndTime = new Dictionary<Ability, float>();
+
     public float screenshakeIntensity = 0.5f;
     public float screenshakeDuration = 0.2f;
 
@@ -31,72 +32,62 @@ public class PlayerAttack : MonoBehaviour
     {
         if (actionRef == null || actionRef.action == null) return;
 
-        // CRITICAL: Block input if the big fireRate cooldown asset flag is active
-        if (ability.isOnCooldown) return;
+        bool held = actionRef.action.IsPressed();
 
-        bool isHeld = actionRef.action.IsPressed();
-        float cdTimestamp = GetCooldown(ability);
-        bool isWeaponReady = Time.time >= cdTimestamp;
+        float remaining = GetCooldownRemaining(ability);
+        bool ready = remaining <= 0f;
 
-        if (isHeld && isWeaponReady)
+        Debug.Log($"[ATTACK] {ability.abilityName} | Held={held} | Ready={ready} | Remaining={remaining:F2}");
+
+        if (!held || !ready)
+            return;
+
+        bool comboFinished = ability.Execute(transform, aimScript.anchor, true);
+
+        Debug.Log($"[EXECUTE] {ability.abilityName} | comboFinished={comboFinished}");
+
+        if (ability is offensivemelee melee)
         {
-            // Execute returns true ONLY when the combo completely finishes its last hit
-            bool comboFinished = ability.Execute(transform, aimScript.anchor, true);
-
-            if (ability is offensivemelee melee)
+            if (comboFinished)
             {
-                if (comboFinished)
-                {
-                    // Combo Finished: Apply the BIG cooldown (fireRate)
-                    abilityCooldowns[ability] = Time.time + ability.fireRate;
-                    StartCoroutine(BigCooldownRoutine(ability, ability.fireRate));
-                }
-                else
-                {
-                    // Mid-Combo: Just space out the next swing locally using swingFreq
-                    abilityCooldowns[ability] = Time.time + melee.swingFreq;
-                }
+                float end = Time.time + ability.fireRate;
+                cooldownEndTime[ability] = end;
+
+                Debug.Log($"[COOLDOWN] FULL COMBO → fireRate={ability.fireRate}s ends at {end:F2}");
             }
             else
             {
-                // Standard ranged/berry actions use the traditional fireRate structure instantly
-                abilityCooldowns[ability] = Time.time + ability.fireRate;
-                StartCoroutine(BigCooldownRoutine(ability, ability.fireRate));
+                float end = Time.time + melee.swingFreq;
+                cooldownEndTime[ability] = end;
+
+                Debug.Log($"[COOLDOWN] SWING GAP → swingFreq={melee.swingFreq}s ends at {end:F2}");
             }
-
-            // Trigger visual cosmetics per swing
-            TriggerCosmetics(ability);
         }
-
-        // Reset tracking if button is released mid-combo execution
-        if (actionRef.action.WasReleasedThisFrame() && ability is offensivemelee manualMelee)
+        else
         {
-            manualMelee.ResetMeleeState();
+            float end = Time.time + ability.fireRate;
+            cooldownEndTime[ability] = end;
+
+            Debug.Log($"[COOLDOWN] RANGED → fireRate={ability.fireRate}s ends at {end:F2}");
         }
+
+        TriggerCosmetics(ability);
     }
 
-    private float GetCooldown(Ability ability)
+    public float GetCooldownRemaining(Ability ability)
     {
-        if (!abilityCooldowns.ContainsKey(ability)) abilityCooldowns[ability] = 0f;
-        return abilityCooldowns[ability];
+        if (!cooldownEndTime.ContainsKey(ability))
+            return 0f;
+
+        return Mathf.Max(0f, cooldownEndTime[ability] - Time.time);
     }
 
     private void TriggerCosmetics(Ability ability)
     {
-        if (CameraShaker.Instance != null && screenshakeIntensity > 0)
-        {
+        if (CameraShaker.Instance != null)
             CameraShaker.Instance.Shake(screenshakeIntensity, screenshakeDuration);
-        }
 
         if (charsetter.Instance != null)
             charsetter.Instance.TriggerAbilityUsed(ability);
-    }
-
-    // This handles the scriptable object's big asset cooldown lock
-    private IEnumerator BigCooldownRoutine(Ability ability, float duration)
-    {
-        ability.isOnCooldown = true;
-        yield return new WaitForSeconds(duration);
-        ability.isOnCooldown = false;
     }
 }
