@@ -8,9 +8,20 @@ public struct Ingredient
     public int amount;
 }
 
+// Enum for recipe category
+public enum RecipeType
+{
+    Deco,
+    Functionality,
+    Tool
+}
+
 [CreateAssetMenu(fileName = "New Recipe", menuName = "Inventory/Crafting/Recipe")]
 public class CraftingSO : ScriptableObject
 {
+    [Header("Category")]
+    public RecipeType recipeType;
+
     [Header("Output")]
     public ItemData resultItem;
     public int resultCount = 1;

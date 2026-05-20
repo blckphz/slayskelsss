@@ -1,6 +1,7 @@
-﻿using UnityEngine;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
 
 public abstract class ItemHealth : MonoBehaviour, IDamageable
 {
@@ -8,8 +9,11 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
     public float health = 50f;
     protected float maxHealth;
 
+    [Header("Tool Requirements")]
+    public ToolType effectiveTool = ToolType.None;
+
     [Header("Tool Durability")]
-    public float durabilityPerSwing = 1f; // How much durability this object consumes per hit
+    public float durabilityPerSwing = 1f;
 
     [Header("XP Reward")]
     public bool givesXP = true;
@@ -45,53 +49,46 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
         propertyBlock = new MaterialPropertyBlock();
         originalLocalPosition = transform.localPosition;
         maxHealth = health;
-
-        if (spriteRenderer == null)
-        {
-            Debug.LogWarning($"[ItemHealth] {gameObject.name} is missing a SpriteRenderer!", gameObject);
-        }
     }
 
-    // ================= DAMAGE INTERFACE OVERLOADS =================
+    // ================= DAMAGE =================
 
-    /// <summary>
-    /// Primary entry point: Processes damage, logs durability details, and decrements active tool wear.
-    /// </summary>
     public virtual void TakeDamage(float damage, ToolType toolType, ItemData toolItem)
     {
-        // 1. Log durability before reducing it
         LogToolDurability(toolItem);
 
-        // 2. Reduce durability using durabilityPerSwing
         if (toolItem != null &&
             !toolItem.IsUnbreakable &&
             PlayerHotbarManager.Instance != null)
         {
-            PlayerHotbarManager.Instance.ReduceActiveToolDurability(durabilityPerSwing);
+            float durabilityLoss = durabilityPerSwing;
+
+            // ✅ correct tool = half durability loss
+            if (toolType == effectiveTool)
+            {
+                durabilityLoss *= 0.5f;
+            }
+
+            // ✅ ROUND UP
+            int finalLoss = Mathf.CeilToInt(durabilityLoss);
+
+            PlayerHotbarManager.Instance.ReduceActiveToolDurability(finalLoss);
         }
 
-        // 3. Process structural damage
         ProcessDamage(damage, toolType);
     }
 
-    /// <summary>
-    /// Fallback overload with ToolType only.
-    /// </summary>
     public virtual void TakeDamage(float damage, ToolType toolType)
     {
-        Debug.Log($"[ItemHealth] {gameObject.name} hit by ToolType: {toolType} with initial damage: {damage}");
         ProcessDamage(damage, toolType);
     }
 
-    /// <summary>
-    /// Raw damage fallback.
-    /// </summary>
     public virtual void TakeDamage(float damage)
     {
         ProcessDamage(damage, ToolType.None);
     }
 
-    // ================= CORE CALCULATIONS =================
+    // ================= CORE DAMAGE =================
 
     private void ProcessDamage(float damage, ToolType toolType)
     {
@@ -108,83 +105,47 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
         }
     }
 
+    // ================= TOOL DEBUG =================
+
     private void LogToolDurability(ItemData tool)
     {
         if (tool == null) return;
 
-        if (!tool.IsUnbreakable)
+        if (!tool.IsUnbreakable && PlayerHotbarManager.Instance != null)
         {
-            if (PlayerHotbarManager.Instance != null)
-            {
-                float currentRuntimeDurability =
-                    PlayerHotbarManager.Instance.GetActiveToolDurability();
+            float current = PlayerHotbarManager.Instance.GetActiveToolDurability();
+            float percent = (current / tool.maxDurability) * 100f;
 
-                float durabilityPercent =
-                    (currentRuntimeDurability / tool.maxDurability) * 100f;
+            percent = Mathf.Clamp(percent, 0f, 100f);
 
-                durabilityPercent = Mathf.Clamp(durabilityPercent, 0f, 100f);
-
-                Debug.Log(
-                    $"<color=yellow>[Tool Check]</color> " +
-                    $"{tool.itemName} Durability: " +
-                    $"{currentRuntimeDurability}/{tool.maxDurability} " +
-                    $"({durabilityPercent:F0}%)"
-                );
-            }
-        }
-        else
-        {
             Debug.Log(
-                $"<color=white>[Tool Check]</color> " +
-                $"{tool.itemName} is unbreakable and does not track durability."
+                $"<color=yellow>[Tool Check]</color> " +
+                $"{tool.itemName} Durability: {current}/{tool.maxDurability} ({percent:F0}%)"
             );
         }
     }
 
-    public virtual void ApplySlow(
-        float slowPercent,
-        float duration,
-        float tickDmg,
-        float tickInterval)
-    {
-    }
-
-    public bool IsSlowed => false;
-
-    // ================= REWARDS & EVENT LIFECYCLE =================
+    // ================= XP =================
 
     protected virtual void GrantXP()
     {
         GameObject player = GameObject.FindGameObjectWithTag("Player");
 
-        if (player != null)
+        if (player != null &&
+            player.TryGetComponent<LevelManager>(out LevelManager lm))
         {
-            if (player.TryGetComponent<LevelManager>(out LevelManager lm))
-            {
-                Debug.Log(
-                    $"[ItemHealth] Granting {xpReward} XP to player from {gameObject.name}."
-                );
-
-                lm.AddXP(xpReward);
-            }
+            lm.AddXP(xpReward);
         }
     }
 
+    // ================= DEATH =================
+
     protected virtual void Die(ToolType killerTool)
     {
-        Debug.Log(
-            $"[ItemHealth] {gameObject.name} has died. " +
-            $"Notifying systems and executing cleanup."
-        );
-
         NPCGlobalEvents.NotifyDestroyed(gameObject.GetInstanceID());
 
-        UpdateShaderFloat(hitIntensityName, 0f);
-
         if (givesXP)
-        {
             GrantXP();
-        }
 
         SpawnLoot();
 
@@ -196,6 +157,8 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
         Die(ToolType.None);
     }
 
+    // ================= LOOT =================
+
     public virtual void SpawnLoot()
     {
         if (lootPrefab == null)
@@ -203,12 +166,11 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
 
         for (int i = 0; i < dropAmount; i++)
         {
-            GameObject loot =
-                Instantiate(
-                    lootPrefab,
-                    transform.position,
-                    Quaternion.identity
-                );
+            GameObject loot = Instantiate(
+                lootPrefab,
+                transform.position,
+                Quaternion.identity
+            );
 
             if (loot.TryGetComponent<LootArc>(out LootArc arc))
             {
@@ -217,25 +179,24 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
         }
     }
 
+    // ================= VISUALS =================
+
     protected void ShowDamageText(float damage)
     {
         if (damageTextPrefab == null || damage <= 0)
             return;
 
-        GameObject textObj =
-            Instantiate(
-                damageTextPrefab,
-                transform.position + Vector3.up,
-                Quaternion.identity
-            );
+        GameObject textObj = Instantiate(
+            damageTextPrefab,
+            transform.position + Vector3.up,
+            Quaternion.identity
+        );
 
         if (textObj.TryGetComponent<DamageNumber>(out DamageNumber dn))
         {
             dn.Setup(damage);
         }
     }
-
-    // ================= VISUAL EFFECTS =================
 
     protected void TriggerFlash()
     {
@@ -253,8 +214,7 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
         {
             elapsed += Time.deltaTime;
 
-            float intensity =
-                Mathf.Lerp(1f, 0f, elapsed / flashDuration);
+            float intensity = Mathf.Lerp(1f, 0f, elapsed / flashDuration);
 
             UpdateShaderFloat(hitIntensityName, intensity);
 
@@ -270,9 +230,7 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
             return;
 
         spriteRenderer.GetPropertyBlock(propertyBlock);
-
         propertyBlock.SetFloat(name, value);
-
         spriteRenderer.SetPropertyBlock(propertyBlock);
     }
 
@@ -293,7 +251,7 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
             elapsed += Time.deltaTime;
 
             Vector2 randomOffset =
-                Random.insideUnitCircle * shakeMagnitude;
+                UnityEngine.Random.insideUnitCircle * shakeMagnitude;
 
             transform.localPosition =
                 originalLocalPosition + (Vector3)randomOffset;
@@ -303,4 +261,14 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
 
         transform.localPosition = originalLocalPosition;
     }
+
+    public virtual void ApplySlow(
+        float slowPercent,
+        float duration,
+        float tickDmg,
+        float tickInterval)
+    {
+    }
+
+    public bool IsSlowed => false;
 }

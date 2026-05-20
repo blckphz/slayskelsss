@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b8a9a032426623847a24a1e07df607e7, type: 3}
   m_Name: RecepieFence
   m_EditorClassIdentifier: Assembly-CSharp::CraftingSO
+  recipeType: 1
   resultItem: {fileID: 11400000, guid: ca5deb8da18e7564c9e7df2e8013b74a, type: 2}
   resultCount: 1
   ingredients:
