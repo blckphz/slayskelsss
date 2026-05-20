@@ -13,11 +13,11 @@ public class InventoryManager : MonoBehaviour
         public int count;
         public float currentDurability;
 
-        public InventorySlot(ItemData item, int count, float durability)
+        public InventorySlot(ItemData d, int c, float dur)
         {
-            this.item = item;
-            this.count = count;
-            this.currentDurability = durability;
+            item = d;
+            count = c;
+            currentDurability = dur;
         }
     }
 
@@ -45,53 +45,65 @@ public class InventoryManager : MonoBehaviour
 
     private void InitializeHotbarData()
     {
-        if (hotbarData == null)
-            hotbarData = new List<HotbarSlotData>();
+        if (hotbarData == null) hotbarData = new List<HotbarSlotData>();
 
-        while (hotbarData.Count < hotbarSize)
-            hotbarData.Add(new HotbarSlotData());
-
-        while (hotbarData.Count > hotbarSize)
-            hotbarData.RemoveAt(hotbarData.Count - 1);
+        if (hotbarData.Count != hotbarSize)
+        {
+            hotbarData.Clear();
+            for (int i = 0; i < hotbarSize; i++)
+            {
+                hotbarData.Add(new HotbarSlotData());
+            }
+        }
     }
 
-    public void AddItem(ItemData data, int amount)
+    // ==========================================
+    // UPGRADED STACK-CONSCIOUS ADD SYSTEM
+    // ==========================================
+    public void AddItem(ItemData data, int amount, float customDurability = -1f)
     {
         if (data == null || amount <= 0) return;
 
+        // Items with durability must retain an individual standalone tracking slot
         if (data.maxDurability > 0)
         {
             for (int i = 0; i < amount; i++)
             {
-                inventory.Add(new InventorySlot(data, 1, data.maxDurability));
+                float appliedDurability = (customDurability < 0) ? data.maxDurability : customDurability;
+                inventory.Add(new InventorySlot(data, 1, appliedDurability));
             }
-
             RefreshAll();
             return;
         }
 
-        int remaining = amount;
+        // Standard resources stack pooling with respect to maxStackSize constraints
+        int remainingAmount = amount;
 
+        // Step 1: Attempt to fill pre-existing stacks that have open room left
         foreach (var slot in inventory)
         {
             if (slot.item != null && slot.item.itemID == data.itemID)
             {
-                int space = data.maxStackSize - slot.count;
-                int add = Mathf.Min(space, remaining);
+                int maxStack = data.maxStackSize;
+                if (slot.count < maxStack)
+                {
+                    int spaceLeft = maxStack - slot.count;
+                    int addAmount = Mathf.Min(spaceLeft, remainingAmount);
 
-                slot.count += add;
-                remaining -= add;
+                    slot.count += addAmount;
+                    remainingAmount -= addAmount;
 
-                if (remaining <= 0) break;
+                    if (remainingAmount <= 0) break;
+                }
             }
         }
 
-        while (remaining > 0)
+        // Step 2: If items remain, assign them to new slots, breaking them up by max stack capacities
+        while (remainingAmount > 0)
         {
-            int add = Mathf.Min(remaining, data.maxStackSize);
-
-            inventory.Add(new InventorySlot(data, add, 1f));
-            remaining -= add;
+            int nextStackSize = Mathf.Min(remainingAmount, data.maxStackSize);
+            inventory.Add(new InventorySlot(data, nextStackSize, 0f));
+            remainingAmount -= nextStackSize;
         }
 
         RefreshAll();
@@ -100,20 +112,34 @@ public class InventoryManager : MonoBehaviour
     public bool RemoveItem(ItemData data, int amount)
     {
         if (data == null) return false;
-
         bool changed = false;
 
-        for (int i = inventory.Count - 1; i >= 0 && amount > 0; i--)
+        for (int i = inventory.Count - 1; i >= 0; i--)
         {
             if (inventory[i].item != null && inventory[i].item.itemID == data.itemID)
             {
                 int take = Mathf.Min(inventory[i].count, amount);
                 inventory[i].count -= take;
                 amount -= take;
+                if (inventory[i].count <= 0) inventory.RemoveAt(i);
                 changed = true;
+                if (amount <= 0) break;
+            }
+        }
 
-                if (inventory[i].count <= 0)
-                    inventory.RemoveAt(i);
+        if (amount > 0)
+        {
+            for (int i = 0; i < hotbarData.Count; i++)
+            {
+                if (hotbarData[i].item != null && hotbarData[i].item.itemID == data.itemID)
+                {
+                    int take = Mathf.Min(hotbarData[i].count, amount);
+                    hotbarData[i].count -= take;
+                    amount -= take;
+                    if (hotbarData[i].count <= 0) hotbarData[i].Clear();
+                    changed = true;
+                    if (amount <= 0) break;
+                }
             }
         }
 
@@ -121,56 +147,95 @@ public class InventoryManager : MonoBehaviour
         return changed;
     }
 
-    public void DegradeEquippedToolDurability(float amount, int hotbarIndex)
+    public void ConsumeResources(ItemData data, int amount)
     {
-        if (hotbarIndex < 0 || hotbarIndex >= hotbarData.Count) return;
+        if (data == null) return;
+        int remaining = amount;
 
-        var slot = hotbarData[hotbarIndex];
-        if (slot == null || slot.item == null) return;
-
-        if (slot.item.maxDurability <= 0) return;
-
-        slot.currentDurability -= amount;
-        slot.currentDurability = Mathf.Max(slot.currentDurability, 0f);
-
-        if (slot.currentDurability <= 0f)
+        for (int i = inventory.Count - 1; i >= 0; i--)
         {
-            slot.count--;
-
-            if (slot.count <= 0)
+            if (inventory[i].item != null && inventory[i].item.itemID == data.itemID)
             {
-                slot.Clear();
-            }
-            else
-            {
-                slot.currentDurability = slot.item.maxDurability;
+                int take = Mathf.Min(inventory[i].count, remaining);
+                inventory[i].count -= take;
+                remaining -= take;
+                if (inventory[i].count <= 0) inventory.RemoveAt(i);
+                if (remaining <= 0) break;
             }
         }
 
+        if (remaining > 0)
+        {
+            for (int i = 0; i < hotbarData.Count; i++)
+            {
+                if (hotbarData[i].item != null && hotbarData[i].item.itemID == data.itemID)
+                {
+                    int take = Mathf.Min(hotbarData[i].count, remaining);
+                    hotbarData[i].count -= take;
+                    remaining -= take;
+                    if (hotbarData[i].count <= 0) hotbarData[i].Clear();
+                    if (remaining <= 0) break;
+                }
+            }
+        }
         RefreshAll();
     }
 
+    public void DegradeEquippedToolDurability(float amount, int activeHotbarIndex)
+    {
+        if (activeHotbarIndex < 0 || activeHotbarIndex >= hotbarData.Count) return;
+
+        HotbarSlotData slot = hotbarData[activeHotbarIndex];
+        if (slot == null || slot.IsEmpty) return;
+
+        if (slot.item != null && slot.item.maxDurability > 0)
+        {
+            slot.currentDurability -= amount;
+            slot.currentDurability = Mathf.Max(slot.currentDurability, 0f);
+
+            Debug.Log($"[Durability] {slot.item.itemName} at index {activeHotbarIndex} degraded to: {slot.currentDurability}/{slot.item.maxDurability}");
+
+            if (slot.currentDurability <= 0f)
+            {
+                slot.count--;
+                if (slot.count <= 0)
+                {
+                    Debug.LogWarning($"[Durability Broken] {slot.item.itemName} broke completely!");
+                    slot.Clear();
+                }
+                else
+                {
+                    slot.currentDurability = slot.item.maxDurability;
+                }
+            }
+            RefreshAll();
+        }
+    }
+
+    // ==========================================
+    // SAVE / LOAD SYSTEM
+    // ==========================================
     public void SaveInventory()
     {
-        InventorySaveData save = new InventorySaveData();
+        InventorySaveData saveData = new InventorySaveData();
 
-        foreach (var s in inventory)
+        foreach (var slot in inventory)
         {
-            if (s.item == null) continue;
-
-            save.savedItems.Add(new SaveSlot
+            if (slot.item != null)
             {
-                itemId = s.item.itemID,
-                count = s.count,
-                currentDurability = s.currentDurability
-            });
+                saveData.savedItems.Add(new SaveSlot
+                {
+                    itemId = slot.item.itemID,
+                    count = slot.count,
+                    currentDurability = slot.currentDurability
+                });
+            }
         }
 
         for (int i = 0; i < hotbarData.Count; i++)
         {
             var h = hotbarData[i];
-
-            save.hotbarItems.Add(new HotbarSaveSlot
+            saveData.hotbarItems.Add(new HotbarSaveSlot
             {
                 itemId = h.item != null ? h.item.itemID : -1,
                 abilityName = h.ability != null ? h.ability.name : "",
@@ -179,7 +244,8 @@ public class InventoryManager : MonoBehaviour
             });
         }
 
-        File.WriteAllText(savePath, JsonUtility.ToJson(save, true));
+        string json = JsonUtility.ToJson(saveData, true);
+        File.WriteAllText(savePath, json);
     }
 
     public void LoadInventory()
@@ -187,22 +253,16 @@ public class InventoryManager : MonoBehaviour
         if (!File.Exists(savePath)) return;
 
         string json = File.ReadAllText(savePath);
-        InventorySaveData save = JsonUtility.FromJson<InventorySaveData>(json);
-
-        if (save == null) return;
+        InventorySaveData saveData = JsonUtility.FromJson<InventorySaveData>(json);
 
         inventory.Clear();
-
-        foreach (var s in save.savedItems)
+        foreach (var s in saveData.savedItems)
         {
             ItemData item = database.GetItemByID(s.itemId);
-            if (item == null) continue;
-
-            inventory.Add(new InventorySlot(
-                item,
-                s.count,
-                item.maxDurability > 0 ? s.currentDurability : 1f
-            ));
+            if (item != null)
+            {
+                inventory.Add(new InventorySlot(item, s.count, s.currentDurability));
+            }
         }
 
         InitializeHotbarData();
@@ -211,25 +271,26 @@ public class InventoryManager : MonoBehaviour
         {
             hotbarData[i].Clear();
 
-            if (i >= save.hotbarItems.Count) continue;
-
-            var h = save.hotbarItems[i];
-
-            if (h.itemId != -1)
+            if (i < saveData.hotbarItems.Count)
             {
-                ItemData item = database.GetItemByID(h.itemId);
+                var hSave = saveData.hotbarItems[i];
 
-                if (item != null)
+                if (hSave.itemId != -1)
                 {
-                    hotbarData[i].item = item;
-                    hotbarData[i].count = h.count;
-                    hotbarData[i].currentDurability =
-                        item.maxDurability > 0 ? h.currentDurability : 1f;
+                    ItemData foundItem = database.GetItemByID(hSave.itemId);
+                    if (foundItem != null)
+                    {
+                        hotbarData[i].item = foundItem;
+                        hotbarData[i].count = hSave.count;
+                        hotbarData[i].currentDurability = hSave.currentDurability;
+                    }
+                }
+
+                if (!string.IsNullOrEmpty(hSave.abilityName) && abilityDatabase != null)
+                {
+                    hotbarData[i].ability = abilityDatabase.GetAbilityByName(hSave.abilityName);
                 }
             }
-
-            if (!string.IsNullOrEmpty(h.abilityName) && abilityDatabase != null)
-                hotbarData[i].ability = abilityDatabase.GetAbilityByName(h.abilityName);
         }
     }
 
@@ -244,15 +305,36 @@ public class InventoryManager : MonoBehaviour
     public int GetTotalCount(ItemData data)
     {
         int total = 0;
-
         foreach (var s in inventory)
-            if (s.item != null && s.item.itemID == data.itemID)
-                total += s.count;
-
+            if (s.item != null && s.item.itemID == data.itemID) total += s.count;
         foreach (var h in hotbarData)
-            if (h.item != null && h.item.itemID == data.itemID)
-                total += h.count;
-
+            if (h.item != null && h.item.itemID == data.itemID) total += h.count;
         return total;
+    }
+
+    public WorldSaveData CaptureWorldBuildingsState()
+    {
+        WorldSaveData worldData = new WorldSaveData();
+        MonoBehaviour[] sceneObjects = FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None);
+
+        foreach (var obj in sceneObjects)
+        {
+            if (obj is ISaveableBuilding building)
+            {
+                building.GetSaveData(out int ammo, out float progress, out int durability);
+
+                BuildingSaveSlot buildingData = new BuildingSaveSlot
+                {
+                    itemId = building.GetItemID(),
+                    position = obj.transform.position,
+                    rotation = obj.transform.rotation,
+                    ammo = ammo,
+                    progress = progress,
+                    currentDurability = durability
+                };
+                worldData.placedBuildings.Add(buildingData);
+            }
+        }
+        return worldData;
     }
 }

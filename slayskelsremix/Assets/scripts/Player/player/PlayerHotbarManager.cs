@@ -8,13 +8,13 @@ public class PlayerHotbarManager : MonoBehaviour
 {
     public static PlayerHotbarManager Instance;
 
-    [Header("Hotbar")]
+    [Header("UI & Context")]
     public List<InventorySlotUI> hotbarSlots = new List<InventorySlotUI>();
     public RectTransform selector;
-
-    [Header("References")]
     public Transform caster;
     public Transform targetAnchor;
+
+    [Header("References")]
     public PlayerInteraction2D interaction;
 
     private int selectedIndex = 0;
@@ -26,20 +26,32 @@ public class PlayerHotbarManager : MonoBehaviour
     private void Awake()
     {
         if (Instance == null) Instance = this;
-        else { Destroy(gameObject); return; }
+        else
+        {
+            Destroy(gameObject);
+            return;
+        }
 
         controls = new PlayerControls();
+
+        foreach (var slot in hotbarSlots)
+        {
+            if (slot != null && slot.GetAbility() != null)
+            {
+                slot.GetAbility().isOnCooldown = false;
+            }
+        }
+
     }
 
     private IEnumerator Start()
     {
+        selectedIndex = 0;
         yield return null;
 
-        selectedIndex = 0;
+        Debug.Log("[Hotbar] Start -> Refreshing hotbar");
 
-        Debug.Log("[HOTBAR INIT] First refresh");
         RefreshHotbar();
-
         UpdateSelector();
         NotifySelectionChanged();
     }
@@ -47,14 +59,16 @@ public class PlayerHotbarManager : MonoBehaviour
     private void OnEnable()
     {
         controls.Enable();
-
-        controls.Player.PrimaryItemUse.performed += _ => ExecuteActiveSlot();
-        controls.Player.SecondaryItemUse.performed += _ => ExecuteSecondaryActiveSlot();
-        controls.Player.Scroll.performed += ctx => HandleScroll(ctx.ReadValue<Vector2>());
+        controls.Player.PrimaryItemUse.performed += OnPrimaryUse;
+        controls.Player.SecondaryItemUse.performed += OnSecondaryUse;
+        controls.Player.Scroll.performed += OnScroll;
     }
 
     private void OnDisable()
     {
+        controls.Player.PrimaryItemUse.performed -= OnPrimaryUse;
+        controls.Player.SecondaryItemUse.performed -= OnSecondaryUse;
+        controls.Player.Scroll.performed -= OnScroll;
         controls.Disable();
     }
 
@@ -63,81 +77,77 @@ public class PlayerHotbarManager : MonoBehaviour
         for (int i = 0; i < hotbarSlots.Count && i < 9; i++)
         {
             if (Keyboard.current[Key.Digit1 + i].wasPressedThisFrame)
+            {
                 SelectSlot(i);
+            }
         }
     }
 
-    // =========================
-    // EXECUTE SLOT
-    // =========================
+    private void OnPrimaryUse(InputAction.CallbackContext ctx) => ExecuteActiveSlot();
+    private void OnSecondaryUse(InputAction.CallbackContext ctx) => ExecuteSecondaryActiveSlot();
+    private void OnScroll(InputAction.CallbackContext ctx) => HandleScroll(ctx.ReadValue<Vector2>());
+
     public void ExecuteActiveSlot()
     {
-        if (selectedIndex >= hotbarSlots.Count)
-        {
-            Debug.LogWarning("[HOTBAR] Invalid selected index");
-            return;
-        }
-
+        if (selectedIndex >= hotbarSlots.Count) return;
         if (Time.time < nextFireTime) return;
 
         var slot = hotbarSlots[selectedIndex];
 
-        Debug.Log($"[HOTBAR USE] Slot {selectedIndex} item={slot.GetItem()?.name ?? "NULL"}");
-
-        Ability ability = slot.GetAbility();
-
-        if (ability != null)
+        // CHECK 1: DIRECT ABILITY SLOTS
+        if (slot.GetAbility() != null)
         {
+            Ability ability = slot.GetAbility();
             if (ability.isOnCooldown) return;
 
             if (ability.Execute(caster, targetAnchor, true))
             {
                 nextFireTime = Time.time + ability.fireRate;
-                StartCoroutine(CooldownRoutine(ability));
+                StartCoroutine(AbilityCooldownRoutine(ability));
             }
-
             return;
         }
 
+        // CHECK 2: ITEM SLOTS
         ItemData item = slot.GetItem();
+        if (item == null) return;
 
-        if (item == null || slot.GetCount() <= 0)
+        if (!item.isUsable || slot.GetCount() <= 0) return;
+
+        if (item is UseableItem useableItem && useableItem.abilityToExecute != null)
         {
-            Debug.LogWarning("[HOTBAR USE] Empty slot");
+            Ability boundAbility = useableItem.abilityToExecute;
+            if (boundAbility.isOnCooldown) return;
+
+            if (boundAbility.Execute(caster, targetAnchor, true))
+            {
+                if (boundAbility is offensivemelee melee)
+                {
+                    nextFireTime = Time.time + melee.swingFreq;
+                }
+                else
+                {
+                    nextFireTime = Time.time + boundAbility.fireRate;
+                    StartCoroutine(AbilityCooldownRoutine(boundAbility));
+                }
+            }
             return;
         }
 
-        float cooldown = 0.5f;
-
-        if (item is UseableItem useable)
-        {
-            cooldown = useable.useRate;
-
-            if (useable.abilityToExecute != null)
-            {
-                Debug.Log($"[HOTBAR USE] Trigger ability from item {item.name}");
-                useable.abilityToExecute.Execute(caster, targetAnchor, true);
-
-                nextFireTime = Time.time + cooldown;
-                return;
-            }
-        }
-
+        // CHECK 3: CONSUMABLES
+        float defaultCooldown = item is UseableItem u ? u.useRate : 0.5f;
         UseSelectedStack(item.consumeAmount);
-        nextFireTime = Time.time + cooldown;
+        nextFireTime = Time.time + defaultCooldown;
     }
 
-    private IEnumerator CooldownRoutine(Ability ability)
+    private IEnumerator AbilityCooldownRoutine(Ability ability)
     {
         ability.isOnCooldown = true;
         yield return new WaitForSeconds(ability.fireRate);
         ability.isOnCooldown = false;
     }
 
-    // =========================
-    // SECONDARY USE
-    // =========================
-    public void ExecuteSecondaryActiveSlot()
+    private void ExecuteSecondaryActiveSlot()
     {
         if (selectedIndex >= hotbarSlots.Count) return;
 
@@ -146,47 +156,83 @@ public class PlayerHotbarManager : MonoBehaviour
 
         if (item == null || !item.isUsable) return;
 
-        Debug.Log($"[HOTBAR SECONDARY] Slot {selectedIndex} item={item.name}");
-
         if (item is UseableItem useable && useable.abilityToExecute != null)
         {
-            useable.abilityToExecute.ExecuteSecondary(caster);
+            bool isTool = useable.abilityToExecute is ToolsSO || useable.abilityToExecute is offensivemelee;
+            if (!isTool && Time.time < nextFireTime) return;
+
+            if (useable.abilityToExecute.ExecuteSecondary(caster))
+            {
+                if (!isTool) nextFireTime = Time.time + useable.useRate;
+            }
         }
     }
 
-    // =========================
-    // USE STACK
-    // =========================
-    public void UseSelectedStack(int amount)
+    // ================= DATA LAYER GETTERS =================
+
+    /// <summary>
+    /// Gets the runtime durability value of the currently active tool slot.
+    /// Used by health tracking logs.
+    /// </summary>
+    public float GetActiveToolDurability()
     {
+        if (selectedIndex >= hotbarSlots.Count) return 0f;
+        return hotbarSlots[selectedIndex].GetDurability();
+    }
+
+    // ================= DURABILITY DAMAGE HANDLER (ON-KILL ONLY) =================
+
+    /// <summary>
+    /// Decays active weapon durability. Call this exclusively from enemy death events!
+    /// </summary>
+    public void ReduceActiveToolDurability(float amount)
+    {
+        if (selectedIndex >= hotbarSlots.Count) return;
+
         var slot = hotbarSlots[selectedIndex];
+        ItemData item = slot.GetItem();
 
-        int newCount = slot.GetCount() - amount;
+        // FIX: Safely exit early if there is no item or if it's flagged as unbreakable
+        if (item == null || item.IsUnbreakable) return;
 
-        Debug.Log($"[HOTBAR CONSUME] Slot {selectedIndex} -{amount} => {newCount}");
+        float updatedDurability = slot.GetDurability() - amount;
+        updatedDurability = Mathf.Clamp(updatedDurability, 0f, item.maxDurability);
 
-        if (newCount <= 0)
+        if (updatedDurability <= 0f)
         {
-            Debug.Log("[HOTBAR CONSUME] Clearing slot");
-            slot.ClearSlot();
+            Debug.Log($"<color=red>[Item Broken]</color> {item.itemName} shattered from a fatal blow!");
+
+            int currentStack = slot.GetCount() - 1;
+            if (currentStack <= 0)
+            {
+                slot.ClearSlot();
+            }
+            else
+            {
+                slot.SetSlot(item, slot.GetAbility(), currentStack, item.maxDurability);
+            }
         }
         else
         {
-            slot.SetSlot(slot.GetItem(), slot.GetAbility(), newCount, slot.GetDurability());
+            slot.SetSlot(item, slot.GetAbility(), slot.GetCount(), updatedDurability);
         }
 
-        ForceSyncAndSave();
+        SyncHotbarToData();
+
+        if (InventoryManager.Instance != null)
+        {
+            InventoryManager.Instance.SaveInventory();
+        }
+
+        NotifySelectionChanged();
     }
 
-    // =========================
-    // SELECT SLOT
-    // =========================
+    // ================= SLOT MANAGEMENT & UTILS =================
+
     private void SelectSlot(int index)
     {
+        if (index == selectedIndex) return;
         selectedIndex = Mathf.Clamp(index, 0, hotbarSlots.Count - 1);
-
-        Debug.Log($"[HOTBAR SELECT] Slot {selectedIndex}");
-
         UpdateSelector();
         NotifySelectionChanged();
     }
@@ -200,8 +246,6 @@ public class PlayerHotbarManager : MonoBehaviour
         else if (scroll.y < 0)
             selectedIndex = (selectedIndex + 1) % hotbarSlots.Count;
 
-        Debug.Log($"[HOTBAR SCROLL] Selected {selectedIndex}");
-
         UpdateSelector();
         NotifySelectionChanged();
     }
@@ -209,100 +253,59 @@ public class PlayerHotbarManager : MonoBehaviour
     private void UpdateSelector()
     {
         if (selector != null && selectedIndex < hotbarSlots.Count)
+        {
             selector.position = hotbarSlots[selectedIndex].transform.position;
+        }
     }
 
-    // =========================
-    // REFRESH FROM DATA
-    // =========================
+    public void UseSelectedStack(int amount)
+    {
+        if (selectedIndex >= hotbarSlots.Count) return;
+        var slot = hotbarSlots[selectedIndex];
+        int newCount = slot.GetCount() - amount;
+
+        if (newCount <= 0) slot.ClearSlot();
+        else slot.SetSlot(slot.GetItem(), slot.GetAbility(), newCount, slot.GetDurability());
+
+        ForceSyncAndSave();
+    }
+
+    public ItemData GetSelectedItem() => (selectedIndex >= 0 && selectedIndex < hotbarSlots.Count) ? hotbarSlots[selectedIndex].GetItem() : null;
+    private void NotifySelectionChanged() => OnSelectedItemChanged?.Invoke(GetSelectedItem());
+
     public void RefreshHotbar()
     {
-        var data = InventoryManager.Instance?.hotbarData;
-        if (data == null)
-        {
-            Debug.LogWarning("[HOTBAR REFRESH] No data found");
-            return;
-        }
-
-        Debug.Log("[HOTBAR REFRESH] Loading from save data");
+        if (InventoryManager.Instance == null) return;
+        var data = InventoryManager.Instance.hotbarData;
 
         for (int i = 0; i < hotbarSlots.Count; i++)
         {
             if (i < data.Count)
-            {
-                Debug.Log($"[HOTBAR LOAD {i}] {data[i].item?.name ?? "NULL"} x{data[i].count}");
-
-                hotbarSlots[i].SetSlot(
-                    data[i].item,
-                    data[i].ability,
-                    data[i].count,
-                    data[i].currentDurability
-                );
-            }
+                hotbarSlots[i].SetSlot(data[i].item, data[i].ability, data[i].count, data[i].currentDurability);
             else
-            {
                 hotbarSlots[i].ClearSlot();
-            }
         }
-
         UpdateSelector();
     }
 
-    // =========================
-    // SAVE TO DATA
-    // =========================
     public void SyncHotbarToData()
     {
-        var data = InventoryManager.Instance?.hotbarData;
-        if (data == null)
-        {
-            Debug.LogWarning("[HOTBAR SAVE] No save data container");
-            return;
-        }
-
-        Debug.Log("[HOTBAR SAVE] Writing hotbar -> data");
+        if (InventoryManager.Instance == null) return;
+        var data = InventoryManager.Instance.hotbarData;
 
         for (int i = 0; i < hotbarSlots.Count; i++)
         {
-            while (data.Count <= i)
-                data.Add(new HotbarSlotData());
-
-            var slot = hotbarSlots[i];
-
-            data[i].item = slot.GetItem();
-            data[i].ability = slot.GetAbility();
-            data[i].count = slot.GetCount();
-            data[i].currentDurability = slot.GetDurability();
-
-            Debug.Log($"[HOTBAR SAVE {i}] item={data[i].item?.name ?? "NULL"} x{data[i].count}");
+            while (data.Count <= i) data.Add(new HotbarSlotData());
+            data[i].item = hotbarSlots[i].GetItem();
+            data[i].ability = hotbarSlots[i].GetAbility();
+            data[i].count = hotbarSlots[i].GetCount();
+            data[i].currentDurability = hotbarSlots[i].GetDurability();
         }
     }
 
     public void ForceSyncAndSave()
     {
-        Debug.Log("[HOTBAR SAVE] Force sync + save triggered");
-
         SyncHotbarToData();
         InventoryManager.Instance?.SaveInventory();
-    }
-
-    // =========================
-    // EVENTS
-    // =========================
-    private void NotifySelectionChanged()
-    {
-        OnSelectedItemChanged?.Invoke(GetSelectedItem());
-    }
-
-    public ItemData GetSelectedItem()
-    {
-        return (selectedIndex < hotbarSlots.Count)
-            ? hotbarSlots[selectedIndex].GetItem()
-            : null;
-    }
-
-    public int GetSelectedIndex()
-    {
-        return selectedIndex;
     }
 }
