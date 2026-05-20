@@ -48,6 +48,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::treeItemBehav
   health: 50
+  durabilityPerSwing: 4.63
   givesXP: 1
   xpReward: 15
   lootPrefab: {fileID: 8504423254273432661, guid: 22af6c420dc2b11488f396c164eab3b4, type: 3}

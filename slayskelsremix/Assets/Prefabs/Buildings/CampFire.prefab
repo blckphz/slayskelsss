@@ -258,7 +258,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BuildIdentity
   item: {fileID: 11400000, guid: dfd6fa04ef92e3e4bac14d8e63b25f5b, type: 2}
-  recipeUsed: {fileID: 11400000, guid: ba73be5ff07896e4b99764dc98f37366, type: 2}
+  recipeUsed: {fileID: 11400000, guid: 90e2b839f77a316479ffb76e1e416577, type: 2}
 --- !u!70 &537091256237480159
 CapsuleCollider2D:
   m_ObjectHideFlags: 0

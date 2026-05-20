@@ -5,14 +5,24 @@ using TMPro;
 
 public class CampfireSlotUI : MonoBehaviour, IDropHandler, IPointerClickHandler
 {
+
+
+
     [Header("References")]
     public CampfireBehav campfire;
-    public int woodID;
 
     [Header("UI")]
     [SerializeField] private Image itemIconImage;
     [SerializeField] private Sprite emptySprite;
     [SerializeField] private TextMeshProUGUI amountText;
+
+
+    public void Start()
+    {
+        campfire = FindAnyObjectByType<CampfireBehav>();
+    }
+
+
 
     // =========================
     // LEFT CLICK REMOVE FUEL
@@ -82,7 +92,7 @@ public class CampfireSlotUI : MonoBehaviour, IDropHandler, IPointerClickHandler
             return;
         }
 
-        if (item.itemID != woodID)
+        if (item.itemID != campfire.fuelItem.itemID)
         {
             Debug.Log("[CampfireUI] Wrong item dropped into campfire");
             return;
