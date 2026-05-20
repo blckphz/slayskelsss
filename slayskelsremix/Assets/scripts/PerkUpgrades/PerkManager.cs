@@ -47,7 +47,6 @@ public class PerkManager : MonoBehaviour
 
     private void OnEnable()
     {
-        Debug.Log("[PerkManager] Enabled");
 
         if (toggleAction.action == null)
         {
@@ -107,7 +106,6 @@ public class PerkManager : MonoBehaviour
 
     private void InitializeAllSlots()
     {
-        Debug.Log($"[PerkManager] Initializing {perkSlots.Count} perk slots.");
 
         foreach (PerkSlot slot in perkSlots)
         {

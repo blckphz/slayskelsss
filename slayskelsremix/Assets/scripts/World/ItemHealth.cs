@@ -62,7 +62,10 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
         // 2. Reduce the tool's durability ONLY if it is valid and NOT unbreakable (maxDurability > 0)
         if (toolItem != null && !toolItem.IsUnbreakable && PlayerHotbarManager.Instance != null)
         {
-            PlayerHotbarManager.Instance.ReduceActiveToolDurability(1f);
+            InventoryManager.Instance?.DegradeEquippedToolDurability(
+                1f,
+                PlayerHotbarManager.Instance.GetSelectedIndex()
+            );
         }
 
         // 3. Process structural damage on this target object
@@ -115,7 +118,10 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
             {
                 // Assuming your hotbar manager has a method to read current active durability. 
                 // Adjust this syntax if your manager exposes it via an active slot reference instead!
-                float currentRuntimeDurability = PlayerHotbarManager.Instance.GetActiveToolDurability();
+                float currentRuntimeDurability =
+    InventoryManager.Instance.hotbarData[
+        PlayerHotbarManager.Instance.GetSelectedIndex()
+    ].currentDurability;
 
                 float durabilityPercent = (currentRuntimeDurability / tool.maxDurability) * 100f;
                 durabilityPercent = Mathf.Clamp(durabilityPercent, 0f, 100f);

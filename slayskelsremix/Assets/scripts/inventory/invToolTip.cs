@@ -57,7 +57,6 @@ public class invToolTip : MonoBehaviour
         // This makes it feel consistent regardless of how long or short the text is
         float calculatedHeight = baseHeight + (totalLines * heightPerLine);
 
-        Debug.Log($"[ToolTip Debug] Lines: {totalLines} | Calculated Height: {calculatedHeight}");
 
         if (backgroundRect != null)
         {

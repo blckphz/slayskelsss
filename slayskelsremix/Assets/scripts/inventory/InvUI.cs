@@ -1,151 +1,55 @@
-﻿using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class InvUI : MonoBehaviour
 {
     public static InvUI Instance;
 
-    [System.Serializable]
-    public struct SlotUIData
-    {
-        [Tooltip("The actual Inventory Slot UI component.")]
-        public InventorySlotUI slotUI;
-    }
-
-    [Header("References")]
     public InventoryManager inventoryManager;
-    public BuildManager buildManager;
-
-    [Header("Manual Slot UI Mapping")]
-    [Tooltip("Manually assign each slot and its exact paired durability group here.")]
-    public SlotUIData[] slotMappings;
+    public InventorySlotUI[] slots;
 
     private void Awake()
     {
-        if (Instance == null)
-        {
-            Instance = this;
-        }
-        else
-        {
-            Destroy(gameObject);
-        }
+        Instance = this;
     }
 
-    private void Start()
-    {
-        RefreshUI();
-    }
-
-    // ---------------- UI REFRESH ----------------
     public void RefreshUI()
     {
-        if (inventoryManager == null || slotMappings == null) return;
+        Debug.Log("[INV REFRESH] Updating UI from data");
 
-        var inv = inventoryManager.inventory;
-
-        for (int i = 0; i < slotMappings.Length; i++)
+        for (int i = 0; i < slots.Length; i++)
         {
-            InventorySlotUI slot = slotMappings[i].slotUI;
+            if (i >= inventoryManager.inventory.Count) continue;
 
-            if (slot == null) continue;
+            var data = inventoryManager.inventory[i];
 
-            if (i < inv.Count)
-            {
-                ItemData currentItem = inv[i].item;
+            Debug.Log($"[LOAD SLOT {i}] item={data.item?.name ?? "NULL"} x{data.count}");
 
-                // Update the slot data structures
-                slot.SetSlot(currentItem, null, inv[i].count, inv[i].currentDurability);
-
-                // Manually toggle the explicitly mapped group
-            
-            }
+            if (data.item != null && data.count > 0)
+                slots[i].SetSlot(data.item, null, data.count, data.currentDurability);
             else
-            {
-                slot.ClearSlot();
-            
-            }
+                slots[i].ClearSlot();
         }
     }
 
-    // ---------------- SYNC ----------------
     public void SyncToInventory()
     {
-        if (inventoryManager == null || slotMappings == null) return;
+        Debug.Log($"[SAVE START] Saving {slots.Length} slots...");
 
-        inventoryManager.inventory.Clear();
-
-        foreach (var mapping in slotMappings)
+        for (int i = 0; i < slots.Length; i++)
         {
-            if (mapping.slotUI == null) continue;
+            if (i >= inventoryManager.inventory.Count) continue;
 
-            ItemData item = mapping.slotUI.GetItem();
-            int count = mapping.slotUI.GetCount();
-            float durability = mapping.slotUI.GetDurability();
+            var inv = inventoryManager.inventory[i];
+            var ui = slots[i];
 
-            if (item != null && count > 0)
-            {
-                inventoryManager.inventory.Add(
-                    new InventoryManager.InventorySlot(item, count, durability)
-                );
-            }
-            else
-            {
-                inventoryManager.inventory.Add(
-                    new InventoryManager.InventorySlot(null, 0, 0f)
-                );
-            }
+            inv.item = ui.GetItem();
+            inv.count = ui.GetCount();
+            inv.currentDurability = ui.GetDurability();
+
+            Debug.Log($"[SAVE SLOT {i}] item={inv.item?.name ?? "NULL"} x{inv.count} dur={inv.currentDurability}");
         }
 
         inventoryManager.SaveInventory();
-    }
-
-    // ---------------- USE ITEM ----------------
-    public void UseItem(ItemData item)
-    {
-        if (item == null) return;
-
-        switch (item.itemType)
-        {
-            case ItemType.Consumable:
-                UseConsumable(item);
-                break;
-
-            case ItemType.Placeable:
-                if (buildManager != null)
-                {
-                    buildSO buildItem = item as buildSO;
-                    if (buildItem != null)
-                    {
-                        buildManager.StartPlacing(buildItem);
-                    }
-                }
-                break;
-        }
-    }
-
-    public void UseConsumable(ItemData item)
-    {
-        Debug.Log($"[InvUI] Consumed {item.itemName}");
-        bool wasRemoved = inventoryManager.RemoveItem(item, 1);
-
-        if (wasRemoved)
-        {
-            SyncToInventory();
-            RefreshUI();
-        }
-    }
-
-    public void StartPlacingFromSlot(InventorySlotUI slot)
-    {
-        if (slot == null) return;
-        ItemData item = slot.GetItem();
-        if (item == null) return;
-
-        buildSO buildItem = item as buildSO;
-        if (buildItem != null && buildManager != null)
-        {
-            buildManager.StartPlacing(buildItem);
-        }
+        Debug.Log("[SAVE COMPLETE]");
     }
 }

@@ -72,7 +72,7 @@ public class ChestSlotUI : MonoBehaviour, IPointerClickHandler, IBeginDragHandle
 
         // 👈 FIXED: Removed the extra 'null' parameter to fit standard 3-parameter AddItem layouts 
         // (ItemData, int, float)
-        InventoryManager.Instance.AddItem(currentItem, amountToMove, currentDurability);
+        InventoryManager.Instance.AddItem(currentItem, amountToMove);
 
         chest.RemoveItem(currentItem, amountToMove);
 
