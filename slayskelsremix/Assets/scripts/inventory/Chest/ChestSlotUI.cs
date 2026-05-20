@@ -70,10 +70,7 @@ public class ChestSlotUI : MonoBehaviour, IPointerClickHandler, IBeginDragHandle
 
         int amountToMove = Mathf.Min(amount, currentCount);
 
-        // 👈 FIXED: Removed the extra 'null' parameter to fit standard 3-parameter AddItem layouts 
-        // (ItemData, int, float)
         InventoryManager.Instance.AddItem(currentItem, amountToMove, currentDurability);
-
         chest.RemoveItem(currentItem, amountToMove);
 
         ChestUI.Instance.Refresh();
@@ -132,7 +129,9 @@ public class ChestSlotUI : MonoBehaviour, IPointerClickHandler, IBeginDragHandle
                 {
                     InventoryManager.Instance.RemoveItem(item, count);
 
-                    if (InvUI.Instance != null) InvUI.Instance.SyncToInventory();
+                    // Replaced SyncToInventory() with RefreshUI()
+                    if (InvUI.Instance != null) InvUI.Instance.RefreshUI();
+
                     if (PlayerHotbarManager.Instance != null) PlayerHotbarManager.Instance.SyncHotbarToData();
 
                     ChestUI.Instance.Refresh();

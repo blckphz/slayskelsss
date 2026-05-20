@@ -38,7 +38,6 @@ public class InventoryManager : MonoBehaviour
         else { Destroy(gameObject); return; }
 
         savePath = Application.persistentDataPath + "/inventory.json";
-
         InitializeHotbarData();
         LoadInventory();
     }
@@ -46,112 +45,52 @@ public class InventoryManager : MonoBehaviour
     private void InitializeHotbarData()
     {
         if (hotbarData == null) hotbarData = new List<HotbarSlotData>();
-
         if (hotbarData.Count != hotbarSize)
         {
             hotbarData.Clear();
-            for (int i = 0; i < hotbarSize; i++)
-            {
-                hotbarData.Add(new HotbarSlotData());
-            }
+            for (int i = 0; i < hotbarSize; i++) hotbarData.Add(new HotbarSlotData());
         }
     }
 
-    // ==========================================
-    // UPGRADED STACK-CONSCIOUS ADD SYSTEM
-    // ==========================================
     public void AddItem(ItemData data, int amount, float customDurability = -1f)
     {
         if (data == null || amount <= 0) return;
-
-        // Items with durability must retain an individual standalone tracking slot
         if (data.maxDurability > 0)
         {
             for (int i = 0; i < amount; i++)
             {
-                float appliedDurability = (customDurability < 0) ? data.maxDurability : customDurability;
-                inventory.Add(new InventorySlot(data, 1, appliedDurability));
+                float dur = (customDurability < 0) ? data.maxDurability : customDurability;
+                inventory.Add(new InventorySlot(data, 1, dur));
             }
-            RefreshAll();
-            return;
         }
-
-        // Standard resources stack pooling with respect to maxStackSize constraints
-        int remainingAmount = amount;
-
-        // Step 1: Attempt to fill pre-existing stacks that have open room left
-        foreach (var slot in inventory)
+        else
         {
-            if (slot.item != null && slot.item.itemID == data.itemID)
+            int remaining = amount;
+            foreach (var slot in inventory)
             {
-                int maxStack = data.maxStackSize;
-                if (slot.count < maxStack)
+                if (slot.item != null && slot.item.itemID == data.itemID && slot.count < data.maxStackSize)
                 {
-                    int spaceLeft = maxStack - slot.count;
-                    int addAmount = Mathf.Min(spaceLeft, remainingAmount);
-
-                    slot.count += addAmount;
-                    remainingAmount -= addAmount;
-
-                    if (remainingAmount <= 0) break;
+                    int space = data.maxStackSize - slot.count;
+                    int add = Mathf.Min(space, remaining);
+                    slot.count += add;
+                    remaining -= add;
+                    if (remaining <= 0) break;
                 }
             }
+            while (remaining > 0)
+            {
+                int next = Mathf.Min(remaining, data.maxStackSize);
+                inventory.Add(new InventorySlot(data, next, 0f));
+                remaining -= next;
+            }
         }
-
-        // Step 2: If items remain, assign them to new slots, breaking them up by max stack capacities
-        while (remainingAmount > 0)
-        {
-            int nextStackSize = Mathf.Min(remainingAmount, data.maxStackSize);
-            inventory.Add(new InventorySlot(data, nextStackSize, 0f));
-            remainingAmount -= nextStackSize;
-        }
-
         RefreshAll();
     }
 
     public bool RemoveItem(ItemData data, int amount)
     {
         if (data == null) return false;
-        bool changed = false;
-
-        for (int i = inventory.Count - 1; i >= 0; i--)
-        {
-            if (inventory[i].item != null && inventory[i].item.itemID == data.itemID)
-            {
-                int take = Mathf.Min(inventory[i].count, amount);
-                inventory[i].count -= take;
-                amount -= take;
-                if (inventory[i].count <= 0) inventory.RemoveAt(i);
-                changed = true;
-                if (amount <= 0) break;
-            }
-        }
-
-        if (amount > 0)
-        {
-            for (int i = 0; i < hotbarData.Count; i++)
-            {
-                if (hotbarData[i].item != null && hotbarData[i].item.itemID == data.itemID)
-                {
-                    int take = Mathf.Min(hotbarData[i].count, amount);
-                    hotbarData[i].count -= take;
-                    amount -= take;
-                    if (hotbarData[i].count <= 0) hotbarData[i].Clear();
-                    changed = true;
-                    if (amount <= 0) break;
-                }
-            }
-        }
-
-        if (changed) RefreshAll();
-        return changed;
-    }
-
-    public void ConsumeResources(ItemData data, int amount)
-    {
-        if (data == null) return;
         int remaining = amount;
-
         for (int i = inventory.Count - 1; i >= 0; i--)
         {
             if (inventory[i].item != null && inventory[i].item.itemID == data.itemID)
@@ -163,178 +102,56 @@ public class InventoryManager : MonoBehaviour
                 if (remaining <= 0) break;
             }
         }
-
-        if (remaining > 0)
-        {
-            for (int i = 0; i < hotbarData.Count; i++)
-            {
-                if (hotbarData[i].item != null && hotbarData[i].item.itemID == data.itemID)
-                {
-                    int take = Mathf.Min(hotbarData[i].count, remaining);
-                    hotbarData[i].count -= take;
-                    remaining -= take;
-                    if (hotbarData[i].count <= 0) hotbarData[i].Clear();
-                    if (remaining <= 0) break;
-                }
-            }
-        }
         RefreshAll();
+        return true;
     }
 
-    public void DegradeEquippedToolDurability(float amount, int activeHotbarIndex)
+    public int GetTotalCount(ItemData data)
     {
-        if (activeHotbarIndex < 0 || activeHotbarIndex >= hotbarData.Count) return;
-
-        HotbarSlotData slot = hotbarData[activeHotbarIndex];
-        if (slot == null || slot.IsEmpty) return;
-
-        if (slot.item != null && slot.item.maxDurability > 0)
-        {
-            slot.currentDurability -= amount;
-            slot.currentDurability = Mathf.Max(slot.currentDurability, 0f);
-
-            Debug.Log($"[Durability] {slot.item.itemName} at index {activeHotbarIndex} degraded to: {slot.currentDurability}/{slot.item.maxDurability}");
-
-            if (slot.currentDurability <= 0f)
-            {
-                slot.count--;
-                if (slot.count <= 0)
-                {
-                    Debug.LogWarning($"[Durability Broken] {slot.item.itemName} broke completely!");
-                    slot.Clear();
-                }
-                else
-                {
-                    slot.currentDurability = slot.item.maxDurability;
-                }
-            }
-            RefreshAll();
-        }
+        int total = 0;
+        foreach (var s in inventory) if (s.item != null && s.item.itemID == data.itemID) total += s.count;
+        foreach (var h in hotbarData) if (h.item != null && h.item.itemID == data.itemID) total += h.count;
+        return total;
     }
 
-    // ==========================================
-    // SAVE / LOAD SYSTEM
-    // ==========================================
     public void SaveInventory()
     {
+        PlayerHotbarManager.Instance?.SyncHotbarToData();
         InventorySaveData saveData = new InventorySaveData();
-
         foreach (var slot in inventory)
-        {
-            if (slot.item != null)
-            {
-                saveData.savedItems.Add(new SaveSlot
-                {
-                    itemId = slot.item.itemID,
-                    count = slot.count,
-                    currentDurability = slot.currentDurability
-                });
-            }
-        }
+            if (slot.item != null) saveData.savedItems.Add(new SaveSlot { itemId = slot.item.itemID, count = slot.count, currentDurability = slot.currentDurability });
 
-        for (int i = 0; i < hotbarData.Count; i++)
-        {
-            var h = hotbarData[i];
-            saveData.hotbarItems.Add(new HotbarSaveSlot
-            {
-                itemId = h.item != null ? h.item.itemID : -1,
-                abilityName = h.ability != null ? h.ability.name : "",
-                count = h.count,
-                currentDurability = h.currentDurability
-            });
-        }
+        foreach (var h in hotbarData)
+            saveData.hotbarItems.Add(new HotbarSaveSlot { itemId = h.item != null ? h.item.itemID : -1, abilityName = h.ability != null ? h.ability.name : "", count = h.count, currentDurability = h.currentDurability });
 
-        string json = JsonUtility.ToJson(saveData, true);
-        File.WriteAllText(savePath, json);
+        File.WriteAllText(savePath, JsonUtility.ToJson(saveData, true));
     }
 
     public void LoadInventory()
     {
         if (!File.Exists(savePath)) return;
-
-        string json = File.ReadAllText(savePath);
-        InventorySaveData saveData = JsonUtility.FromJson<InventorySaveData>(json);
-
+        InventorySaveData data = JsonUtility.FromJson<InventorySaveData>(File.ReadAllText(savePath));
         inventory.Clear();
-        foreach (var s in saveData.savedItems)
+        foreach (var s in data.savedItems)
         {
             ItemData item = database.GetItemByID(s.itemId);
-            if (item != null)
-            {
-                inventory.Add(new InventorySlot(item, s.count, s.currentDurability));
-            }
+            if (item != null) inventory.Add(new InventorySlot(item, s.count, s.currentDurability));
         }
-
         InitializeHotbarData();
-
-        for (int i = 0; i < hotbarSize; i++)
+        for (int i = 0; i < hotbarSize && i < data.hotbarItems.Count; i++)
         {
-            hotbarData[i].Clear();
-
-            if (i < saveData.hotbarItems.Count)
-            {
-                var hSave = saveData.hotbarItems[i];
-
-                if (hSave.itemId != -1)
-                {
-                    ItemData foundItem = database.GetItemByID(hSave.itemId);
-                    if (foundItem != null)
-                    {
-                        hotbarData[i].item = foundItem;
-                        hotbarData[i].count = hSave.count;
-                        hotbarData[i].currentDurability = hSave.currentDurability;
-                    }
-                }
-
-                if (!string.IsNullOrEmpty(hSave.abilityName) && abilityDatabase != null)
-                {
-                    hotbarData[i].ability = abilityDatabase.GetAbilityByName(hSave.abilityName);
-                }
-            }
+            var h = data.hotbarItems[i];
+            hotbarData[i].item = database.GetItemByID(h.itemId);
+            hotbarData[i].ability = (abilityDatabase != null) ? abilityDatabase.GetAbilityByName(h.abilityName) : null;
+            hotbarData[i].count = h.count;
+            hotbarData[i].currentDurability = h.currentDurability;
         }
+        PlayerHotbarManager.Instance?.RefreshHotbar();
     }
 
     public void RefreshAll()
     {
         SaveInventory();
         InvUI.Instance?.RefreshUI();
-        PlayerHotbarManager.Instance?.RefreshHotbar();
-        CraftUIManager.Instance?.UpdateInfoText();
-    }
-
-    public int GetTotalCount(ItemData data)
-    {
-        int total = 0;
-        foreach (var s in inventory)
-            if (s.item != null && s.item.itemID == data.itemID) total += s.count;
-        foreach (var h in hotbarData)
-            if (h.item != null && h.item.itemID == data.itemID) total += h.count;
-        return total;
-    }
-
-    public WorldSaveData CaptureWorldBuildingsState()
-    {
-        WorldSaveData worldData = new WorldSaveData();
-        MonoBehaviour[] sceneObjects = FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None);
-
-        foreach (var obj in sceneObjects)
-        {
-            if (obj is ISaveableBuilding building)
-            {
-                building.GetSaveData(out int ammo, out float progress, out int durability);
-
-                BuildingSaveSlot buildingData = new BuildingSaveSlot
-                {
-                    itemId = building.GetItemID(),
-                    position = obj.transform.position,
-                    rotation = obj.transform.rotation,
-                    ammo = ammo,
-                    progress = progress,
-                    currentDurability = durability
-                };
-                worldData.placedBuildings.Add(buildingData);
-            }
-        }
-        return worldData;
     }
 }
