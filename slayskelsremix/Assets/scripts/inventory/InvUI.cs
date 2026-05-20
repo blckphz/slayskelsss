@@ -5,7 +5,10 @@ public class InvUI : MonoBehaviour
     public static InvUI Instance;
 
     [System.Serializable]
-    public struct SlotUIData { public InventorySlotUI slotUI; }
+    public struct SlotUIData
+    {
+        public InventorySlotUI slotUI;
+    }
 
     public InventoryManager inventoryManager;
     public SlotUIData[] slotMappings;
@@ -21,22 +24,21 @@ public class InvUI : MonoBehaviour
     public void RefreshUI()
     {
         if (inventoryManager == null) return;
+
         var inv = inventoryManager.inventory;
 
         for (int i = 0; i < slotMappings.Length; i++)
         {
-            var slot = slotMappings[i].slotUI;
-            if (slot == null) continue;
+            var slotUI = slotMappings[i].slotUI;
+            if (slotUI == null) continue;
 
-            if (i < inv.Count)
+            if (i < inv.Count && inv[i].item != null)
             {
-                var item = inv[i].item;
-                Debug.Log($"[InvUI] Slot {i} set to: {(item != null ? item.itemName : "Null")} | Qty: {inv[i].count}");
-                slot.SetSlot(item, null, inv[i].count, inv[i].currentDurability);
+                slotUI.SetSlot(inv[i].item, null, inv[i].count, inv[i].currentDurability);
             }
             else
             {
-                slot.ClearSlot();
+                slotUI.ClearSlot();
             }
         }
     }
@@ -44,17 +46,19 @@ public class InvUI : MonoBehaviour
     public void SyncToInventory()
     {
         if (inventoryManager == null) return;
-        inventoryManager.inventory.Clear();
 
-        foreach (var mapping in slotMappings)
+        for (int i = 0; i < slotMappings.Length; i++)
         {
-            if (mapping.slotUI == null) continue;
-            var item = mapping.slotUI.GetItem();
-            if (item != null)
-            {
-                inventoryManager.inventory.Add(new InventoryManager.InventorySlot(item, mapping.slotUI.GetCount(), mapping.slotUI.GetDurability()));
-            }
+            var slotUI = slotMappings[i].slotUI;
+            if (slotUI == null || i >= inventoryManager.inventory.Count) continue;
+
+            var slot = inventoryManager.inventory[i];
+
+            slot.item = slotUI.GetItem();
+            slot.count = slotUI.GetCount();
+            slot.currentDurability = slotUI.GetDurability();
         }
+
         inventoryManager.SaveInventory();
     }
 }
