@@ -15,10 +15,13 @@ MonoBehaviour:
   itemID: 109
   itemName: Tent
   icon: {fileID: 21300000, guid: eca5fe76ed538444999d21c349a0056a, type: 3}
+  DragStartSound: {fileID: 0}
+  DragEndSound: {fileID: 0}
   itemType: 1
   maxStackSize: 99
   isUsable: 1
   consumeAmount: 1
+  maxDurability: 0
   placeablePrefab: {fileID: 713142446651820219, guid: e876140309cf1b944994658dc54841ba, type: 3}
   size: {x: 10, y: 10}
   placementSound: {fileID: 8300000, guid: 516a69b0c85ebbf48b7eba6994cbebd1, type: 3}

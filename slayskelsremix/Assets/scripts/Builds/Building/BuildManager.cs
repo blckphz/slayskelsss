@@ -19,7 +19,7 @@ public class BuildManager : MonoBehaviour
     [Header("Grid")]
     public float gridSize = 1f;
 
-    [Header("Effects & Shake")]
+    [Header("Effects")]
     public GameObject placementEffectPrefab;
     public bool shakeOnPlace = true;
     public float buildShakeIntensity = 0.5f;
@@ -27,12 +27,10 @@ public class BuildManager : MonoBehaviour
 
     private GameObject previewObject;
     private buildSO currentItem;
-    private bool isPlacing;
     private ghostBuildPreview ghost;
-    private bool isCurrentItemSmall;
 
+    private bool isPlacing;
     private bool placementForcedByAbility;
-    // 🔥 Track the specific tool asset instance that initialized this placement state
     private ItemData originalToolItem;
 
     void Awake()
@@ -43,9 +41,7 @@ public class BuildManager : MonoBehaviour
     void Start()
     {
         if (astar != null)
-        {
             AstarPath.active.Scan();
-        }
     }
 
     void Update()
@@ -56,16 +52,14 @@ public class BuildManager : MonoBehaviour
         {
             if (isPlacing)
             {
-                Debug.Log("<color=orange>[BuildManager]</color> Placement canceled due to MasterRestriction.");
+                Debug.Log("[BuildManager] ❌ Cancelled due to MasterRestriction");
                 Cancel();
             }
             return;
         }
 
         if (!restricted || invUIToggle.IsInventoryOpen)
-        {
             CheckHotbar();
-        }
 
         if (!isPlacing || previewObject == null)
             return;
@@ -75,87 +69,89 @@ public class BuildManager : MonoBehaviour
         bool isUI = EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
         UpdateColor(isUI);
 
-        if (!isUI && PlayerInputHandler.Instance != null && PlayerInputHandler.Instance.LeftClickPressed())
+        if (!isUI && PlayerInputHandler.Instance != null &&
+            PlayerInputHandler.Instance.LeftClickPressed())
         {
-            Debug.Log($"[BuildManager] Left-click detected. Attempting placement for: {currentItem?.name}");
+            Debug.Log($"[BuildManager] 🖱 Click detected → trying place {currentItem?.itemName}");
             TryPlace();
         }
     }
 
+    // =========================================================
+    // HOTBAR CHECK
+    // =========================================================
     void CheckHotbar()
     {
         if (PlayerHotbarManager.Instance == null)
             return;
 
-        ItemData currentHotbarItem = PlayerHotbarManager.Instance.GetSelectedItem();
+        ItemData item = PlayerHotbarManager.Instance.GetSelectedItem();
 
-        // ========================================================
-        // STATE CHECK 1: ABILITY DRIVEN PLACEMENT (E.G. SHOVEL)
-        // ========================================================
+
+        // Ability tool safety
         if (placementForcedByAbility && isPlacing)
         {
-            // 🔥 CRITICAL FIX: If the selected hotbar item is no longer the tool that started this, cancel it!
-            if (currentHotbarItem != originalToolItem)
+            if (item != originalToolItem)
             {
-                Debug.Log($"[BuildManager] Hotbar selection switched away from original tool ({originalToolItem?.name ?? "None"} -> {currentHotbarItem?.name ?? "None"}). Clearing ghost.");
+                Debug.Log("[BuildManager] 🔄 Tool changed → cancelling ability placement");
                 Cancel();
-
-                // Don't early return here; allow the code below to see if the NEW item wants to start its own build ghost immediately
             }
-            else
-            {
-                // We are still holding the correct tool, keep holding the ability placement active safely
-                return;
-            }
+            return;
         }
 
-        // ========================================================
-        // STATE CHECK 2: STANDARD ITEM PLACEMENT (E.G. PLACING A WALL)
-        // ========================================================
-        if (currentHotbarItem is buildSO build)
+        // Only PLACEABLE items
+        if (item != null && item.itemType == ItemType.Placeable)
         {
+            buildSO build = item as buildSO;
+
+            if (build == null)
+            {
+                Debug.LogWarning("[BuildManager] ❌ ItemType is Placeable but cast to buildSO failed");
+                return;
+            }
+
             if (currentItem == null || currentItem.itemName != build.itemName)
             {
-                Debug.Log($"[BuildManager] Hotbar item match! Starting native item build mode for: {build.name}");
+                Debug.Log($"[BuildManager] ✅ Start placing: {build.itemName}");
                 StartPlacingInternal(build, false);
             }
         }
         else if (isPlacing)
         {
-            Debug.Log($"[BuildManager] Selected item is not a buildSO (Currently: {currentHotbarItem?.name ?? "None"}). Canceling placement.");
+            Debug.Log("[BuildManager] ❌ Selected item is not placeable → cancel");
             Cancel();
         }
     }
 
-    // Public method exposed to the Shovel/Abilities
+    // =========================================================
+    // EXTERNAL CALL
+    // =========================================================
     public void StartPlacing(buildSO item)
     {
-        Debug.Log($"<color=cyan>[BuildManager]</color> StartPlacing externally triggered by an Ability for item: {item.name}");
+        Debug.Log($"[BuildManager] 🧰 External placement: {item.name}");
         StartPlacingInternal(item, true);
     }
 
-    private void StartPlacingInternal(buildSO item, bool forcedByAbility)
+    private void StartPlacingInternal(buildSO item, bool forced)
     {
-        // Capture what tool was actively highlighted before wiping clean layouts
-        ItemData trackingTool = PlayerHotbarManager.Instance != null ? PlayerHotbarManager.Instance.GetSelectedItem() : null;
+        ItemData snapshotTool =
+            PlayerHotbarManager.Instance != null
+                ? PlayerHotbarManager.Instance.GetSelectedItem()
+                : null;
 
         Cancel();
 
         currentItem = item;
         isPlacing = true;
-        placementForcedByAbility = forcedByAbility;
-        originalToolItem = forcedByAbility ? trackingTool : null;
+        placementForcedByAbility = forced;
+        originalToolItem = forced ? snapshotTool : null;
 
         if (item.placeablePrefab == null)
         {
-            Debug.LogError($"[BuildManager CRITICAL] The buildSO '{item.name}' does not have a placeablePrefab assigned!");
+            Debug.LogError($"[BuildManager] ❌ Missing prefab: {item.itemName}");
             return;
         }
 
-        int prefabLayer = item.placeablePrefab.layer;
-        isCurrentItemSmall = (interactLayer.value & (1 << prefabLayer)) != 0;
-
-        Debug.Log($"[BuildManager] Instantiating preview object for layer validation. Small structure: {isCurrentItemSmall}");
         previewObject = Instantiate(item.placeablePrefab);
 
         ghost = previewObject.GetComponent<ghostBuildPreview>();
@@ -163,17 +159,21 @@ public class BuildManager : MonoBehaviour
         if (ghost != null)
         {
             ghost.placementMask = placementMask;
-            ghost.footprint = currentItem.size;
+            ghost.footprint = item.size;
             ghost.gridSize = gridSize;
             ghost.InitializeGhost();
-            Debug.Log("[BuildManager] ghostBuildPreview initialization successful.");
+
+            Debug.Log("[BuildManager] 👻 Ghost initialized");
         }
         else
         {
-            Debug.LogWarning($"[BuildManager WARNING] Spawned prefab '{previewObject.name}' does not contain a ghostBuildPreview script attached.");
+            Debug.LogWarning("[BuildManager] ⚠ Missing ghostBuildPreview");
         }
     }
 
+    // =========================================================
+    // PREVIEW MOVE
+    // =========================================================
     void MovePreview()
     {
         Vector2 mouse = PlayerInputHandler.Instance.GetMousePosition();
@@ -188,51 +188,47 @@ public class BuildManager : MonoBehaviour
         previewObject.transform.position = new Vector3(x, y, 0f);
     }
 
+    // =========================================================
+    // PLACE
+    // =========================================================
     void TryPlace()
     {
-        if (previewObject == null)
+        if (previewObject == null || currentItem == null)
         {
-            Debug.LogWarning("[BuildManager] TryPlace failed: previewObject is null.");
+            Debug.LogWarning("[BuildManager] ❌ TryPlace null refs");
             return;
         }
 
         if (!CanPlace())
         {
-            Debug.LogWarning($"[BuildManager] TryPlace blocked: Obstacles or invalid rules detected by Ghost for position {previewObject.transform.position}");
+            Debug.Log("[BuildManager] ❌ Blocked by CanPlace()");
             return;
         }
 
-        Vector3 placePos = previewObject.transform.position;
-        Debug.Log($"<color=green>[BuildManager SUCCESS]</color> Rules passed. Spawning placement instance: {currentItem.placeablePrefab.name} at {placePos}");
+        Vector3 pos = previewObject.transform.position;
 
-        GameObject obj = Instantiate(currentItem.placeablePrefab, placePos, Quaternion.identity);
+        Debug.Log($"[BuildManager] ✅ PLACING {currentItem.itemName} at {pos}");
 
+        GameObject obj = Instantiate(currentItem.placeablePrefab, pos, Quaternion.identity);
+
+        // FX
         if (shakeOnPlace && CameraShaker.Instance != null)
-        {
             CameraShaker.Instance.Shake(buildShakeIntensity, buildShakeDuration);
-        }
-
-        if (currentItem.placementSound != null)
-        {
-            AudioSource.PlayClipAtPoint(currentItem.placementSound, placePos);
-        }
 
         if (placementEffectPrefab != null)
         {
-            GameObject fxObj = Instantiate(placementEffectPrefab, placePos + Vector3.up * 0.1f, Quaternion.identity);
-            Destroy(fxObj, 2f);
+            var fx = Instantiate(placementEffectPrefab, pos + Vector3.up * 0.1f, Quaternion.identity);
+            Destroy(fx, 2f);
         }
 
+        // Pathfinding update
         if (astar != null)
         {
-            Bounds bounds = new Bounds(placePos, Vector3.one * Mathf.Max(currentItem.size.x, currentItem.size.y));
-            Debug.Log("[BuildManager] Syncing pathfinding nodes to structural changes.");
-            AstarPath.active.UpdateGraphs(bounds);
+            Bounds b = new Bounds(pos, Vector3.one * Mathf.Max(currentItem.size.x, currentItem.size.y));
+            AstarPath.active.UpdateGraphs(b);
         }
 
-        tableBehav table = obj.GetComponent<tableBehav>();
-        if (table != null) table.GenerateUniqueID();
-
+        // Save
         BuildIdentity id = obj.GetComponent<BuildIdentity>() ?? obj.AddComponent<BuildIdentity>();
         id.item = currentItem;
 
@@ -242,24 +238,43 @@ public class BuildManager : MonoBehaviour
             BuildingSaveManager.Instance.SaveAfterChange();
         }
 
+        // =====================================================
+        // 🔥 ITEM CONSUMPTION (FIXED WITH ITEMTYPE)
+        // =====================================================
         if (!placementForcedByAbility)
         {
-            Debug.Log($"[BuildManager] Consuming stock from direct hotbar item. Count: {currentItem.consumeAmount}");
-            PlayerHotbarManager.Instance.UseSelectedStack(currentItem.consumeAmount);
-        }
-        else
-        {
-            Debug.Log("[BuildManager] Placement authorized by specialized tool ability. Inventory stock consumption skipped.");
+            var hotbar = PlayerHotbarManager.Instance;
+
+            if (hotbar != null)
+            {
+                Debug.Log($"[BuildManager] 📦 ItemType = {currentItem.itemType}");
+
+                if (currentItem.itemType == ItemType.Placeable)
+                {
+                    if (currentItem.consumeAmount > 0)
+                    {
+                        Debug.Log($"[BuildManager] 🔻 Consuming {currentItem.consumeAmount}");
+                        hotbar.UseSelectedStack(currentItem.consumeAmount);
+                    }
+                    else
+                    {
+                        Debug.Log("[BuildManager] ♾ Free placement item (consumeAmount = 0)");
+                    }
+                }
+            }
         }
 
         Cancel();
     }
 
+    // =========================================================
+    // VALIDATION
+    // =========================================================
     bool CanPlace()
     {
         if (ghost == null)
         {
-            Debug.LogWarning("[BuildManager] CanPlace returning false because 'ghost' component reference is missing.");
+            Debug.LogWarning("[BuildManager] ❌ Ghost missing");
             return false;
         }
 
@@ -270,43 +285,48 @@ public class BuildManager : MonoBehaviour
             if (hit == null || hit.CompareTag("Player"))
                 continue;
 
-            int hitLayer = hit.gameObject.layer;
+            int layer = hit.gameObject.layer;
 
-            if (isCurrentItemSmall && (largeStructureLayer.value & (1 << hitLayer)) != 0)
+            if ((largeStructureLayer.value & (1 << layer)) != 0)
             {
-                Debug.Log($"[BuildManager Check] Small item overlapping large structure layer ({LayerMask.LayerToName(hitLayer)}). Allowing overlay.");
+                Debug.Log($"[BuildManager] ⚠ Ignoring large structure overlap: {hit.name}");
                 continue;
             }
 
+            Debug.Log($"[BuildManager] ❌ Blocked by: {hit.name}");
             return false;
         }
 
         return true;
     }
 
+    // =========================================================
+    // COLOR
+    // =========================================================
     void UpdateColor(bool blockedUI)
     {
-        if (ghost == null)
-            return;
+        if (ghost == null) return;
 
-        if (blockedUI)
-            ghost.SetColor(new Color(1, 0, 0, 0.2f));
-        else
-            ghost.SetColor(CanPlace() ? Color.green : Color.red);
+        ghost.SetColor(blockedUI
+            ? new Color(1, 0, 0, 0.2f)
+            : (CanPlace() ? Color.green : Color.red));
     }
 
+    // =========================================================
+    // CANCEL
+    // =========================================================
     void Cancel()
     {
         if (previewObject)
-        {
             Destroy(previewObject);
-        }
 
         previewObject = null;
         ghost = null;
         currentItem = null;
         isPlacing = false;
         placementForcedByAbility = false;
-        originalToolItem = null; // Clean instance variable references safely
+        originalToolItem = null;
+
+        Debug.Log("[BuildManager] 🧹 Cancelled placement");
     }
 }

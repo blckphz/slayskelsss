@@ -7,60 +7,107 @@ public class berrySO : offensiveRanged, IItemDescriptionProvider
     public float healAmount = 20f;
 
     [Header("Planting Settings")]
-    public GameObject plantPrefab; // The crop prefab to spawn
+    public GameObject plantPrefab;
 
-    // ✅ MODULAR INTERFACE WITH STATS & DESCRIPTION
+    // =========================================================
+    // DESCRIPTION
+    // =========================================================
     public string GetDetailedDescription()
     {
         string lines = "";
 
-        // Show core numerical values
         lines += $"<color=#FF6B6B>Damage:</color> {damage}\n";
         lines += $"<color=#A2E8DD>Fire Rate:</color> {fireRate}s\n";
-        lines += "------------------\n"; // Visual barrier
+        lines += "------------------\n";
 
-        // Custom action keys
         lines += "<color=#FFA500><b>[PRIMARY ACTIONS]</b></color>\n";
-        lines += "• <color=#A2E8DD>Plant:</color> Place in dug holes to grow crops.\n";
-        lines += $"• <color=#FF6B6B>Throw:</color> Toss at enemies for ranged impact.\n\n";
+        lines += "• Plant: Place in dug holes to grow crops.\n";
+        lines += "• Throw: Ranged attack projectile.\n\n";
 
         lines += "<color=#FFA500><b>[SECONDARY ACTION]</b></color>\n";
-        lines += $"• <color=#4CAF50>Eat:</color> Restores <color=#98FB98>+{healAmount} HP</color>.\n\n";
+        lines += $"• Eat: Restores +{healAmount} HP.\n";
 
         return lines;
     }
 
-    // PRIMARY ACTION (Left Click or Interact)
+    // =========================================================
+    // PRIMARY ACTION
+    // =========================================================
     public override bool Execute(Transform caster, Transform targetAnchor, bool isHolding)
     {
-        GameObject currentTarget = PlayerHotbarManager.Instance.interaction.CurrentTarget;
+        // 🔥 SAFE TARGET ACCESS (NO HOTBAR DEPENDENCY)
+        GameObject currentTarget =
+            Object.FindFirstObjectByType<PlayerInteraction2D>()?.CurrentTarget;
 
-        if (currentTarget != null && currentTarget.TryGetComponent(out EarthHoleDigBehav hole))
+        Debug.Log($"[BerrySO] Execute called. Target: {(currentTarget ? currentTarget.name : "NULL")}");
+
+        // -----------------------------------------------------
+        // PLANTING
+        // -----------------------------------------------------
+        if (currentTarget != null &&
+            currentTarget.TryGetComponent(out EarthHoleDigBehav hole))
         {
+            Debug.Log("[BerrySO] Planting seed in hole.");
             return hole.PlantSeed(plantPrefab);
         }
 
-        if (prefab == null) return false;
+        // -----------------------------------------------------
+        // THROW PROJECTILE
+        // -----------------------------------------------------
+        if (prefab == null)
+        {
+            Debug.LogWarning("[BerrySO] No projectile prefab assigned!");
+            return false;
+        }
 
-        Vector2 direction = (targetAnchor.position - caster.position).normalized;
-        GameObject berry = ObjectPooler.Instance.GetPooledObject(prefab, caster.position, Quaternion.identity);
+        Vector2 direction =
+            (targetAnchor.position - caster.position).normalized;
+
+        GameObject berry = ObjectPooler.Instance.GetPooledObject(
+            prefab,
+            caster.position,
+            Quaternion.identity
+        );
 
         if (berry != null && berry.TryGetComponent<berryBehaviour>(out var behavior))
         {
             behavior.Setup(damage, projectileSpeed, direction);
+            Debug.Log("[BerrySO] Projectile thrown.");
         }
+        else
+        {
+            Debug.LogWarning("[BerrySO] Failed to spawn projectile or missing berryBehaviour.");
+        }
+
         return true;
     }
 
-    // SECONDARY ACTION (Right Click)
+    // =========================================================
+    // SECONDARY ACTION
+    // =========================================================
     public override bool ExecuteSecondary(Transform caster)
     {
+        if (caster == null)
+        {
+            Debug.LogWarning("[BerrySO] No caster provided.");
+            return false;
+        }
+
         if (caster.TryGetComponent<playerHealth>(out playerHealth pHealth))
         {
-            if (pHealth.currentHealth >= pHealth.maxHealth) return false;
+            if (pHealth.currentHealth >= pHealth.maxHealth)
+            {
+                Debug.Log("[BerrySO] Already full health.");
+                return false;
+            }
+
             pHealth.Heal(healAmount);
+
+            Debug.Log($"[BerrySO] Healed for {healAmount}");
             return true;
         }
+
+        Debug.LogWarning("[BerrySO] No playerHealth found on caster.");
         return false;
     }
 }

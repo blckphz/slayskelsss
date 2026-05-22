@@ -67,8 +67,12 @@ public class InventoryManager : MonoBehaviour
     {
         if (data == null || amount <= 0) return;
 
-        // stackable
-        if (data.maxDurability <= 0)
+        bool isDurabilityItem = data.maxDurability > 0;
+
+        // =========================
+        // STACKABLE ITEMS (NO DURABILITY SYSTEM)
+        // =========================
+        if (!isDurabilityItem)
         {
             int remaining = amount;
 
@@ -76,7 +80,10 @@ public class InventoryManager : MonoBehaviour
             for (int i = 0; i < inventory.Count; i++)
             {
                 var slot = inventory[i];
-                if (slot.item != null && slot.item.itemID == data.itemID && slot.count < data.maxStackSize)
+
+                if (slot.item != null &&
+                    slot.item.itemID == data.itemID &&
+                    slot.count < data.maxStackSize)
                 {
                     int space = data.maxStackSize - slot.count;
                     int add = Mathf.Min(space, remaining);
@@ -84,16 +91,18 @@ public class InventoryManager : MonoBehaviour
                     slot.count += add;
                     remaining -= add;
 
-                    if (remaining <= 0) break;
+                    if (remaining <= 0)
+                        break;
                 }
             }
 
-            // new slots
+            // create new stacks
             for (int i = 0; i < inventory.Count && remaining > 0; i++)
             {
                 if (inventory[i].item == null)
                 {
                     int add = Mathf.Min(remaining, data.maxStackSize);
+
                     inventory[i].item = data;
                     inventory[i].count = add;
                     inventory[i].currentDurability = 0f;
@@ -102,18 +111,77 @@ public class InventoryManager : MonoBehaviour
                 }
             }
         }
+
+        // =========================
+        // DURABILITY ITEMS
+        // =========================
         else
         {
-            // durability items = 1 per slot
-            for (int i = 0; i < inventory.Count && amount > 0; i++)
+            float incomingDurability =
+                (customDurability < 0f)
+                ? data.maxDurability
+                : customDurability;
+
+            bool isFullDurability = incomingDurability >= data.maxDurability;
+
+            // =========================
+            // FULL DURABILITY -> CAN STACK
+            // =========================
+            if (isFullDurability)
             {
-                if (inventory[i].item == null)
+                int remaining = amount;
+
+                // try fill existing FULL stacks
+                for (int i = 0; i < inventory.Count; i++)
                 {
-                    float dur = (customDurability < 0) ? data.maxDurability : customDurability;
-                    inventory[i].item = data;
-                    inventory[i].count = 1;
-                    inventory[i].currentDurability = dur;
-                    amount--;
+                    var slot = inventory[i];
+
+                    if (slot.item != null &&
+                        slot.item.itemID == data.itemID &&
+                        slot.currentDurability >= data.maxDurability)
+                    {
+                        int space = data.maxStackSize - slot.count;
+                        int add = Mathf.Min(space, remaining);
+
+                        slot.count += add;
+                        remaining -= add;
+
+                        if (remaining <= 0)
+                            break;
+                    }
+                }
+
+                // create new full stacks
+                for (int i = 0; i < inventory.Count && remaining > 0; i++)
+                {
+                    if (inventory[i].item == null)
+                    {
+                        int add = Mathf.Min(remaining, data.maxStackSize);
+
+                        inventory[i].item = data;
+                        inventory[i].count = add;
+                        inventory[i].currentDurability = data.maxDurability;
+
+                        remaining -= add;
+                    }
+                }
+            }
+
+            // =========================
+            // DAMAGED ITEMS -> NO STACKING
+            // =========================
+            else
+            {
+                for (int i = 0; i < inventory.Count && amount > 0; i++)
+                {
+                    if (inventory[i].item == null)
+                    {
+                        inventory[i].item = data;
+                        inventory[i].count = 1;
+                        inventory[i].currentDurability = incomingDurability;
+
+                        amount--;
+                    }
                 }
             }
         }

@@ -53,7 +53,6 @@ public class TiltManager : MonoBehaviour
         clickAction.Disable();
         toggleModeAction.Disable();
 
-        Debug.Log("[TiltManager] Input disabled");
     }
 
     void Update()
@@ -102,9 +101,7 @@ public class TiltManager : MonoBehaviour
 
             Vector3Int cellPos = tilemap.WorldToCell(worldPos);
 
-            Debug.Log("[TiltManager] Screen: " + screenPos +
-                      " World: " + worldPos +
-                      " Cell: " + cellPos);
+         
 
             if (removeMode)
                 RemoveSoil(cellPos);
@@ -116,7 +113,6 @@ public class TiltManager : MonoBehaviour
     void PlaceSoil(Vector3Int pos)
     {
         tilemap.SetTile(pos, soilRuleTile);
-        Debug.Log("[TiltManager] Placed soil at " + pos);
     }
 
     void RemoveSoil(Vector3Int pos)

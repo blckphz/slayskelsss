@@ -82,15 +82,12 @@ public class InventorySlotUI : MonoBehaviour,
 
             if (durabilityFill != null)
             {
-                float percentage = currentItem.maxDurability > 0
-                    ? (currentDurability / currentItem.maxDurability)
-                    : 0f;
+                float percentage =
+                    currentItem.maxDurability > 0
+                        ? (currentDurability / currentItem.maxDurability)
+                        : 0f;
 
-                durabilityFill.color = Color.Lerp(
-                    Color.red,
-                    Color.green,
-                    percentage
-                );
+                durabilityFill.color = Color.Lerp(Color.red, Color.green, percentage);
             }
         }
         else
@@ -100,31 +97,28 @@ public class InventorySlotUI : MonoBehaviour,
         }
     }
 
+    // ================= POINTER =================
+
     public void OnPointerEnter(PointerEventData eventData)
     {
         if (IsEmpty || eventData.dragging) return;
 
         if (invToolTip.Instance != null && currentItem != null)
-        {
-            // FIXED: pass current durability
             invToolTip.Instance.ShowToolTip(currentItem, currentDurability);
-        }
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        if (invToolTip.Instance != null)
-        {
-            invToolTip.Instance.HideToolTip();
-        }
+        invToolTip.Instance?.HideToolTip();
     }
+
+    // ================= DRAG =================
 
     public void OnBeginDrag(PointerEventData eventData)
     {
         if (IsEmpty) return;
 
-        if (invToolTip.Instance != null)
-            invToolTip.Instance.HideToolTip();
+        invToolTip.Instance?.HideToolTip();
 
         if (dragPreviewIcon != null)
         {
@@ -141,9 +135,7 @@ public class InventorySlotUI : MonoBehaviour,
     public void OnDrag(PointerEventData eventData)
     {
         if (dragPreviewIcon != null && dragPreviewIcon.enabled)
-        {
             dragPreviewIcon.transform.position = eventData.position;
-        }
     }
 
     public void OnEndDrag(PointerEventData eventData)
@@ -155,11 +147,13 @@ public class InventorySlotUI : MonoBehaviour,
             icon.color = Color.white;
     }
 
+    // ================= DROP =================
+
     public void OnDrop(PointerEventData eventData)
     {
         if (eventData.pointerDrag == null) return;
 
-        // 1. CHEST SOURCE HANDLING
+        // ================= CHEST =================
         ChestSlotUI chestSlot =
             eventData.pointerDrag.GetComponent<ChestSlotUI>()
             ?? eventData.pointerDrag.GetComponentInParent<ChestSlotUI>();
@@ -174,8 +168,8 @@ public class InventorySlotUI : MonoBehaviour,
 
                 ChestInventory currentChest =
                     ChestUI.Instance != null
-                    ? ChestUI.Instance.GetCurrentChest()
-                    : null;
+                        ? ChestUI.Instance.GetCurrentChest()
+                        : null;
 
                 if (currentChest != null)
                 {
@@ -185,54 +179,63 @@ public class InventorySlotUI : MonoBehaviour,
                         incomingDurability
                     );
 
-                    currentChest.RemoveItem(
-                        incomingItem,
-                        incomingCount
-                    );
+                    currentChest.RemoveItem(incomingItem, incomingCount);
 
                     chestSlot.ClearSlot();
-
                     ChestUI.Instance.Refresh();
+
                     TriggerGlobalUIAndDataRefresh();
                 }
             }
             return;
         }
 
-        // 2. PLAYER INVENTORY SOURCE HANDLING
+        // ================= PLAYER SLOT =================
         InventorySlotUI sourcePlayerSlot =
             eventData.pointerDrag.GetComponent<InventorySlotUI>()
             ?? eventData.pointerDrag.GetComponentInParent<InventorySlotUI>();
 
         if (sourcePlayerSlot != null && sourcePlayerSlot != this)
         {
-            ItemData targetItem = this.currentItem;
-            Ability targetAbility = this.currentAbility;
-            int targetCount = this.currentCount;
-            float targetDurability = this.currentDurability;
+            ItemData targetItem = currentItem;
+            Ability targetAbility = currentAbility;
+            int targetCount = currentCount;
+            float targetDurability = currentDurability;
 
             ItemData sourceItem = sourcePlayerSlot.GetItem();
             Ability sourceAbility = sourcePlayerSlot.GetAbility();
             int sourceCount = sourcePlayerSlot.GetCount();
             float sourceDurability = sourcePlayerSlot.GetDurability();
 
-            // STACK BLENDING
-            if (targetItem != null &&
+            // ================= STACK RULE =================
+
+            bool sameItem =
+                targetItem != null &&
                 sourceItem != null &&
-                targetItem.itemID == sourceItem.itemID &&
-                targetItem.IsUnbreakable)
+                targetItem.itemID == sourceItem.itemID;
+
+            bool stackableType =
+                sameItem &&
+                targetItem.IsUnbreakable;
+
+            bool bothFullDurability =
+                sameItem &&
+                !targetItem.IsUnbreakable &&
+                targetDurability >= targetItem.maxDurability &&
+                sourceDurability >= sourceItem.maxDurability;
+
+            bool canStack = stackableType || bothFullDurability;
+
+            if (canStack)
             {
                 int maxStack = targetItem.maxStackSize;
                 int spaceLeft = maxStack - targetCount;
 
                 if (spaceLeft > 0)
                 {
-                    int amountToMove = Mathf.Min(
-                        spaceLeft,
-                        sourceCount
-                    );
+                    int amountToMove = Mathf.Min(spaceLeft, sourceCount);
 
-                    this.SetSlot(
+                    SetSlot(
                         targetItem,
                         targetAbility,
                         targetCount + amountToMove,
@@ -260,8 +263,9 @@ public class InventorySlotUI : MonoBehaviour,
                 }
             }
 
-            // Swap fallback
-            this.SetSlot(
+            // ================= SWAP =================
+
+            SetSlot(
                 sourceItem,
                 sourceAbility,
                 sourceCount,
@@ -279,44 +283,33 @@ public class InventorySlotUI : MonoBehaviour,
         }
     }
 
-    private void FinalizeStackTransaction(
-        InventorySlotUI sourcePlayerSlot
-    )
+    // ================= FINALIZE =================
+
+    private void FinalizeStackTransaction(InventorySlotUI sourcePlayerSlot)
     {
         TriggerGlobalUIAndDataRefresh();
 
-        this.UpdateSlotVisualElements();
+        UpdateSlotVisualElements();
         sourcePlayerSlot.UpdateSlotVisualElements();
 
-        if (invToolTip.Instance != null)
-        {
-            invToolTip.Instance.HideToolTip();
+        invToolTip.Instance?.HideToolTip();
 
-            if (!IsEmpty)
-            {
-                // FIXED: pass current durability
-                invToolTip.Instance.ShowToolTip(
-                    currentItem,
-                    currentDurability
-                );
-            }
+        if (!IsEmpty && currentItem != null)
+        {
+            invToolTip.Instance?.ShowToolTip(currentItem, currentDurability);
         }
     }
 
     private void TriggerGlobalUIAndDataRefresh()
     {
-        if (InvUI.Instance != null)
-            InvUI.Instance.SyncToInventory();
+        InvUI.Instance?.SyncToInventory();
+        PlayerHotbarManager.Instance?.SyncHotbarToData();
 
-        if (PlayerHotbarManager.Instance != null)
-            PlayerHotbarManager.Instance.SyncHotbarToData();
-
-        if (InvUI.Instance != null)
-            InvUI.Instance.RefreshUI();
-
-        if (PlayerHotbarManager.Instance != null)
-            PlayerHotbarManager.Instance.RefreshHotbar();
+        InvUI.Instance?.RefreshUI();
+        PlayerHotbarManager.Instance?.RefreshHotbar();
     }
+
+    // ================= GETTERS =================
 
     public ItemData GetItem() => currentItem;
     public Ability GetAbility() => currentAbility;

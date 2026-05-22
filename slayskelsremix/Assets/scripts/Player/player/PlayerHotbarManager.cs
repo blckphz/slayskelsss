@@ -7,11 +7,13 @@ public class PlayerHotbarManager : MonoBehaviour
 {
     public static PlayerHotbarManager Instance;
 
+    [Header("Hotbar")]
     public List<InventorySlotUI> hotbarSlots = new List<InventorySlotUI>();
     public RectTransform selector;
+
+    [Header("References")]
     public Transform caster;
     public Transform targetAnchor;
-    public PlayerInteraction2D interaction;
     public PlayerAttack playerAttack;
 
     private int selectedIndex = 0;
@@ -21,7 +23,7 @@ public class PlayerHotbarManager : MonoBehaviour
 
     private float nextUseTime = 0f;
 
-    private void Awake()
+    void Awake()
     {
         if (Instance == null) Instance = this;
         else { Destroy(gameObject); return; }
@@ -29,7 +31,7 @@ public class PlayerHotbarManager : MonoBehaviour
         controls = new PlayerControls();
     }
 
-    private void OnEnable()
+    void OnEnable()
     {
         controls.Enable();
         controls.Player.PrimaryItemUse.performed += OnPrimaryUse;
@@ -37,7 +39,7 @@ public class PlayerHotbarManager : MonoBehaviour
         controls.Player.Scroll.performed += OnScroll;
     }
 
-    private void OnDisable()
+    void OnDisable()
     {
         controls.Player.PrimaryItemUse.performed -= OnPrimaryUse;
         controls.Player.SecondaryItemUse.performed -= OnSecondaryUse;
@@ -45,7 +47,7 @@ public class PlayerHotbarManager : MonoBehaviour
         controls.Disable();
     }
 
-    private void Update()
+    void Update()
     {
         for (int i = 0; i < hotbarSlots.Count && i < 9; i++)
         {
@@ -54,20 +56,12 @@ public class PlayerHotbarManager : MonoBehaviour
         }
     }
 
-    private void OnPrimaryUse(InputAction.CallbackContext ctx)
-    {
-        ExecuteActiveSlot();
-    }
-
-    private void OnSecondaryUse(InputAction.CallbackContext ctx)
-    {
-        ExecuteSecondaryActiveSlot();
-    }
-
-    private void OnScroll(InputAction.CallbackContext ctx)
-    {
-        HandleScroll(ctx.ReadValue<Vector2>());
-    }
+    // =========================================================
+    // INPUT
+    // =========================================================
+    void OnPrimaryUse(InputAction.CallbackContext ctx) => ExecuteActiveSlot();
+    void OnSecondaryUse(InputAction.CallbackContext ctx) => ExecuteSecondaryActiveSlot();
+    void OnScroll(InputAction.CallbackContext ctx) => HandleScroll(ctx.ReadValue<Vector2>());
 
     // =========================================================
     // PRIMARY USE
@@ -77,60 +71,81 @@ public class PlayerHotbarManager : MonoBehaviour
         if (selectedIndex >= hotbarSlots.Count) return;
 
         var slot = hotbarSlots[selectedIndex];
-        Ability ability = slot.GetAbility();
-        ItemData itemData = slot.GetItem();
+        ItemData item = slot.GetItem();
 
-        Ability abilityToExecute =
-            ability != null ? ability :
-            (itemData is UseableItem u ? u.abilityToExecute : null);
-
-        // No ability → consume item only
-        if (abilityToExecute == null)
+        if (item == null)
         {
-            if (itemData != null &&
-                itemData.isUsable &&
-                slot.GetCount() > 0)
+            Debug.Log("[Hotbar] No item selected.");
+            return;
+        }
+
+        Debug.Log($"[Hotbar] Using: {item.itemName} | Type: {item.itemType}");
+
+        Ability ability =
+            slot.GetAbility() ??
+            (item is UseableItem u ? u.abilityToExecute : null);
+
+        // =====================================================
+        // NO ABILITY CASE
+        // =====================================================
+        if (ability == null)
+        {
+            // 🔥 IMPORTANT FIX: do NOT consume Placeable items here
+            if (item.itemType == ItemType.Placeable)
             {
-                UseSelectedStack(itemData.consumeAmount);
+                Debug.Log("[Hotbar] Placeable item used → skipping consumption (handled by BuildManager)");
+                return;
+            }
+
+            if (item.isUsable && slot.GetCount() > 0)
+            {
+                Debug.Log($"[Hotbar] Consuming item (no ability): {item.itemName}");
+                UseSelectedStack(item.consumeAmount);
             }
 
             return;
         }
 
+        // =====================================================
+        // ABILITY COOLDOWN CHECK
+        // =====================================================
         float remaining =
             playerAttack != null
-                ? playerAttack.GetCooldownRemaining(abilityToExecute)
+                ? playerAttack.GetCooldownRemaining(ability)
                 : 0f;
 
-        if (remaining > 0f) return;
-        if (Time.time < nextUseTime) return;
-
-        bool isComboFinished =
-            abilityToExecute.Execute(caster, targetAnchor, true);
-
-        // consume item after use
-        if (itemData != null &&
-            itemData.isUsable &&
-            itemData.consumeAmount > 0 &&
-            slot.GetCount() > 0)
+        if (remaining > 0f)
         {
-            UseSelectedStack(itemData.consumeAmount);
+            Debug.Log("[Hotbar] Ability on cooldown.");
+            return;
         }
 
-        float lockDuration;
+        if (Time.time < nextUseTime)
+            return;
 
-        if (abilityToExecute is offensivemelee melee)
-            lockDuration = isComboFinished ? melee.fireRate : melee.swingFreq;
-        else
-            lockDuration = abilityToExecute.fireRate > 0 ? abilityToExecute.fireRate : 0.1f;
+        // =====================================================
+        // EXECUTE ABILITY
+        // =====================================================
+        bool finished = ability.Execute(caster, targetAnchor, true);
 
-        nextUseTime = Time.time + lockDuration;
+        Debug.Log($"[Hotbar] Ability executed: {ability.name} | finished: {finished}");
+
+        // =====================================================
+        // CONSUME AFTER ABILITY (ONLY NON-PLACEABLE LOGIC)
+        // =====================================================
+        if (item.itemType != ItemType.Placeable && item.isUsable && slot.GetCount() > 0)
+        {
+            Debug.Log($"[Hotbar] Consuming after ability: {item.itemName}");
+            UseSelectedStack(item.consumeAmount);
+        }
+
+        nextUseTime = Time.time + Mathf.Max(ability.fireRate, 0.1f);
     }
 
     // =========================================================
     // SECONDARY USE
     // =========================================================
-    private void ExecuteSecondaryActiveSlot()
+    void ExecuteSecondaryActiveSlot()
     {
         if (selectedIndex >= hotbarSlots.Count) return;
 
@@ -140,6 +155,7 @@ public class PlayerHotbarManager : MonoBehaviour
         if (item is UseableItem useable &&
             useable.abilityToExecute != null)
         {
+            Debug.Log($"[Hotbar] Secondary use: {item.itemName}");
             useable.abilityToExecute.ExecuteSecondary(caster);
         }
     }
@@ -150,11 +166,14 @@ public class PlayerHotbarManager : MonoBehaviour
     public void SelectSlot(int index)
     {
         selectedIndex = Mathf.Clamp(index, 0, hotbarSlots.Count - 1);
+
         UpdateSelector();
         NotifySelectionChanged();
+
+        Debug.Log($"[Hotbar] Selected slot: {selectedIndex}");
     }
 
-    private void HandleScroll(Vector2 scroll)
+    void HandleScroll(Vector2 scroll)
     {
         selectedIndex = (scroll.y > 0)
             ? (selectedIndex - 1 + hotbarSlots.Count) % hotbarSlots.Count
@@ -164,13 +183,13 @@ public class PlayerHotbarManager : MonoBehaviour
         NotifySelectionChanged();
     }
 
-    private void UpdateSelector()
+    void UpdateSelector()
     {
         if (selector != null && selectedIndex < hotbarSlots.Count)
             selector.position = hotbarSlots[selectedIndex].transform.position;
     }
 
-    private void NotifySelectionChanged()
+    void NotifySelectionChanged()
     {
         OnSelectedItemChanged?.Invoke(GetSelectedItem());
     }
@@ -183,39 +202,46 @@ public class PlayerHotbarManager : MonoBehaviour
     }
 
     // =========================================================
-    // STACK USAGE
+    // STACK SYSTEM
     // =========================================================
     public void UseSelectedStack(int amount)
     {
         var slot = hotbarSlots[selectedIndex];
 
+        ItemData item = slot.GetItem();
+        if (item == null) return;
+
         int newCount = slot.GetCount() - amount;
 
+        Debug.Log($"[Hotbar] Consume: {item.itemName} | -{amount} → {newCount}");
+
         if (newCount <= 0)
+        {
+            Debug.Log($"[Hotbar] Slot cleared: {item.itemName}");
             slot.ClearSlot();
+        }
         else
+        {
             slot.SetSlot(
-                slot.GetItem(),
+                item,
                 slot.GetAbility(),
                 newCount,
                 slot.GetDurability()
             );
+        }
 
         SyncAndSave();
     }
 
     // =========================================================
-    // SAVE SYSTEM (CENTRALIZED)
+    // SAVE / SYNC
     // =========================================================
-    private void SyncAndSave()
+    void SyncAndSave()
     {
         SyncHotbarToData();
         InventoryManager.Instance?.SaveInventory();
     }
 
-    // =========================================================
-    // HOTBAR SYNC
-    // =========================================================
     public void SyncHotbarToData()
     {
         if (InventoryManager.Instance == null) return;
@@ -255,7 +281,7 @@ public class PlayerHotbarManager : MonoBehaviour
     }
 
     // =========================================================
-    // DURABILITY (RESTORED - FIXES YOUR ERROR)
+    // DURABILITY
     // =========================================================
     public float GetActiveToolDurability()
     {
@@ -284,6 +310,7 @@ public class PlayerHotbarManager : MonoBehaviour
 
         if (newDur <= 0f)
         {
+            Debug.Log($"[Hotbar] Broken: {item.itemName}");
             slot.ClearSlot();
         }
         else
