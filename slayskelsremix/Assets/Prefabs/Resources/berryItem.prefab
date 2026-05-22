@@ -186,7 +186,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LootArc
   arcHeight: 1
-  arcDuration: 0.5
+  arcDuration: 0.3
   spreadRadius: 3
   bounceHeight: 0.3
   bounceDuration: 0.2
