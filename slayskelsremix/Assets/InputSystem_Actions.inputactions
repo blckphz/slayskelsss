@@ -158,6 +158,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "BuildMode",
+                    "type": "Button",
+                    "id": "8fedd78c-11dd-407e-875b-c8dff4e63fb9",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -609,6 +618,17 @@
                     "processors": "",
                     "groups": "",
                     "action": "SecondaryItemUse",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "08e401dc-010b-451b-afc1-687a8ffcd13e",
+                    "path": "<Keyboard>/v",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "BuildMode",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

@@ -1,5 +1,7 @@
-[System.Serializable]
-public class TileData
+using System;
+
+[Serializable]
+public class SoilData
 {
     public int x;
     public int y;

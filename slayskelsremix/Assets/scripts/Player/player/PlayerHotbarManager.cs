@@ -91,7 +91,7 @@ public class PlayerHotbarManager : MonoBehaviour
         if (ability == null)
         {
             // 🔥 IMPORTANT FIX: do NOT consume Placeable items here
-            if (item.itemType == ItemType.Placeable)
+            if (item.itemType == ItemType.Constructable)
             {
                 Debug.Log("[Hotbar] Placeable item used → skipping consumption (handled by BuildManager)");
                 return;
@@ -133,7 +133,7 @@ public class PlayerHotbarManager : MonoBehaviour
         // =====================================================
         // CONSUME AFTER ABILITY (ONLY NON-PLACEABLE LOGIC)
         // =====================================================
-        if (item.itemType != ItemType.Placeable && item.isUsable && slot.GetCount() > 0)
+        if (item.itemType != ItemType.Constructable && item.isUsable && slot.GetCount() > 0)
         {
             Debug.Log($"[Hotbar] Consuming after ability: {item.itemName}");
             UseSelectedStack(item.consumeAmount);

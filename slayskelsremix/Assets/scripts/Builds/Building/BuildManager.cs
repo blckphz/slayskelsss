@@ -100,7 +100,7 @@ public class BuildManager : MonoBehaviour
         }
 
         // Only PLACEABLE items
-        if (item != null && item.itemType == ItemType.Placeable)
+        if (item != null && item.itemType == ItemType.Constructable)
         {
             buildSO build = item as buildSO;
 
@@ -249,7 +249,7 @@ public class BuildManager : MonoBehaviour
             {
                 Debug.Log($"[BuildManager] 📦 ItemType = {currentItem.itemType}");
 
-                if (currentItem.itemType == ItemType.Placeable)
+                if (currentItem.itemType == ItemType.Constructable)
                 {
                     if (currentItem.consumeAmount > 0)
                     {

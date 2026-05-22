@@ -21,50 +21,28 @@ public class PlayerVisualController : MonoBehaviour
 
     private void Start()
     {
-        UpdateSpriteImmediate();
+        spriteRenderer.sprite = frontSprite;
     }
 
     private void Update()
     {
-        UpdateVisuals();
-    }
-
-    private void UpdateVisuals()
-    {
-        if (aimScript == null || spriteRenderer == null)
+        if (aimScript == null)
             return;
 
-        if (aimScript.anchor == null)
+        Vector3 dir = aimScript.AimDirection;
+
+        if (dir.sqrMagnitude < 0.0001f)
             return;
 
-        Vector3 aimDir = aimScript.anchor.position - transform.position;
+        bool up = dir.y > 0f;
+        bool right = dir.x > 0f;
 
-        bool isAimingUp = aimDir.y > 0f;
-        bool isAimingRight = aimDir.x > 0f;
-
-        // Switch front/back sprite
-        if (isAimingUp != facingUp)
+        if (up != facingUp)
         {
-            facingUp = isAimingUp;
-
-            spriteRenderer.sprite = facingUp
-                ? backSprite
-                : frontSprite;
+            facingUp = up;
+            spriteRenderer.sprite = facingUp ? backSprite : frontSprite;
         }
 
-        // Flip logic:
-        // front (down) → flip if aiming right
-        // back (up) → flip if aiming left
-        spriteRenderer.flipX = facingUp ? !isAimingRight : isAimingRight;
-    }
-
-    private void UpdateSpriteImmediate()
-    {
-        if (spriteRenderer == null)
-            return;
-
-        spriteRenderer.sprite = frontSprite;
-        spriteRenderer.flipX = false;
-        facingUp = false;
+        spriteRenderer.flipX = facingUp ? !right : right;
     }
 }

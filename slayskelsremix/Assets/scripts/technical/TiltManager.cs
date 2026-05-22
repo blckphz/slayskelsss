@@ -4,120 +4,73 @@ using UnityEngine.InputSystem;
 
 public class TiltManager : MonoBehaviour
 {
-    [Header("Tilemap")]
     public Tilemap tilemap;
-    public TileBase soilRuleTile;
+    public TileBase soilTile;
 
-    [Header("Camera")]
     public Camera cam;
 
-    [Header("Mode")]
     public bool removeMode;
 
+    public BuildingSaveManager saveManager;
+
     private InputAction clickAction;
-    private InputAction toggleModeAction;
+    private InputAction toggleAction;
 
     void Awake()
     {
-        Debug.Log("[TiltManager] Awake called");
+        if (cam == null) cam = Camera.main;
 
-        if (cam == null)
-        {
-            cam = Camera.main;
-            Debug.Log("[TiltManager] Camera auto-assigned: " + cam);
-        }
-
-        clickAction = new InputAction(
-            type: InputActionType.Button,
-            binding: "<Pointer>/press"
-        );
-
-        toggleModeAction = new InputAction(
-            type: InputActionType.Button,
-            binding: "<Keyboard>/r"
-        );
-
-        Debug.Log("[TiltManager] Input actions created");
+        clickAction = new InputAction(type: InputActionType.Button, binding: "<Pointer>/press");
+        toggleAction = new InputAction(type: InputActionType.Button, binding: "<Keyboard>/r");
     }
 
     void OnEnable()
     {
         clickAction.Enable();
-        toggleModeAction.Enable();
-
-        Debug.Log("[TiltManager] Input enabled");
+        toggleAction.Enable();
     }
 
     void OnDisable()
     {
         clickAction.Disable();
-        toggleModeAction.Disable();
-
+        toggleAction.Disable();
     }
 
     void Update()
     {
-        if (toggleModeAction.WasPressedThisFrame())
-        {
+        if (toggleAction.WasPressedThisFrame())
             removeMode = !removeMode;
-            Debug.Log("[TiltManager] Mode toggled. RemoveMode = " + removeMode);
-        }
 
-        if (clickAction.IsPressed())
-        {
-            Debug.Log("[TiltManager] Click detected");
+        if (!clickAction.IsPressed()) return;
 
-            if (tilemap == null)
-            {
-                Debug.LogError("[TiltManager] Tilemap is NULL!");
-                return;
-            }
+        Vector2 screenPos = Pointer.current.position.ReadValue();
 
-            if (soilRuleTile == null)
-            {
-                Debug.LogError("[TiltManager] SoilRuleTile is NULL!");
-                return;
-            }
+        Vector3 screenPos3 = new Vector3(
+            screenPos.x,
+            screenPos.y,
+            -cam.transform.position.z
+        );
 
-            if (cam == null)
-            {
-                Debug.LogError("[TiltManager] Camera is NULL!");
-                return;
-            }
+        Vector3 worldPos = cam.ScreenToWorldPoint(screenPos3);
+        worldPos.z = 0f;
 
-            // ✅ FIXED 2D MOUSE → WORLD CONVERSION
-            Vector2 screenPos = Pointer.current.position.ReadValue();
+        Vector3Int cell = tilemap.WorldToCell(worldPos);
 
-            Vector3 screenPos3 = new Vector3(
-                screenPos.x,
-                screenPos.y,
-                -cam.transform.position.z
-            );
-
-            Vector3 worldPos = cam.ScreenToWorldPoint(screenPos3);
-
-            // IMPORTANT for Tilemaps
-            worldPos.z = 0f;
-
-            Vector3Int cellPos = tilemap.WorldToCell(worldPos);
-
-         
-
-            if (removeMode)
-                RemoveSoil(cellPos);
-            else
-                PlaceSoil(cellPos);
-        }
+        if (removeMode)
+            Remove(cell);
+        else
+            Place(cell);
     }
 
-    void PlaceSoil(Vector3Int pos)
+    void Place(Vector3Int pos)
     {
-        tilemap.SetTile(pos, soilRuleTile);
+        tilemap.SetTile(pos, soilTile);
+
     }
 
-    void RemoveSoil(Vector3Int pos)
+    void Remove(Vector3Int pos)
     {
         tilemap.SetTile(pos, null);
-        Debug.Log("[TiltManager] Removed soil at " + pos);
+
     }
 }
