@@ -26,7 +26,6 @@ public class ShowelSO : ToolsSO, IItemDescriptionProvider
 
     public override bool ExecuteSecondary(Transform caster)
     {
-        Debug.Log($"<color=yellow>[Shovel Ability]</color> ExecuteSecondary triggered on {name}. Checking requirements.");
 
         if (holeBuild == null)
         {
@@ -40,7 +39,6 @@ public class ShowelSO : ToolsSO, IItemDescriptionProvider
             return false;
         }
 
-        Debug.Log($"[Shovel Ability SUCCESS] Dispatching build setup command to BuildManager for asset object: {holeBuild.name}");
         BuildManager.Instance.StartPlacing(holeBuild);
         return true;
     }

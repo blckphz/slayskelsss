@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8ff8f9e65ec154a4abb624f34ee02c96, type: 3}
-  m_Name: ShowelSO
+  m_Name: ShovelSO
   m_EditorClassIdentifier: Assembly-CSharp::ShowelSO
-  abilityName: Showel
-  description: showel
+  abilityName: Shovel
+  description: shovel
   icon: {fileID: 21300000, guid: a571bd13890e8084ea06db7f8e53fe97, type: 3}
   launchsound: {fileID: 0}
   fireRate: 1.95
@@ -25,5 +25,5 @@ MonoBehaviour:
   swingFreq: 1.44
   spawnOffset: 1.5
   rotationOffset: 90
-  toolType: 4
+  toolType: 0
   holeBuild: {fileID: 11400000, guid: 058c1c778993d494c8ff4b1f4dd93b48, type: 2}

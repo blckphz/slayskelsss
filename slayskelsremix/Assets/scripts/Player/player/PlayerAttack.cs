@@ -22,9 +22,7 @@ public class PlayerAttack : MonoBehaviour
 
             Ability ability = AbilityLoadout.Instance.GetAbility(i);
             if (ability != null)
-            {
                 HandleInput(fireActions[i], ability);
-            }
         }
     }
 
@@ -32,43 +30,28 @@ public class PlayerAttack : MonoBehaviour
     {
         if (actionRef == null || actionRef.action == null) return;
 
+        // ❌ BLOCK BUILD MODE
+        if (BuildState.IsBuildMode)
+            return;
+
         bool held = actionRef.action.IsPressed();
 
         float remaining = GetCooldownRemaining(ability);
         bool ready = remaining <= 0f;
-
-        Debug.Log($"[ATTACK] {ability.abilityName} | Held={held} | Ready={ready} | Remaining={remaining:F2}");
 
         if (!held || !ready)
             return;
 
         bool comboFinished = ability.Execute(transform, aimScript.anchor, true);
 
-        Debug.Log($"[EXECUTE] {ability.abilityName} | comboFinished={comboFinished}");
-
         if (ability is offensivemelee melee)
         {
-            if (comboFinished)
-            {
-                float end = Time.time + ability.fireRate;
-                cooldownEndTime[ability] = end;
-
-                Debug.Log($"[COOLDOWN] FULL COMBO → fireRate={ability.fireRate}s ends at {end:F2}");
-            }
-            else
-            {
-                float end = Time.time + melee.swingFreq;
-                cooldownEndTime[ability] = end;
-
-                Debug.Log($"[COOLDOWN] SWING GAP → swingFreq={melee.swingFreq}s ends at {end:F2}");
-            }
+            float end = Time.time + (comboFinished ? ability.fireRate : melee.swingFreq);
+            cooldownEndTime[ability] = end;
         }
         else
         {
-            float end = Time.time + ability.fireRate;
-            cooldownEndTime[ability] = end;
-
-            Debug.Log($"[COOLDOWN] RANGED → fireRate={ability.fireRate}s ends at {end:F2}");
+            cooldownEndTime[ability] = Time.time + ability.fireRate;
         }
 
         TriggerCosmetics(ability);

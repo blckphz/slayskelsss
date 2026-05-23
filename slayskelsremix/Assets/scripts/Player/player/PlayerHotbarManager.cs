@@ -56,9 +56,6 @@ public class PlayerHotbarManager : MonoBehaviour
         }
     }
 
-    // =========================================================
-    // INPUT
-    // =========================================================
     void OnPrimaryUse(InputAction.CallbackContext ctx) => ExecuteActiveSlot();
     void OnSecondaryUse(InputAction.CallbackContext ctx) => ExecuteSecondaryActiveSlot();
     void OnScroll(InputAction.CallbackContext ctx) => HandleScroll(ctx.ReadValue<Vector2>());
@@ -73,71 +70,45 @@ public class PlayerHotbarManager : MonoBehaviour
         var slot = hotbarSlots[selectedIndex];
         ItemData item = slot.GetItem();
 
-        if (item == null)
+        if (item == null) return;
+
+        // ❌ GLOBAL BLOCK: build mode disables combat/ability use
+        if (BuildState.IsBuildMode)
         {
-            Debug.Log("[Hotbar] No item selected.");
+            // allow tools like shovel ONLY if needed elsewhere
+            if (item is ShowelSO)
+                return;
+
             return;
         }
-
-        Debug.Log($"[Hotbar] Using: {item.itemName} | Type: {item.itemType}");
 
         Ability ability =
             slot.GetAbility() ??
             (item is UseableItem u ? u.abilityToExecute : null);
 
-        // =====================================================
-        // NO ABILITY CASE
-        // =====================================================
         if (ability == null)
         {
-            // 🔥 IMPORTANT FIX: do NOT consume Placeable items here
             if (item.itemType == ItemType.Constructable)
-            {
-                Debug.Log("[Hotbar] Placeable item used → skipping consumption (handled by BuildManager)");
                 return;
-            }
 
             if (item.isUsable && slot.GetCount() > 0)
-            {
-                Debug.Log($"[Hotbar] Consuming item (no ability): {item.itemName}");
                 UseSelectedStack(item.consumeAmount);
-            }
 
             return;
         }
 
-        // =====================================================
-        // ABILITY COOLDOWN CHECK
-        // =====================================================
         float remaining =
             playerAttack != null
                 ? playerAttack.GetCooldownRemaining(ability)
                 : 0f;
 
-        if (remaining > 0f)
-        {
-            Debug.Log("[Hotbar] Ability on cooldown.");
-            return;
-        }
+        if (remaining > 0f) return;
+        if (Time.time < nextUseTime) return;
 
-        if (Time.time < nextUseTime)
-            return;
+        ability.Execute(caster, targetAnchor, true);
 
-        // =====================================================
-        // EXECUTE ABILITY
-        // =====================================================
-        bool finished = ability.Execute(caster, targetAnchor, true);
-
-        Debug.Log($"[Hotbar] Ability executed: {ability.name} | finished: {finished}");
-
-        // =====================================================
-        // CONSUME AFTER ABILITY (ONLY NON-PLACEABLE LOGIC)
-        // =====================================================
         if (item.itemType != ItemType.Constructable && item.isUsable && slot.GetCount() > 0)
-        {
-            Debug.Log($"[Hotbar] Consuming after ability: {item.itemName}");
             UseSelectedStack(item.consumeAmount);
-        }
 
         nextUseTime = Time.time + Mathf.Max(ability.fireRate, 0.1f);
     }
@@ -155,22 +126,18 @@ public class PlayerHotbarManager : MonoBehaviour
         if (item is UseableItem useable &&
             useable.abilityToExecute != null)
         {
-            Debug.Log($"[Hotbar] Secondary use: {item.itemName}");
             useable.abilityToExecute.ExecuteSecondary(caster);
         }
     }
 
     // =========================================================
-    // SLOT SELECTION
+    // SLOT CONTROL
     // =========================================================
     public void SelectSlot(int index)
     {
         selectedIndex = Mathf.Clamp(index, 0, hotbarSlots.Count - 1);
-
         UpdateSelector();
         NotifySelectionChanged();
-
-        Debug.Log($"[Hotbar] Selected slot: {selectedIndex}");
     }
 
     void HandleScroll(Vector2 scroll)
@@ -207,35 +174,19 @@ public class PlayerHotbarManager : MonoBehaviour
     public void UseSelectedStack(int amount)
     {
         var slot = hotbarSlots[selectedIndex];
-
         ItemData item = slot.GetItem();
         if (item == null) return;
 
         int newCount = slot.GetCount() - amount;
 
-        Debug.Log($"[Hotbar] Consume: {item.itemName} | -{amount} → {newCount}");
-
         if (newCount <= 0)
-        {
-            Debug.Log($"[Hotbar] Slot cleared: {item.itemName}");
             slot.ClearSlot();
-        }
         else
-        {
-            slot.SetSlot(
-                item,
-                slot.GetAbility(),
-                newCount,
-                slot.GetDurability()
-            );
-        }
+            slot.SetSlot(item, slot.GetAbility(), newCount, slot.GetDurability());
 
         SyncAndSave();
     }
 
-    // =========================================================
-    // SAVE / SYNC
-    // =========================================================
     void SyncAndSave()
     {
         SyncHotbarToData();
@@ -259,7 +210,9 @@ public class PlayerHotbarManager : MonoBehaviour
             data[i].currentDurability = hotbarSlots[i].GetDurability();
         }
     }
-
+    // =========================================================
+    // UI / EXTERNAL SYNC (RESTORED)
+    // =========================================================
     public void RefreshHotbar()
     {
         if (InventoryManager.Instance == null) return;
@@ -281,7 +234,7 @@ public class PlayerHotbarManager : MonoBehaviour
     }
 
     // =========================================================
-    // DURABILITY
+    // DURABILITY SYSTEM (RESTORED)
     // =========================================================
     public float GetActiveToolDurability()
     {
@@ -310,7 +263,6 @@ public class PlayerHotbarManager : MonoBehaviour
 
         if (newDur <= 0f)
         {
-            Debug.Log($"[Hotbar] Broken: {item.itemName}");
             slot.ClearSlot();
         }
         else
@@ -325,4 +277,5 @@ public class PlayerHotbarManager : MonoBehaviour
 
         SyncAndSave();
     }
+
 }

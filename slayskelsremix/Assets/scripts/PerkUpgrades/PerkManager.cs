@@ -218,7 +218,6 @@ public class PerkManager : MonoBehaviour
             return;
         }
 
-        Debug.Log("[PerkManager] Clearing perk details.");
 
         if (titleText != null)
             titleText.text = "";

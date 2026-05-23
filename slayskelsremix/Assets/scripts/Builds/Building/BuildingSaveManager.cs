@@ -14,7 +14,7 @@ public class BuildingSaveManager : MonoBehaviour
         public Vector3 position;
         public int currentAmmo;
         public float plantProgress;
-        public int structuralDurability; // Tracks structural wear metrics
+        public int structuralDurability;
         public float fuelAmount;
         public bool isBurning;
         public int fuelItemID;
@@ -26,6 +26,9 @@ public class BuildingSaveManager : MonoBehaviour
         public List<BuildingData> buildings = new List<BuildingData>();
         public List<NpcInventorySaveData> npcInventories = new List<NpcInventorySaveData>();
         public List<BushSaveData> bushes = new List<BushSaveData>();
+
+        // SOIL DATA
+        public List<SoilData> soilTiles = new List<SoilData>();
     }
 
     public ItemDatabase database;
@@ -34,10 +37,20 @@ public class BuildingSaveManager : MonoBehaviour
 
     private void Awake()
     {
-        if (Instance == null) Instance = this;
-        else { Destroy(gameObject); return; }
+        if (Instance == null)
+            Instance = this;
+        else
+        {
+            Destroy(gameObject);
+            return;
+        }
 
         savePath = Application.persistentDataPath + "/buildings.json";
+    }
+
+    private void Start()
+    {
+        Debug.Log("[SaveManager] Loading world...");
         LoadEverything();
     }
 
@@ -54,22 +67,33 @@ public class BuildingSaveManager : MonoBehaviour
     }
 
     // ==========================================
-    // SAVE SYSTEM LAYER
+    // SAVE SYSTEM
     // ==========================================
     public void SaveNow()
     {
         SaveData data = new SaveData();
 
+        // --------------------------------------
         // 1. SAVE BUILDINGS
+        // --------------------------------------
         placedBuildings.RemoveAll(item => item == null);
+
         foreach (GameObject obj in placedBuildings)
         {
-            BuildingData b = new BuildingData { position = obj.transform.position };
+            BuildingData b = new BuildingData
+            {
+                position = obj.transform.position
+            };
 
             if (obj.TryGetComponent(out ISaveableBuilding saveable))
             {
                 b.itemID = saveable.GetItemID();
-                saveable.GetSaveData(out b.currentAmmo, out b.plantProgress, out b.structuralDurability);
+
+                saveable.GetSaveData(
+                    out b.currentAmmo,
+                    out b.plantProgress,
+                    out b.structuralDurability
+                );
             }
             else if (obj.TryGetComponent(out BuildIdentity id) && id.item != null)
             {
@@ -80,21 +104,32 @@ public class BuildingSaveManager : MonoBehaviour
             {
                 b.fuelAmount = campfire.fuelAmount;
                 b.isBurning = campfire.isBurning;
-                b.fuelItemID = campfire.fuelItem != null ? campfire.fuelItem.itemID : -1;
+                b.fuelItemID = campfire.fuelItem != null
+                    ? campfire.fuelItem.itemID
+                    : -1;
             }
+
             data.buildings.Add(b);
         }
 
-        // 2. SAVE NPCs (Fixed for modern Unity)
-        NpcInvBrain[] npcs = FindObjectsByType<NpcInvBrain>(FindObjectsSortMode.None);
+        // --------------------------------------
+        // 2. SAVE NPCS
+        // --------------------------------------
+        NpcInvBrain[] npcs =
+            FindObjectsByType<NpcInvBrain>(FindObjectsSortMode.None);
+
         foreach (NpcInvBrain npc in npcs)
         {
             data.npcInventories.Add(npc.GetSaveData());
         }
 
-        // 3. SAVE BUSHES (Fixed for modern Unity)
-        BushBehav[] sceneBushes = FindObjectsByType<BushBehav>(FindObjectsSortMode.None);
-        foreach (BushBehav bush in sceneBushes)
+        // --------------------------------------
+        // 3. SAVE BUSHES
+        // --------------------------------------
+        BushBehav[] bushes =
+            FindObjectsByType<BushBehav>(FindObjectsSortMode.None);
+
+        foreach (BushBehav bush in bushes)
         {
             data.bushes.Add(new BushSaveData
             {
@@ -105,27 +140,57 @@ public class BuildingSaveManager : MonoBehaviour
             });
         }
 
+        // --------------------------------------
+        // 4. SAVE SOIL
+        // --------------------------------------
+        TiltManager tilt = FindFirstObjectByType<TiltManager>();
+
+        if (tilt != null)
+        {
+            data.soilTiles = tilt.GetSaveData();
+            Debug.Log("SOIL SAVED COUNT: " + data.soilTiles.Count);
+        }
+        else
+        {
+            Debug.LogError("TiltManager NOT FOUND → soil not saved!");
+        }
+
+        // --------------------------------------
+        // WRITE FILE
+        // --------------------------------------
         string json = JsonUtility.ToJson(data, true);
         File.WriteAllText(savePath, json);
+
+        Debug.Log("[SaveManager] Save complete.");
     }
 
     // ==========================================
-    // LOAD SYSTEM LAYER
+    // LOAD SYSTEM
     // ==========================================
     public void LoadEverything()
     {
-        if (!File.Exists(savePath)) return;
+        if (!File.Exists(savePath))
+        {
+            Debug.LogWarning("No save file found.");
+            return;
+        }
 
         string json = File.ReadAllText(savePath);
         SaveData data = JsonUtility.FromJson<SaveData>(json);
 
+        // --------------------------------------
         // 1. LOAD BUILDINGS
+        // --------------------------------------
         foreach (var b in data.buildings)
         {
             ItemData item = database.GetItemByID(b.itemID);
             if (item == null) continue;
 
-            GameObject prefab = (item is buildSO bSO) ? bSO.placeablePrefab : (item is SeedSO sSO) ? sSO.plantPrefab : null;
+            GameObject prefab =
+                (item is buildSO build) ? build.placeablePrefab :
+                (item is SeedSO seed) ? seed.plantPrefab :
+                null;
+
             if (prefab == null) continue;
 
             GameObject obj = Instantiate(prefab, b.position, Quaternion.identity);
@@ -133,34 +198,72 @@ public class BuildingSaveManager : MonoBehaviour
 
             if (obj.TryGetComponent(out ISaveableBuilding saveable))
             {
-                saveable.LoadSaveData(b.currentAmmo, b.plantProgress, b.structuralDurability);
+                saveable.LoadSaveData(
+                    b.currentAmmo,
+                    b.plantProgress,
+                    b.structuralDurability
+                );
             }
 
             if (obj.TryGetComponent(out CampfireBehav campfire))
             {
                 campfire.fuelAmount = b.fuelAmount;
                 campfire.isBurning = b.isBurning;
-                if (b.fuelItemID != -1) campfire.fuelItem = database.GetItemByID(b.fuelItemID);
-                campfire.SendMessage("UpdateVisuals", SendMessageOptions.DontRequireReceiver);
+
+                if (b.fuelItemID != -1)
+                    campfire.fuelItem = database.GetItemByID(b.fuelItemID);
+
+                campfire.SendMessage(
+                    "UpdateVisuals",
+                    SendMessageOptions.DontRequireReceiver
+                );
             }
+
             RegisterBuilding(obj);
         }
 
-        // 2. LOAD NPCs (Fixed for modern Unity)
-        NpcInvBrain[] sceneNpcs = FindObjectsByType<NpcInvBrain>(FindObjectsSortMode.None);
-        foreach (NpcInvBrain npc in sceneNpcs)
+        // --------------------------------------
+        // 2. LOAD NPCS
+        // --------------------------------------
+        foreach (NpcInvBrain npc in
+            FindObjectsByType<NpcInvBrain>(FindObjectsSortMode.None))
         {
-            var npcSave = data.npcInventories.Find(x => x.npcId == npc.npcId);
-            if (npcSave != null) npc.LoadFromSave(npcSave, database);
+            var npcSave =
+                data.npcInventories.Find(x => x.npcId == npc.npcId);
+
+            if (npcSave != null)
+                npc.LoadFromSave(npcSave, database);
         }
 
-        // 3. LOAD BUSHES (Fixed for modern Unity)
-        BushBehav[] sceneBushes = FindObjectsByType<BushBehav>(FindObjectsSortMode.None);
-        foreach (BushBehav bush in sceneBushes)
+        // --------------------------------------
+        // 3. LOAD BUSHES
+        // --------------------------------------
+        foreach (BushBehav bush in
+            FindObjectsByType<BushBehav>(FindObjectsSortMode.None))
         {
-            var bushSave = data.bushes.Find(x => x.bushID == bush.bushID);
-            if (bushSave != null) bush.LoadData(bushSave);
+            var bushSave =
+                data.bushes.Find(x => x.bushID == bush.bushID);
+
+            if (bushSave != null)
+                bush.LoadData(bushSave);
         }
+
+        // --------------------------------------
+        // 4. LOAD SOIL
+        // --------------------------------------
+        TiltManager tilt = FindFirstObjectByType<TiltManager>();
+
+        if (tilt != null)
+        {
+            Debug.Log("SOIL LOADING COUNT: " + data.soilTiles.Count);
+            tilt.LoadSoilTiles(data.soilTiles);
+        }
+        else
+        {
+            Debug.LogError("TiltManager NOT FOUND → soil not loaded!");
+        }
+
+        Debug.Log("World loaded successfully.");
     }
 
     public void SaveAfterChange()

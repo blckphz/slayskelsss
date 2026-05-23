@@ -72,7 +72,6 @@ public class BuildManager : MonoBehaviour
         if (!isUI && PlayerInputHandler.Instance != null &&
             PlayerInputHandler.Instance.LeftClickPressed())
         {
-            Debug.Log($"[BuildManager] 🖱 Click detected → trying place {currentItem?.itemName}");
             TryPlace();
         }
     }
@@ -128,7 +127,6 @@ public class BuildManager : MonoBehaviour
     // =========================================================
     public void StartPlacing(buildSO item)
     {
-        Debug.Log($"[BuildManager] 🧰 External placement: {item.name}");
         StartPlacingInternal(item, true);
     }
 
@@ -163,7 +161,6 @@ public class BuildManager : MonoBehaviour
             ghost.gridSize = gridSize;
             ghost.InitializeGhost();
 
-            Debug.Log("[BuildManager] 👻 Ghost initialized");
         }
         else
         {
@@ -207,7 +204,6 @@ public class BuildManager : MonoBehaviour
 
         Vector3 pos = previewObject.transform.position;
 
-        Debug.Log($"[BuildManager] ✅ PLACING {currentItem.itemName} at {pos}");
 
         GameObject obj = Instantiate(currentItem.placeablePrefab, pos, Quaternion.identity);
 
@@ -327,6 +323,5 @@ public class BuildManager : MonoBehaviour
         placementForcedByAbility = false;
         originalToolItem = null;
 
-        Debug.Log("[BuildManager] 🧹 Cancelled placement");
     }
 }

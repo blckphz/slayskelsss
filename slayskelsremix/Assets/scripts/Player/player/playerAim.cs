@@ -12,7 +12,6 @@ public class PlayerAim : MonoBehaviour
     [Header("Input")]
     public InputActionReference lookAction;
     public InputActionReference lockOnAction;
-    public InputActionReference buildModeAction;
 
     [Header("Aim Settings")]
     public float anchorMaxDist = 3f;
@@ -31,11 +30,9 @@ public class PlayerAim : MonoBehaviour
     private Transform lockedEnemy;
     private bool isLockedOn;
     private bool isInventoryOpen;
-    private bool isBuildMode;
 
     private Vector3 fullDir;
 
-    // ✅ PUBLIC AIM DIRECTION (used by visuals)
     public Vector3 AimDirection => fullDir;
 
     private void Awake()
@@ -56,12 +53,6 @@ public class PlayerAim : MonoBehaviour
 
         if (lookAction != null)
             lookAction.action.Enable();
-
-        if (buildModeAction != null)
-        {
-            buildModeAction.action.performed += OnBuildModePressed;
-            buildModeAction.action.Enable();
-        }
     }
 
     private void OnDisable()
@@ -71,30 +62,17 @@ public class PlayerAim : MonoBehaviour
             lockOnAction.action.performed -= OnLockOnPressed;
             lockOnAction.action.Disable();
         }
-
-        if (buildModeAction != null)
-        {
-            buildModeAction.action.performed -= OnBuildModePressed;
-            buildModeAction.action.Disable();
-        }
     }
 
     public void SetInventoryState(bool open) => isInventoryOpen = open;
 
-    private void OnBuildModePressed(InputAction.CallbackContext ctx)
-    {
-        isBuildMode = !isBuildMode;
-
-        if (isBuildMode)
-        {
-            isLockedOn = false;
-            lockedEnemy = null;
-        }
-    }
-
     private void OnLockOnPressed(InputAction.CallbackContext ctx)
     {
-        if (isInventoryOpen || isBuildMode) return;
+        if (isInventoryOpen) return;
+
+        // ❌ BLOCK LOCKON IN BUILD MODE
+        if (BuildState.IsBuildMode)
+            return;
 
         if (isLockedOn)
         {
@@ -152,22 +130,20 @@ public class PlayerAim : MonoBehaviour
         }
 
         fullDir = mouseWorldPos - player.position;
-        fullDir.z = 0;
+        fullDir.z = 0f;
 
         // =========================
-        // BUILD MODE (GAMEPLAY ONLY)
+        // ❌ BUILD MODE BLOCK
         // =========================
-        if (isBuildMode)
+        if (BuildState.IsBuildMode)
         {
             if (anchor != null)
-            {
                 anchor.position = Vector3.Lerp(anchor.position, player.position, anchorSmooth * Time.deltaTime);
-            }
 
             if (spotlight != null)
             {
                 spotlight.transform.position = player.position;
-                spotlight.pointLightOuterRadius = 0;
+                spotlight.pointLightOuterRadius = 0f;
             }
 
             return;
@@ -184,6 +160,7 @@ public class PlayerAim : MonoBehaviour
             {
                 target = lockedEnemy.position;
 
+                // auto unlock if too far
                 if (Vector2.Distance(player.position, lockedEnemy.position) > lockOnRadius + 2f)
                 {
                     isLockedOn = false;

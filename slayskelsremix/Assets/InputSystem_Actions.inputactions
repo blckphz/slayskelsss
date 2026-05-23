@@ -167,6 +167,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "RemoveSoil",
+                    "type": "Button",
+                    "id": "9ef5fe3e-658b-439a-b70a-cb76f7c14ace",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -629,6 +638,17 @@
                     "processors": "",
                     "groups": "",
                     "action": "BuildMode",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "dfbe7916-c0ff-477d-8c39-7b6af13b1cc7",
+                    "path": "<Keyboard>/tab",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "RemoveSoil",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
