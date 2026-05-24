@@ -9,10 +9,9 @@ public abstract class Ability : ScriptableObject
     public float fireRate;
     public bool isOnCooldown;
     public GameObject prefab;
- 
 
-
-
+    // CHANGED FROM int TO float
+    public float staminaUsed;
 
     // Primary Use (Throwing)
     public abstract bool Execute(Transform caster, Transform targetAnchor, bool isHolding);

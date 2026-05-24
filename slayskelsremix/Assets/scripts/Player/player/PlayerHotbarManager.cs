@@ -23,10 +23,19 @@ public class PlayerHotbarManager : MonoBehaviour
 
     private float nextUseTime = 0f;
 
+    // 🔥 INPUT QUEUE (fixes double-trigger issue)
+    private bool primaryQueued;
+    private bool secondaryQueued;
+
     void Awake()
     {
-        if (Instance == null) Instance = this;
-        else { Destroy(gameObject); return; }
+        if (Instance == null)
+            Instance = this;
+        else
+        {
+            Destroy(gameObject);
+            return;
+        }
 
         controls = new PlayerControls();
     }
@@ -47,8 +56,51 @@ public class PlayerHotbarManager : MonoBehaviour
         controls.Disable();
     }
 
+    // =========================================================
+    // INPUT CALLBACKS (NOW ONLY QUEUE)
+    // =========================================================
+    void OnPrimaryUse(InputAction.CallbackContext ctx)
+    {
+        primaryQueued = true;
+    }
+
+    void OnSecondaryUse(InputAction.CallbackContext ctx)
+    {
+        secondaryQueued = true;
+    }
+
+    void OnScroll(InputAction.CallbackContext ctx)
+    {
+        HandleScroll(ctx.ReadValue<Vector2>());
+    }
+
+    // =========================================================
+    // UPDATE LOOP (SAFE EXECUTION POINT)
+    // =========================================================
     void Update()
     {
+        // 🔥 IMPORTANT: cancel queued input if locked
+        if (ActionLock.IsLocked)
+        {
+            primaryQueued = false;
+            secondaryQueued = false;
+        }
+
+        // Execute PRIMARY
+        if (primaryQueued)
+        {
+            primaryQueued = false;
+            ExecuteActiveSlot();
+        }
+
+        // Execute SECONDARY
+        if (secondaryQueued)
+        {
+            secondaryQueued = false;
+            ExecuteSecondaryActiveSlot();
+        }
+
+        // Hotbar number keys
         for (int i = 0; i < hotbarSlots.Count && i < 9; i++)
         {
             if (Keyboard.current[Key.Digit1 + i].wasPressedThisFrame)
@@ -56,59 +108,37 @@ public class PlayerHotbarManager : MonoBehaviour
         }
     }
 
-    void OnPrimaryUse(InputAction.CallbackContext ctx) => ExecuteActiveSlot();
-    void OnSecondaryUse(InputAction.CallbackContext ctx) => ExecuteSecondaryActiveSlot();
-    void OnScroll(InputAction.CallbackContext ctx) => HandleScroll(ctx.ReadValue<Vector2>());
-
     // =========================================================
     // PRIMARY USE
     // =========================================================
     public void ExecuteActiveSlot()
     {
-        if (selectedIndex >= hotbarSlots.Count) return;
+        if (ActionLock.IsLocked)
+        {
+            Debug.Log("[HOTBAR] BLOCKED primary (ActionLock)");
+            return;
+        }
+
+        if (selectedIndex >= hotbarSlots.Count)
+            return;
 
         var slot = hotbarSlots[selectedIndex];
         ItemData item = slot.GetItem();
 
-        if (item == null) return;
-
-        // ❌ GLOBAL BLOCK: build mode disables combat/ability use
-        if (BuildState.IsBuildMode)
-        {
-            // allow tools like shovel ONLY if needed elsewhere
-            if (item is ShowelSO)
-                return;
-
+        if (item == null)
             return;
-        }
+
+        if (BuildState.IsBuildMode)
+            return;
 
         Ability ability =
             slot.GetAbility() ??
             (item is UseableItem u ? u.abilityToExecute : null);
 
         if (ability == null)
-        {
-            if (item.itemType == ItemType.Constructable)
-                return;
-
-            if (item.isUsable && slot.GetCount() > 0)
-                UseSelectedStack(item.consumeAmount);
-
             return;
-        }
-
-        float remaining =
-            playerAttack != null
-                ? playerAttack.GetCooldownRemaining(ability)
-                : 0f;
-
-        if (remaining > 0f) return;
-        if (Time.time < nextUseTime) return;
 
         ability.Execute(caster, targetAnchor, true);
-
-        if (item.itemType != ItemType.Constructable && item.isUsable && slot.GetCount() > 0)
-            UseSelectedStack(item.consumeAmount);
 
         nextUseTime = Time.time + Mathf.Max(ability.fireRate, 0.1f);
     }
@@ -118,7 +148,14 @@ public class PlayerHotbarManager : MonoBehaviour
     // =========================================================
     void ExecuteSecondaryActiveSlot()
     {
-        if (selectedIndex >= hotbarSlots.Count) return;
+        if (ActionLock.IsLocked)
+        {
+            Debug.Log("[HOTBAR] BLOCKED secondary (ActionLock)");
+            return;
+        }
+
+        if (selectedIndex >= hotbarSlots.Count)
+            return;
 
         var slot = hotbarSlots[selectedIndex];
         ItemData item = slot.GetItem();
@@ -169,7 +206,7 @@ public class PlayerHotbarManager : MonoBehaviour
     }
 
     // =========================================================
-    // STACK SYSTEM
+    // STACK SYSTEM (UNCHANGED)
     // =========================================================
     public void UseSelectedStack(int amount)
     {
@@ -210,9 +247,7 @@ public class PlayerHotbarManager : MonoBehaviour
             data[i].currentDurability = hotbarSlots[i].GetDurability();
         }
     }
-    // =========================================================
-    // UI / EXTERNAL SYNC (RESTORED)
-    // =========================================================
+
     public void RefreshHotbar()
     {
         if (InventoryManager.Instance == null) return;
@@ -234,7 +269,7 @@ public class PlayerHotbarManager : MonoBehaviour
     }
 
     // =========================================================
-    // DURABILITY SYSTEM (RESTORED)
+    // DURABILITY (UNCHANGED)
     // =========================================================
     public float GetActiveToolDurability()
     {
@@ -262,20 +297,10 @@ public class PlayerHotbarManager : MonoBehaviour
         );
 
         if (newDur <= 0f)
-        {
             slot.ClearSlot();
-        }
         else
-        {
-            slot.SetSlot(
-                item,
-                slot.GetAbility(),
-                slot.GetCount(),
-                newDur
-            );
-        }
+            slot.SetSlot(item, slot.GetAbility(), slot.GetCount(), newDur);
 
         SyncAndSave();
     }
-
 }

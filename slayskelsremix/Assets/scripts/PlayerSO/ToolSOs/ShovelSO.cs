@@ -26,7 +26,6 @@ public class ShowelSO : ToolsSO, IItemDescriptionProvider
 
     public override bool ExecuteSecondary(Transform caster)
     {
-
         if (holeBuild == null)
         {
             Debug.LogWarning("[Shovel Ability] Secondary execution aborted: 'holeBuild' buildSO reference has not been assigned in inspector.");

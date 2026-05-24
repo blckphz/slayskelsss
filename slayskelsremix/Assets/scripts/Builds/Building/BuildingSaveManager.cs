@@ -148,7 +148,6 @@ public class BuildingSaveManager : MonoBehaviour
         if (tilt != null)
         {
             data.soilTiles = tilt.GetSaveData();
-            Debug.Log("SOIL SAVED COUNT: " + data.soilTiles.Count);
         }
         else
         {
@@ -161,7 +160,6 @@ public class BuildingSaveManager : MonoBehaviour
         string json = JsonUtility.ToJson(data, true);
         File.WriteAllText(savePath, json);
 
-        Debug.Log("[SaveManager] Save complete.");
     }
 
     // ==========================================

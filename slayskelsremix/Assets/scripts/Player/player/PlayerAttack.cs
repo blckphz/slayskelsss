@@ -12,15 +12,25 @@ public class PlayerAttack : MonoBehaviour
     public float screenshakeIntensity = 0.5f;
     public float screenshakeDuration = 0.2f;
 
+    private PlayerMovement movement;
+
+    void Awake()
+    {
+        movement = GetComponent<PlayerMovement>();
+    }
+
     void Update()
     {
-        if (AbilityLoadout.Instance == null) return;
+        if (AbilityLoadout.Instance == null)
+            return;
 
         for (int i = 0; i < fireActions.Length; i++)
         {
-            if (i >= AbilityLoadout.Instance.equippedAbilities.Length) break;
+            if (i >= AbilityLoadout.Instance.equippedAbilities.Length)
+                break;
 
             Ability ability = AbilityLoadout.Instance.GetAbility(i);
+
             if (ability != null)
                 HandleInput(fireActions[i], ability);
         }
@@ -28,9 +38,10 @@ public class PlayerAttack : MonoBehaviour
 
     private void HandleInput(InputActionReference actionRef, Ability ability)
     {
-        if (actionRef == null || actionRef.action == null) return;
+        if (actionRef == null || actionRef.action == null)
+            return;
 
-        // ❌ BLOCK BUILD MODE
+        // Block build mode
         if (BuildState.IsBuildMode)
             return;
 
@@ -42,8 +53,18 @@ public class PlayerAttack : MonoBehaviour
         if (!held || !ready)
             return;
 
+        // CHECK STAMINA
+        if (movement != null && !movement.HasEnoughStamina(ability.staminaUsed))
+            return;
+
+        // EXECUTE ABILITY
         bool comboFinished = ability.Execute(transform, aimScript.anchor, true);
 
+        // CONSUME STAMINA ONLY IF SUCCESSFUL
+        if (comboFinished && movement != null)
+            movement.TryUseStamina(ability.staminaUsed);
+
+        // HANDLE COOLDOWNS
         if (ability is offensivemelee melee)
         {
             float end = Time.time + (comboFinished ? ability.fireRate : melee.swingFreq);
