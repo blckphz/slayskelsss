@@ -3,7 +3,13 @@ using UnityEngine.InputSystem;
 
 public class BuildMode : MonoBehaviour
 {
+    [Header("Input")]
     public InputActionReference toggleBuildMode;
+
+    [Header("UI")]
+    public HotbarBuildModeUI hotbarUI;
+
+    private bool buildMode;
 
     private void OnEnable()
     {
@@ -25,6 +31,13 @@ public class BuildMode : MonoBehaviour
 
     private void OnToggle(InputAction.CallbackContext ctx)
     {
+        buildMode = !buildMode;
+
+        // Your existing build mode logic
         BuildState.Toggle();
+
+        // Animate hotbar
+        if (hotbarUI != null)
+            hotbarUI.SetBuildMode(buildMode);
     }
 }
