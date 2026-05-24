@@ -163,6 +163,15 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""CancelBuild"",
+                    ""type"": ""Button"",
+                    ""id"": ""5c26f97b-2c81-492b-a41a-84110c2666ad"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -251,6 +260,17 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""TriggerFishingNote"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""35f393fc-a429-424c-ab6b-f0e5eeaf4eb8"",
+                    ""path"": ""<Mouse>/rightButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""CancelBuild"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -465,6 +485,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         m_Gameplay_BuildMode = m_Gameplay.FindAction("BuildMode", throwIfNotFound: true);
         m_Gameplay_LayerTogglePressed = m_Gameplay.FindAction("LayerTogglePressed", throwIfNotFound: true);
         m_Gameplay_TriggerFishingNote = m_Gameplay.FindAction("TriggerFishingNote", throwIfNotFound: true);
+        m_Gameplay_CancelBuild = m_Gameplay.FindAction("CancelBuild", throwIfNotFound: true);
         // Player
         m_Player = asset.FindActionMap("Player", throwIfNotFound: true);
         m_Player_Hotbar = m_Player.FindAction("Hotbar", throwIfNotFound: true);
@@ -561,6 +582,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
     private readonly InputAction m_Gameplay_BuildMode;
     private readonly InputAction m_Gameplay_LayerTogglePressed;
     private readonly InputAction m_Gameplay_TriggerFishingNote;
+    private readonly InputAction m_Gameplay_CancelBuild;
     /// <summary>
     /// Provides access to input actions defined in input action map "Gameplay".
     /// </summary>
@@ -604,6 +626,10 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Gameplay/TriggerFishingNote".
         /// </summary>
         public InputAction @TriggerFishingNote => m_Wrapper.m_Gameplay_TriggerFishingNote;
+        /// <summary>
+        /// Provides access to the underlying input action "Gameplay/CancelBuild".
+        /// </summary>
+        public InputAction @CancelBuild => m_Wrapper.m_Gameplay_CancelBuild;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -654,6 +680,9 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @TriggerFishingNote.started += instance.OnTriggerFishingNote;
             @TriggerFishingNote.performed += instance.OnTriggerFishingNote;
             @TriggerFishingNote.canceled += instance.OnTriggerFishingNote;
+            @CancelBuild.started += instance.OnCancelBuild;
+            @CancelBuild.performed += instance.OnCancelBuild;
+            @CancelBuild.canceled += instance.OnCancelBuild;
         }
 
         /// <summary>
@@ -689,6 +718,9 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @TriggerFishingNote.started -= instance.OnTriggerFishingNote;
             @TriggerFishingNote.performed -= instance.OnTriggerFishingNote;
             @TriggerFishingNote.canceled -= instance.OnTriggerFishingNote;
+            @CancelBuild.started -= instance.OnCancelBuild;
+            @CancelBuild.performed -= instance.OnCancelBuild;
+            @CancelBuild.canceled -= instance.OnCancelBuild;
         }
 
         /// <summary>
@@ -925,6 +957,13 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnTriggerFishingNote(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "CancelBuild" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnCancelBuild(InputAction.CallbackContext context);
     }
     /// <summary>
     /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "Player" which allows adding and removing callbacks.
