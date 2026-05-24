@@ -24,11 +24,6 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
     public int dropAmount = 3;
     public int correctToolUsageBonus;
 
-    [Header("Bonus Drop On Hit")]
-    [Range(0f, 1f)]
-    public float hitDropChance = 0.2f;   // 20% chance
-    public int hitDropAmount = 1;
-
     [Header("Damage UI")]
     public GameObject damageTextPrefab;
 
@@ -68,13 +63,13 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
         {
             float durabilityLoss = durabilityPerSwing;
 
-            // correct tool = half durability loss
+            // ✅ correct tool = half durability loss
             if (toolType == effectiveTool)
             {
                 durabilityLoss *= 0.5f;
             }
 
-            // round up
+            // ✅ ROUND UP
             int finalLoss = Mathf.CeilToInt(durabilityLoss);
 
             PlayerHotbarManager.Instance.ReduceActiveToolDurability(finalLoss);
@@ -103,12 +98,6 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
         ShowDamageText(damage);
         TriggerFlash();
         TriggerShake();
-
-        // 20% chance to drop loot on every hit
-        if (UnityEngine.Random.value <= hitDropChance)
-        {
-            SpawnHitLoot();
-        }
 
         if (health <= 0)
         {
@@ -176,26 +165,6 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
             return;
 
         for (int i = 0; i < dropAmount; i++)
-        {
-            GameObject loot = Instantiate(
-                lootPrefab,
-                transform.position,
-                Quaternion.identity
-            );
-
-            if (loot.TryGetComponent<LootArc>(out LootArc arc))
-            {
-                arc.Initialize(transform.position);
-            }
-        }
-    }
-
-    protected virtual void SpawnHitLoot()
-    {
-        if (lootPrefab == null)
-            return;
-
-        for (int i = 0; i < hitDropAmount; i++)
         {
             GameObject loot = Instantiate(
                 lootPrefab,

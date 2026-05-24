@@ -12,7 +12,7 @@ public class PlayerInputHandler : MonoBehaviour
     private bool leftClickPressed;
     private bool rightClickPressed;
     private bool buildModePressed;
-    private bool cancelBuildPressed;
+    private bool layerTogglePressed; // New flag
 
     private void Awake()
     {
@@ -27,40 +27,64 @@ public class PlayerInputHandler : MonoBehaviour
         controls.Enable();
 
         controls.Gameplay.MousePosition.performed += ctx =>
+        {
             mousePosition = ctx.ReadValue<Vector2>();
+        };
 
         controls.Gameplay.Click.performed += ctx =>
+        {
             leftClickPressed = true;
+        };
 
         controls.Gameplay.RightClick.performed += ctx =>
+        {
             rightClickPressed = true;
+        };
 
         controls.Gameplay.BuildMode.performed += ctx =>
+        {
             buildModePressed = true;
+        };
 
+        // --- ADDED LAYER TOGGLE LISTENER ---
+        // Make sure "LayerToggle" matches the name in your Input Action Asset exactly
         controls.Gameplay.LayerTogglePressed.performed += ctx =>
         {
-            cancelBuildPressed = true;
-            Debug.Log("[INPUT] CancelBuild TRIGGERED");
+            layerTogglePressed = true;
         };
+    }
+
+    public void ToggleInput(bool enable)
+    {
+        if (enable)
+            controls.Enable();
+        else
+            controls.Disable();
     }
 
     private void LateUpdate()
     {
-        // reset AFTER everything has had a chance to read it
+        // reset "pressed this frame" flags
         leftClickPressed = false;
         rightClickPressed = false;
         buildModePressed = false;
-        cancelBuildPressed = false;
+        layerTogglePressed = false; // Reset the new flag
     }
 
-    public Vector2 GetMousePosition() => mousePosition;
+    private void OnDisable()
+    {
+        controls.Disable();
+    }
 
+    // ---------------- GETTERS ----------------
+
+    public Vector2 GetMousePosition() => mousePosition;
     public bool LeftClickPressed() => leftClickPressed;
     public bool RightClickPressed() => rightClickPressed;
     public bool BuildModePressed() => buildModePressed;
 
-    public bool CancelBuildPressed() => cancelBuildPressed;
+    // --- ADDED THIS METHOD TO FIX YOUR ERROR ---
+    public bool LayerTogglePressed() => layerTogglePressed;
 
     public bool RightClickHeld()
     {
