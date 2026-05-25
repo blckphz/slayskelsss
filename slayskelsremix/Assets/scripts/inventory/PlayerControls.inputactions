@@ -77,6 +77,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "Cancelbuild",
+                    "type": "Button",
+                    "id": "b811554f-5414-4a7b-b070-9129848e3495",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -167,6 +176,17 @@
                     "action": "TriggerFishingNote",
                     "isComposite": false,
                     "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "a2ab757f-34da-4ef2-bf70-690ff5ff7960",
+                    "path": "<Mouse>/rightButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Cancelbuild",
+                    "isComposite": false,
+                    "isPartOfComposite": false
                 }
             ]
         },
@@ -214,6 +234,15 @@
                     "name": "SecondaryItemUse",
                     "type": "Button",
                     "id": "ea1f9f5b-4c36-4e48-bd2f-b53e7dd50d66",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Cancelbuild",
+                    "type": "Button",
+                    "id": "c7ac676d-98bf-4388-b783-15f9e0c7064a",
                     "expectedControlType": "",
                     "processors": "",
                     "interactions": "",
@@ -361,6 +390,17 @@
                     "processors": "",
                     "groups": "",
                     "action": "SecondaryItemUse",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "85f7e38d-5352-4407-91c1-7abab9003c61",
+                    "path": "<Mouse>/rightButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Cancelbuild",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

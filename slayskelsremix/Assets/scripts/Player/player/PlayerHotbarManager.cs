@@ -23,7 +23,6 @@ public class PlayerHotbarManager : MonoBehaviour
 
     private float nextUseTime = 0f;
 
-    // 🔥 INPUT QUEUE (fixes double-trigger issue)
     private bool primaryQueued;
     private bool secondaryQueued;
 
@@ -56,16 +55,15 @@ public class PlayerHotbarManager : MonoBehaviour
         controls.Disable();
     }
 
-    // =========================================================
-    // INPUT CALLBACKS (NOW ONLY QUEUE)
-    // =========================================================
     void OnPrimaryUse(InputAction.CallbackContext ctx)
     {
+        Debug.Log("[HOTBAR] Primary queued");
         primaryQueued = true;
     }
 
     void OnSecondaryUse(InputAction.CallbackContext ctx)
     {
+        Debug.Log("[HOTBAR] Secondary queued");
         secondaryQueued = true;
     }
 
@@ -74,107 +72,115 @@ public class PlayerHotbarManager : MonoBehaviour
         HandleScroll(ctx.ReadValue<Vector2>());
     }
 
-    // =========================================================
-    // UPDATE LOOP (SAFE EXECUTION POINT)
-    // =========================================================
     void Update()
     {
-        // 🔥 IMPORTANT: cancel queued input if locked
         if (ActionLock.IsLocked)
         {
             primaryQueued = false;
             secondaryQueued = false;
         }
 
-        // Execute PRIMARY
         if (primaryQueued)
         {
             primaryQueued = false;
+            Debug.Log("[HOTBAR] Execute PRIMARY");
             ExecuteActiveSlot();
         }
 
-        // Execute SECONDARY
         if (secondaryQueued)
         {
             secondaryQueued = false;
+            Debug.Log("[HOTBAR] Execute SECONDARY");
             ExecuteSecondaryActiveSlot();
         }
 
-        // Hotbar number keys
         for (int i = 0; i < hotbarSlots.Count && i < 9; i++)
         {
             if (Keyboard.current[Key.Digit1 + i].wasPressedThisFrame)
+            {
+                Debug.Log($"[HOTBAR] Number key {i}");
                 SelectSlot(i);
+            }
         }
     }
 
-    // =========================================================
-    // PRIMARY USE
-    // =========================================================
     public void ExecuteActiveSlot()
     {
         if (ActionLock.IsLocked)
         {
-            Debug.Log("[HOTBAR] BLOCKED primary (ActionLock)");
+            Debug.Log("[HOTBAR] BLOCKED primary");
             return;
         }
 
         if (selectedIndex >= hotbarSlots.Count)
+        {
+            Debug.Log("[HOTBAR] Invalid index");
             return;
+        }
 
         var slot = hotbarSlots[selectedIndex];
         ItemData item = slot.GetItem();
 
+        Debug.Log($"[HOTBAR] Use slot {selectedIndex} item: {(item ? item.itemName : "NULL")} count: {slot.GetCount()}");
+
         if (item == null)
+        {
+            Debug.Log("[HOTBAR] No item");
             return;
+        }
 
         if (BuildState.IsBuildMode)
+        {
+            Debug.Log("[HOTBAR] Blocked build mode");
             return;
+        }
 
         Ability ability =
             slot.GetAbility() ??
             (item is UseableItem u ? u.abilityToExecute : null);
 
+        Debug.Log($"[HOTBAR] Ability: {(ability ? ability.name : "NULL")}");
+
         if (ability == null)
+        {
+            Debug.Log("[HOTBAR] No ability");
             return;
+        }
 
         ability.Execute(caster, targetAnchor, true);
+
+        Debug.Log("[HOTBAR] Ability executed (NO CONSUMPTION)");
 
         nextUseTime = Time.time + Mathf.Max(ability.fireRate, 0.1f);
     }
 
-    // =========================================================
-    // SECONDARY USE
-    // =========================================================
     void ExecuteSecondaryActiveSlot()
     {
         if (ActionLock.IsLocked)
         {
-            Debug.Log("[HOTBAR] BLOCKED secondary (ActionLock)");
+            Debug.Log("[HOTBAR] BLOCKED secondary");
             return;
         }
-
-        if (selectedIndex >= hotbarSlots.Count)
-            return;
 
         var slot = hotbarSlots[selectedIndex];
         ItemData item = slot.GetItem();
 
-        if (item is UseableItem useable &&
-            useable.abilityToExecute != null)
+        Debug.Log($"[HOTBAR] Secondary item: {(item ? item.itemName : "NULL")}");
+
+        if (item is UseableItem useable && useable.abilityToExecute != null)
         {
             useable.abilityToExecute.ExecuteSecondary(caster);
+            Debug.Log("[HOTBAR] Secondary executed");
         }
     }
 
-    // =========================================================
-    // SLOT CONTROL
-    // =========================================================
     public void SelectSlot(int index)
     {
         selectedIndex = Mathf.Clamp(index, 0, hotbarSlots.Count - 1);
         UpdateSelector();
         NotifySelectionChanged();
+
+        Debug.Log($"[HOTBAR] Selected {selectedIndex}");
     }
 
     void HandleScroll(Vector2 scroll)
@@ -185,11 +191,13 @@ public class PlayerHotbarManager : MonoBehaviour
 
         UpdateSelector();
         NotifySelectionChanged();
+
+        Debug.Log($"[HOTBAR] Scroll -> {selectedIndex}");
     }
 
     void UpdateSelector()
     {
-        if (selector != null && selectedIndex < hotbarSlots.Count)
+        if (selector != null)
             selector.position = hotbarSlots[selectedIndex].transform.position;
     }
 
@@ -200,29 +208,42 @@ public class PlayerHotbarManager : MonoBehaviour
 
     public ItemData GetSelectedItem()
     {
-        return (selectedIndex >= 0 && selectedIndex < hotbarSlots.Count)
-            ? hotbarSlots[selectedIndex].GetItem()
-            : null;
+        return hotbarSlots[selectedIndex].GetItem();
     }
 
-    // =========================================================
-    // STACK SYSTEM (UNCHANGED)
-    // =========================================================
+    // ================= STACK SYSTEM =================
+
     public void UseSelectedStack(int amount)
     {
+        Debug.Log($"[HOTBAR] UseSelectedStack {amount}");
+
         var slot = hotbarSlots[selectedIndex];
         ItemData item = slot.GetItem();
-        if (item == null) return;
+
+        if (item == null)
+        {
+            Debug.Log("[HOTBAR] Stack NULL item");
+            return;
+        }
 
         int newCount = slot.GetCount() - amount;
 
+        Debug.Log($"[HOTBAR] Stack {slot.GetCount()} -> {newCount}");
+
         if (newCount <= 0)
+        {
+            Debug.Log("[HOTBAR] Clearing slot");
             slot.ClearSlot();
+        }
         else
+        {
             slot.SetSlot(item, slot.GetAbility(), newCount, slot.GetDurability());
+        }
 
         SyncAndSave();
     }
+
+    // ================= SYNC =================
 
     void SyncAndSave()
     {
@@ -268,9 +289,8 @@ public class PlayerHotbarManager : MonoBehaviour
         }
     }
 
-    // =========================================================
-    // DURABILITY (UNCHANGED)
-    // =========================================================
+    // ================= DURABILITY (RESTORED) =================
+
     public float GetActiveToolDurability()
     {
         if (selectedIndex < 0 || selectedIndex >= hotbarSlots.Count)
@@ -295,6 +315,8 @@ public class PlayerHotbarManager : MonoBehaviour
             0f,
             item.maxDurability
         );
+
+        Debug.Log($"[HOTBAR] Durability {slot.GetDurability()} -> {newDur}");
 
         if (newDur <= 0f)
             slot.ClearSlot();

@@ -12,7 +12,8 @@ public static class ActionLock
         Debug.Log($"[ActionLock] LOCK ACTIVATED on frame {lockFrame}");
     }
 
-    public static void LateUpdate()
+    // Call this from any Update() in your project (BuildManager / TiltManager etc.)
+    public static void Tick()
     {
         if (IsLocked && Time.frameCount != lockFrame)
         {

@@ -163,6 +163,15 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Cancelbuild"",
+                    ""type"": ""Button"",
+                    ""id"": ""b811554f-5414-4a7b-b070-9129848e3495"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -253,6 +262,17 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""action"": ""TriggerFishingNote"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""a2ab757f-34da-4ef2-bf70-690ff5ff7960"",
+                    ""path"": ""<Mouse>/rightButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Cancelbuild"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         },
@@ -300,6 +320,15 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""name"": ""SecondaryItemUse"",
                     ""type"": ""Button"",
                     ""id"": ""ea1f9f5b-4c36-4e48-bd2f-b53e7dd50d66"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Cancelbuild"",
+                    ""type"": ""Button"",
+                    ""id"": ""c7ac676d-98bf-4388-b783-15f9e0c7064a"",
                     ""expectedControlType"": """",
                     ""processors"": """",
                     ""interactions"": """",
@@ -449,6 +478,17 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""action"": ""SecondaryItemUse"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""85f7e38d-5352-4407-91c1-7abab9003c61"",
+                    ""path"": ""<Mouse>/rightButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Cancelbuild"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -465,6 +505,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         m_Gameplay_BuildMode = m_Gameplay.FindAction("BuildMode", throwIfNotFound: true);
         m_Gameplay_LayerTogglePressed = m_Gameplay.FindAction("LayerTogglePressed", throwIfNotFound: true);
         m_Gameplay_TriggerFishingNote = m_Gameplay.FindAction("TriggerFishingNote", throwIfNotFound: true);
+        m_Gameplay_Cancelbuild = m_Gameplay.FindAction("Cancelbuild", throwIfNotFound: true);
         // Player
         m_Player = asset.FindActionMap("Player", throwIfNotFound: true);
         m_Player_Hotbar = m_Player.FindAction("Hotbar", throwIfNotFound: true);
@@ -472,6 +513,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         m_Player_Scroll = m_Player.FindAction("Scroll", throwIfNotFound: true);
         m_Player_UseHotkey = m_Player.FindAction("UseHotkey", throwIfNotFound: true);
         m_Player_SecondaryItemUse = m_Player.FindAction("SecondaryItemUse", throwIfNotFound: true);
+        m_Player_Cancelbuild = m_Player.FindAction("Cancelbuild", throwIfNotFound: true);
     }
 
     ~@PlayerControls()
@@ -561,6 +603,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
     private readonly InputAction m_Gameplay_BuildMode;
     private readonly InputAction m_Gameplay_LayerTogglePressed;
     private readonly InputAction m_Gameplay_TriggerFishingNote;
+    private readonly InputAction m_Gameplay_Cancelbuild;
     /// <summary>
     /// Provides access to input actions defined in input action map "Gameplay".
     /// </summary>
@@ -604,6 +647,10 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Gameplay/TriggerFishingNote".
         /// </summary>
         public InputAction @TriggerFishingNote => m_Wrapper.m_Gameplay_TriggerFishingNote;
+        /// <summary>
+        /// Provides access to the underlying input action "Gameplay/Cancelbuild".
+        /// </summary>
+        public InputAction @Cancelbuild => m_Wrapper.m_Gameplay_Cancelbuild;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -654,6 +701,9 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @TriggerFishingNote.started += instance.OnTriggerFishingNote;
             @TriggerFishingNote.performed += instance.OnTriggerFishingNote;
             @TriggerFishingNote.canceled += instance.OnTriggerFishingNote;
+            @Cancelbuild.started += instance.OnCancelbuild;
+            @Cancelbuild.performed += instance.OnCancelbuild;
+            @Cancelbuild.canceled += instance.OnCancelbuild;
         }
 
         /// <summary>
@@ -689,6 +739,9 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @TriggerFishingNote.started -= instance.OnTriggerFishingNote;
             @TriggerFishingNote.performed -= instance.OnTriggerFishingNote;
             @TriggerFishingNote.canceled -= instance.OnTriggerFishingNote;
+            @Cancelbuild.started -= instance.OnCancelbuild;
+            @Cancelbuild.performed -= instance.OnCancelbuild;
+            @Cancelbuild.canceled -= instance.OnCancelbuild;
         }
 
         /// <summary>
@@ -731,6 +784,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_Scroll;
     private readonly InputAction m_Player_UseHotkey;
     private readonly InputAction m_Player_SecondaryItemUse;
+    private readonly InputAction m_Player_Cancelbuild;
     /// <summary>
     /// Provides access to input actions defined in input action map "Player".
     /// </summary>
@@ -762,6 +816,10 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Player/SecondaryItemUse".
         /// </summary>
         public InputAction @SecondaryItemUse => m_Wrapper.m_Player_SecondaryItemUse;
+        /// <summary>
+        /// Provides access to the underlying input action "Player/Cancelbuild".
+        /// </summary>
+        public InputAction @Cancelbuild => m_Wrapper.m_Player_Cancelbuild;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -803,6 +861,9 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @SecondaryItemUse.started += instance.OnSecondaryItemUse;
             @SecondaryItemUse.performed += instance.OnSecondaryItemUse;
             @SecondaryItemUse.canceled += instance.OnSecondaryItemUse;
+            @Cancelbuild.started += instance.OnCancelbuild;
+            @Cancelbuild.performed += instance.OnCancelbuild;
+            @Cancelbuild.canceled += instance.OnCancelbuild;
         }
 
         /// <summary>
@@ -829,6 +890,9 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @SecondaryItemUse.started -= instance.OnSecondaryItemUse;
             @SecondaryItemUse.performed -= instance.OnSecondaryItemUse;
             @SecondaryItemUse.canceled -= instance.OnSecondaryItemUse;
+            @Cancelbuild.started -= instance.OnCancelbuild;
+            @Cancelbuild.performed -= instance.OnCancelbuild;
+            @Cancelbuild.canceled -= instance.OnCancelbuild;
         }
 
         /// <summary>
@@ -925,6 +989,13 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnTriggerFishingNote(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Cancelbuild" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnCancelbuild(InputAction.CallbackContext context);
     }
     /// <summary>
     /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "Player" which allows adding and removing callbacks.
@@ -968,5 +1039,12 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnSecondaryItemUse(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Cancelbuild" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnCancelbuild(InputAction.CallbackContext context);
     }
 }

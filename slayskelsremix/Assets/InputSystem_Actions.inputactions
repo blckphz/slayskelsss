@@ -176,6 +176,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "Cancelbuild",
+                    "type": "Button",
+                    "id": "46eb0fb4-a287-4819-b223-38d60977c0ab",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -649,6 +658,17 @@
                     "processors": "",
                     "groups": "",
                     "action": "RemoveSoil",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "79edaaf5-dc6c-41b4-bed1-4af1790eef6b",
+                    "path": "<Mouse>/rightButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Cancelbuild",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

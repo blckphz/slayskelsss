@@ -8,11 +8,11 @@ public class InteractionManager : MonoBehaviour
     public Color highlightColor = Color.yellow;
 
     [Header("Runtime Settings")]
-    [Tooltip("Uncheck this to allow building/interacting with the inventory closed.")]
     public bool restrictToInventory = false;
 
-    // This is what the BuildManager will look at
     public static bool MasterRestriction { get; private set; }
+
+    public static bool IsBlockingBuildPreview { get; private set; }
 
     [Header("Delete Settings")]
     public float deconstructInterval = 0.05f;
@@ -23,34 +23,46 @@ public class InteractionManager : MonoBehaviour
     private Color originalColor;
     private float deconstructCooldown;
 
-    private void Awake() => mainCam = Camera.main;
+    private void Awake()
+    {
+        mainCam = Camera.main;
+    }
 
     private void OnValidate()
     {
-        // Updates the static variable immediately when you click the checkbox in Inspector
         MasterRestriction = restrictToInventory;
     }
 
     private void Update()
     {
-        // Keep static sync in case of script changes
+        if (!BuildState.IsBuildMode)
+        {
+            ClearHighlight();
+            IsBlockingBuildPreview = false;
+            return;
+        }
+
         MasterRestriction = restrictToInventory;
 
-        // If restricted, block interaction when inventory is closed
         if (MasterRestriction && !invUIToggle.IsInventoryOpen)
         {
             ClearHighlight();
+            IsBlockingBuildPreview = false;
             return;
         }
 
         HandleHover();
         HandleHoldDelete();
+
+        IsBlockingBuildPreview = currentHoverObj != null;
     }
 
     private Vector2 GetMouseWorldPos()
     {
         Vector2 mousePos = Mouse.current.position.ReadValue();
-        Vector3 world = mainCam.ScreenToWorldPoint(new Vector3(mousePos.x, mousePos.y, Mathf.Abs(mainCam.transform.position.z)));
+        Vector3 world = mainCam.ScreenToWorldPoint(
+            new Vector3(mousePos.x, mousePos.y, Mathf.Abs(mainCam.transform.position.z))
+        );
         return new Vector2(world.x, world.y);
     }
 
@@ -58,6 +70,7 @@ public class InteractionManager : MonoBehaviour
     {
         Vector2 point = GetMouseWorldPos();
         bool isShiftHeld = Keyboard.current != null && Keyboard.current.shiftKey.isPressed;
+
         GameObject targetObj = null;
 
         if (isShiftHeld)
@@ -75,10 +88,15 @@ public class InteractionManager : MonoBehaviour
         if (targetObj != currentHoverObj)
         {
             ClearHighlight();
-            if (targetObj != null && (targetObj.GetComponent<objectHealth>() != null || targetObj.GetComponent<ChestInventory>() != null || targetObj.GetComponent<BuildIdentity>() != null))
+
+            if (targetObj != null &&
+                (targetObj.GetComponent<objectHealth>() != null ||
+                 targetObj.GetComponent<ChestInventory>() != null ||
+                 targetObj.GetComponent<BuildIdentity>() != null))
             {
                 currentHoverObj = targetObj;
                 currentRenderer = targetObj.GetComponent<SpriteRenderer>();
+
                 if (currentRenderer != null)
                 {
                     originalColor = currentRenderer.color;
@@ -86,26 +104,42 @@ public class InteractionManager : MonoBehaviour
                 }
             }
         }
-        if (targetObj == null) ClearHighlight();
+
+        if (targetObj == null)
+            ClearHighlight();
     }
 
     private void HandleHoldDelete()
     {
-        if (!Mouse.current.rightButton.isPressed) { deconstructCooldown = 0f; return; }
+        if (!Mouse.current.rightButton.isPressed)
+        {
+            deconstructCooldown = 0f;
+            return;
+        }
+
         deconstructCooldown -= Time.deltaTime;
-        if (deconstructCooldown > 0f || currentHoverObj == null) return;
+
+        if (deconstructCooldown > 0f || currentHoverObj == null)
+            return;
 
         GameObject target = currentHoverObj;
-        BuildIdentity build = target.GetComponent<BuildIdentity>();
 
-        if (build != null && build.item != null)
+        BuildIdentity build = target.GetComponent<BuildIdentity>();
+        if (build != null)
         {
-            InventoryManager.Instance.AddItem(build.item, 1);
+            // ✅ NEW RULE:
+            // if GetsDestroyedByPlayer = true → no item returned
+            if (!build.GetsDestroyedByPlayer && build.item != null)
+            {
+                InventoryManager.Instance.AddItem(build.item, 1);
+            }
+
             if (BuildingSaveManager.Instance != null)
             {
                 BuildingSaveManager.Instance.UnregisterBuilding(target);
                 BuildingSaveManager.Instance.SaveAfterChange();
             }
+
             Destroy(target);
             deconstructCooldown = deconstructInterval;
             return;
@@ -115,7 +149,9 @@ public class InteractionManager : MonoBehaviour
         if (health != null && health.IsPlayerInRange())
         {
             ChestInventory chest = target.GetComponent<ChestInventory>();
-            if (chest != null && !chest.IsEmpty()) return;
+            if (chest != null && !chest.IsEmpty())
+                return;
+
             health.Deconstruct();
             deconstructCooldown = deconstructInterval;
         }
@@ -123,7 +159,9 @@ public class InteractionManager : MonoBehaviour
 
     private void ClearHighlight()
     {
-        if (currentRenderer != null) currentRenderer.color = originalColor;
+        if (currentRenderer != null)
+            currentRenderer.color = originalColor;
+
         currentHoverObj = null;
         currentRenderer = null;
     }

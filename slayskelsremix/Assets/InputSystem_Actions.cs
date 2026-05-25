@@ -262,6 +262,15 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Cancelbuild"",
+                    ""type"": ""Button"",
+                    ""id"": ""46eb0fb4-a287-4819-b223-38d60977c0ab"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -735,6 +744,17 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""RemoveSoil"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""79edaaf5-dc6c-41b4-bed1-4af1790eef6b"",
+                    ""path"": ""<Mouse>/rightButton"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Cancelbuild"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -1341,6 +1361,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         m_Player_SecondaryItemUse = m_Player.FindAction("SecondaryItemUse", throwIfNotFound: true);
         m_Player_BuildMode = m_Player.FindAction("BuildMode", throwIfNotFound: true);
         m_Player_RemoveSoil = m_Player.FindAction("RemoveSoil", throwIfNotFound: true);
+        m_Player_Cancelbuild = m_Player.FindAction("Cancelbuild", throwIfNotFound: true);
         // UI
         m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
         m_UI_Navigate = m_UI.FindAction("Navigate", throwIfNotFound: true);
@@ -1453,6 +1474,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_SecondaryItemUse;
     private readonly InputAction m_Player_BuildMode;
     private readonly InputAction m_Player_RemoveSoil;
+    private readonly InputAction m_Player_Cancelbuild;
     /// <summary>
     /// Provides access to input actions defined in input action map "Player".
     /// </summary>
@@ -1541,6 +1563,10 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         /// </summary>
         public InputAction @RemoveSoil => m_Wrapper.m_Player_RemoveSoil;
         /// <summary>
+        /// Provides access to the underlying input action "Player/Cancelbuild".
+        /// </summary>
+        public InputAction @Cancelbuild => m_Wrapper.m_Player_Cancelbuild;
+        /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
         public InputActionMap Get() { return m_Wrapper.m_Player; }
@@ -1623,6 +1649,9 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
             @RemoveSoil.started += instance.OnRemoveSoil;
             @RemoveSoil.performed += instance.OnRemoveSoil;
             @RemoveSoil.canceled += instance.OnRemoveSoil;
+            @Cancelbuild.started += instance.OnCancelbuild;
+            @Cancelbuild.performed += instance.OnCancelbuild;
+            @Cancelbuild.canceled += instance.OnCancelbuild;
         }
 
         /// <summary>
@@ -1691,6 +1720,9 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
             @RemoveSoil.started -= instance.OnRemoveSoil;
             @RemoveSoil.performed -= instance.OnRemoveSoil;
             @RemoveSoil.canceled -= instance.OnRemoveSoil;
+            @Cancelbuild.started -= instance.OnCancelbuild;
+            @Cancelbuild.performed -= instance.OnCancelbuild;
+            @Cancelbuild.canceled -= instance.OnCancelbuild;
         }
 
         /// <summary>
@@ -2124,6 +2156,13 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnRemoveSoil(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Cancelbuild" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnCancelbuild(InputAction.CallbackContext context);
     }
     /// <summary>
     /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "UI" which allows adding and removing callbacks.

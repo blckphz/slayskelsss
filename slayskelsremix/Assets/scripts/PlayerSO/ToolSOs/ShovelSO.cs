@@ -11,7 +11,6 @@ public class ShowelSO : ToolsSO, IItemDescriptionProvider
     {
         string lines = "";
 
-        // Shovel doesn't use damage variables, so display just the tool layout use rate
         lines += $"<color=#A2E8DD>Use Rate:</color> {fireRate}s\n";
         lines += "-----------------------------\n";
 
@@ -26,15 +25,22 @@ public class ShowelSO : ToolsSO, IItemDescriptionProvider
 
     public override bool ExecuteSecondary(Transform caster)
     {
+        // ❌ BLOCK IF NOT IN BUILD MODE
+        if (!BuildState.IsBuildMode)
+        {
+            Debug.Log("[Shovel] Cannot dig: Build Mode is not active");
+            return false;
+        }
+
         if (holeBuild == null)
         {
-            Debug.LogWarning("[Shovel Ability] Secondary execution aborted: 'holeBuild' buildSO reference has not been assigned in inspector.");
+            Debug.LogWarning("[Shovel Ability] Secondary execution aborted: 'holeBuild' is not assigned.");
             return false;
         }
 
         if (BuildManager.Instance == null)
         {
-            Debug.LogError("[Shovel Ability] Secondary execution aborted: BuildManager instance is completely missing from this scene layout context.");
+            Debug.LogError("[Shovel Ability] Secondary execution aborted: BuildManager instance is missing.");
             return false;
         }
 

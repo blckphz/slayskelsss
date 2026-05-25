@@ -12,7 +12,8 @@ public class PlayerInputHandler : MonoBehaviour
     private bool leftClickPressed;
     private bool rightClickPressed;
     private bool buildModePressed;
-    private bool layerTogglePressed; // New flag
+    private bool layerTogglePressed;
+    private bool cancelBuildPressed; // ✅ NEW
 
     private void Awake()
     {
@@ -46,11 +47,15 @@ public class PlayerInputHandler : MonoBehaviour
             buildModePressed = true;
         };
 
-        // --- ADDED LAYER TOGGLE LISTENER ---
-        // Make sure "LayerToggle" matches the name in your Input Action Asset exactly
         controls.Gameplay.LayerTogglePressed.performed += ctx =>
         {
             layerTogglePressed = true;
+        };
+
+        // ✅ NEW: Cancel Build input
+        controls.Gameplay.Cancelbuild.performed += ctx =>
+        {
+            cancelBuildPressed = true;
         };
     }
 
@@ -64,11 +69,11 @@ public class PlayerInputHandler : MonoBehaviour
 
     private void LateUpdate()
     {
-        // reset "pressed this frame" flags
         leftClickPressed = false;
         rightClickPressed = false;
         buildModePressed = false;
-        layerTogglePressed = false; // Reset the new flag
+        layerTogglePressed = false;
+        cancelBuildPressed = false; // ✅ reset
     }
 
     private void OnDisable()
@@ -79,12 +84,15 @@ public class PlayerInputHandler : MonoBehaviour
     // ---------------- GETTERS ----------------
 
     public Vector2 GetMousePosition() => mousePosition;
+
     public bool LeftClickPressed() => leftClickPressed;
     public bool RightClickPressed() => rightClickPressed;
     public bool BuildModePressed() => buildModePressed;
 
-    // --- ADDED THIS METHOD TO FIX YOUR ERROR ---
     public bool LayerTogglePressed() => layerTogglePressed;
+
+    // ✅ NEW GETTER
+    public bool CancelBuildPressed() => cancelBuildPressed;
 
     public bool RightClickHeld()
     {

@@ -191,7 +191,13 @@ public class InventoryManager : MonoBehaviour
 
     public bool RemoveItem(ItemData data, int amount)
     {
-        if (data == null) return false;
+        if (data == null)
+        {
+            Debug.LogWarning("[INV] RemoveItem FAILED: data is NULL");
+            return false;
+        }
+
+        Debug.Log($"[INV] RemoveItem START -> {data.itemName} x{amount}");
 
         int remaining = amount;
 
@@ -199,24 +205,37 @@ public class InventoryManager : MonoBehaviour
         {
             var slot = inventory[i];
 
-            if (slot.item != null && slot.item.itemID == data.itemID)
+            if (slot.item != null)
             {
-                int take = Mathf.Min(slot.count, remaining);
-                slot.count -= take;
-                remaining -= take;
+                Debug.Log($"[INV] Slot {i}: {slot.item.itemName} x{slot.count}");
 
-                if (slot.count <= 0)
+                if (slot.item.itemID == data.itemID)
                 {
-                    slot.item = null;
-                    slot.currentDurability = 0;
-                }
+                    int take = Mathf.Min(slot.count, remaining);
 
-                if (remaining <= 0) break;
+                    Debug.Log($"[INV] MATCH in slot {i}, removing {take}");
+
+                    slot.count -= take;
+                    remaining -= take;
+
+                    if (slot.count <= 0)
+                    {
+                        Debug.Log($"[INV] Slot {i} emptied");
+                        slot.item = null;
+                        slot.currentDurability = 0;
+                    }
+
+                    if (remaining <= 0)
+                        break;
+                }
             }
         }
 
+        Debug.Log($"[INV] RemoveItem END -> remaining = {remaining}");
+
         RefreshAll();
-        return true;
+
+        return remaining <= 0;
     }
 
     public void SaveInventory()

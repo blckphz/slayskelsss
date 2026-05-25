@@ -18,6 +18,11 @@ public class TiltManager : MonoBehaviour
     public bool removeMode;
 
     private InputAction clickAction;
+    private bool clickHeld;
+    private bool clickQueued;
+
+    private Vector3Int lastCell; // NEW: prevents re-paint spam
+
     private readonly HashSet<Vector3Int> placedTiles = new();
     private PlayerHotbarManager hotbar;
     private float camZ;
@@ -30,23 +35,29 @@ public class TiltManager : MonoBehaviour
         compositeCollider = tilemap.GetComponent<CompositeCollider2D>();
 
         clickAction = new InputAction(type: InputActionType.Button, binding: "<Pointer>/press");
-        Debug.Log($"[TiltManager] Awake. CompositeCollider found: {compositeCollider != null}");
     }
 
     void OnEnable()
     {
+        clickAction.started += OnClickDown;
+        clickAction.canceled += OnClickUp;
         clickAction.Enable();
+
         if (removeSoil != null)
         {
             removeSoil.action.performed += ToggleRemoveMode;
             removeSoil.action.Enable();
         }
+
         hotbar = PlayerHotbarManager.Instance;
     }
 
     void OnDisable()
     {
+        clickAction.started -= OnClickDown;
+        clickAction.canceled -= OnClickUp;
         clickAction.Disable();
+
         if (removeSoil != null)
         {
             removeSoil.action.performed -= ToggleRemoveMode;
@@ -54,10 +65,67 @@ public class TiltManager : MonoBehaviour
         }
     }
 
+    void OnClickDown(InputAction.CallbackContext ctx)
+    {
+        clickHeld = true;
+
+        // paint immediately on click
+        clickQueued = true;
+    }
+
+    void OnClickUp(InputAction.CallbackContext ctx)
+    {
+        clickHeld = false;
+        clickQueued = false;
+    }
+
     void Update()
     {
-        if (!clickAction.IsPressed() || !BuildState.IsBuildMode || !IsShovelEquipped()) return;
-        HandleTileInput();
+        if (!BuildState.IsBuildMode || !IsShovelEquipped())
+        {
+            clickHeld = false;
+            clickQueued = false;
+            return;
+        }
+
+        // 🔒 HARD GLOBAL BLOCKS
+        if (ActionLock.IsLocked)
+        {
+            clickQueued = false;
+            return;
+        }
+
+        if (BuildManager.Instance != null && BuildManager.Instance.IsPlacing)
+        {
+            clickQueued = false;
+            return;
+        }
+
+        if (!clickHeld)
+            return;
+
+        HandleDragPaint();
+    }
+
+    void HandleDragPaint()
+    {
+        Vector2 screenPos = Pointer.current.position.ReadValue();
+        Vector3 worldPos = cam.ScreenToWorldPoint(new Vector3(screenPos.x, screenPos.y, camZ));
+
+        worldPos.z = 0f;
+        Vector3Int cell = tilemap.WorldToCell(worldPos);
+        cell.z = 0;
+
+        // 🔥 KEY FIX: only act when entering a NEW cell
+        if (cell == lastCell)
+            return;
+
+        lastCell = cell;
+
+        if (removeMode)
+            Remove(cell);
+        else
+            Place(cell);
     }
 
     void ToggleRemoveMode(InputAction.CallbackContext ctx)
@@ -66,83 +134,60 @@ public class TiltManager : MonoBehaviour
         Debug.Log("[TiltManager] Remove mode toggled: " + removeMode);
     }
 
-    void HandleTileInput()
-    {
-        Vector2 screenPos = Pointer.current.position.ReadValue();
-        Vector3 worldPos = cam.ScreenToWorldPoint(new Vector3(screenPos.x, screenPos.y, camZ));
-
-        // Force Z to 0 so the calculation matches the grid
-        worldPos.z = 0f;
-        Vector3Int cell = tilemap.WorldToCell(worldPos);
-        cell.z = 0;
-
-        TileBase t = tilemap.GetTile(cell);
-        bool inHashSet = placedTiles.Contains(cell);
-
-        Debug.Log($"[INPUT] Cell: {cell} | Tilemap tile: {(t != null ? t.name : "NULL")} | In HashSet: {inHashSet}");
-
-        if (removeMode) Remove(cell);
-        else Place(cell);
-    }
-
     bool IsShovelEquipped()
     {
         hotbar ??= PlayerHotbarManager.Instance;
         if (hotbar == null) return false;
+
         ItemData item = hotbar.GetSelectedItem();
         return item is UseableItem usable && usable.abilityToExecute is ShowelSO;
     }
 
     void Place(Vector3Int pos)
     {
-        pos.z = 0; // Force Z to 0
         if (tilemap.GetTile(pos) != null)
-        {
-            Debug.LogWarning($"[PLACE] Blocked: Tile already exists at {pos}");
             return;
-        }
 
         tilemap.SetTile(pos, soilTile);
         placedTiles.Add(pos);
-        Debug.Log($"[PLACE] Success at {pos}. New HashSet Count: {placedTiles.Count}");
 
         UpdatePhysics();
         saveManager?.SaveAfterChange();
+
+        Debug.Log($"[PLACE] {pos}");
     }
 
     void Remove(Vector3Int pos)
     {
-        pos.z = 0; // Force Z to 0
         if (tilemap.GetTile(pos) == null)
-        {
-            Debug.LogWarning($"[REMOVE] Blocked: No tile to remove at {pos}");
             return;
-        }
 
         tilemap.SetTile(pos, null);
         placedTiles.Remove(pos);
-        Debug.Log($"[REMOVE] Success at {pos}. New HashSet Count: {placedTiles.Count}");
 
         UpdatePhysics();
         saveManager?.SaveAfterChange();
+
+        Debug.Log($"[REMOVE] {pos}");
     }
 
-    private void UpdatePhysics()
+    void UpdatePhysics()
     {
         tilemap.RefreshAllTiles();
+
         if (compositeCollider != null)
-        {
             compositeCollider.GenerateGeometry();
-        }
     }
 
     public List<SoilData> GetSaveData()
     {
         List<SoilData> data = new();
+
         foreach (Vector3Int pos in placedTiles)
         {
             data.Add(new SoilData { x = pos.x, y = pos.y, tileID = 0 });
         }
+
         return data;
     }
 
@@ -161,6 +206,6 @@ public class TiltManager : MonoBehaviour
         }
 
         UpdatePhysics();
-        Debug.Log($"[LOAD] Complete. Total tiles in HashSet: {placedTiles.Count}");
+        Debug.Log($"[LOAD] Complete. Total tiles: {placedTiles.Count}");
     }
 }

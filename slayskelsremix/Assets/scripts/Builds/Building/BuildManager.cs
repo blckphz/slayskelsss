@@ -48,6 +48,8 @@ public class BuildManager : MonoBehaviour
 
     void Update()
     {
+        ActionLock.Tick(); // <-- ADD THIS LINE FIRST
+
         bool restricted = InteractionManager.MasterRestriction;
 
         if (restricted && !invUIToggle.IsInventoryOpen)
