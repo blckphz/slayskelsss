@@ -5,10 +5,9 @@ public class BuildMode : MonoBehaviour
 {
     [Header("Input")]
     public InputActionReference toggleBuildMode;
+    public InputActionReference toggleGrid;
 
     [Header("Hotbar UI")]
-
-    [Header("Sprite (inverse behavior)")]
     public CanvasGroup buildModeSpriteGroup;
 
     [Header("Sprite movement (optional)")]
@@ -17,10 +16,10 @@ public class BuildMode : MonoBehaviour
     public float spriteSpeed = 8f;
 
     private bool buildMode;
+    private bool useGridPlacement = true;
 
     private Vector3 spriteShownPos;
     private Vector3 spriteHiddenPos;
-
     private float spriteTargetAlpha;
 
     private void Start()
@@ -42,6 +41,12 @@ public class BuildMode : MonoBehaviour
             toggleBuildMode.action.performed += OnToggle;
             toggleBuildMode.action.Enable();
         }
+
+        if (toggleGrid != null)
+        {
+            toggleGrid.action.performed += OnToggleGrid;
+            toggleGrid.action.Enable();
+        }
     }
 
     private void OnDisable()
@@ -51,11 +56,16 @@ public class BuildMode : MonoBehaviour
             toggleBuildMode.action.performed -= OnToggle;
             toggleBuildMode.action.Disable();
         }
+
+        if (toggleGrid != null)
+        {
+            toggleGrid.action.performed -= OnToggleGrid;
+            toggleGrid.action.Disable();
+        }
     }
 
     private void Update()
     {
-        // smooth sprite fade
         if (buildModeSpriteGroup != null)
         {
             buildModeSpriteGroup.alpha = Mathf.Lerp(
@@ -65,7 +75,6 @@ public class BuildMode : MonoBehaviour
             );
         }
 
-        // smooth sprite movement (optional)
         if (buildModeSprite != null)
         {
             buildModeSprite.localPosition = Vector3.Lerp(
@@ -79,10 +88,22 @@ public class BuildMode : MonoBehaviour
     private void OnToggle(InputAction.CallbackContext ctx)
     {
         buildMode = !buildMode;
-
         BuildState.Toggle();
-
-        // SPRITE (INVERSE behavior)
         spriteTargetAlpha = buildMode ? 1f : 0f;
+
+        // --- NEW CLEANUP LOGIC ---
+        if (!buildMode && BuildManager.Instance != null)
+        {
+            // We use Reflection to call Cancel() since it is private in BuildManager,
+            // or you can make Cancel() public in BuildManager.
+            // RECOMMENDED: Make Cancel() public in BuildManager.cs
+            BuildManager.Instance.Invoke("Cancel", 0f);
+        }
+    }
+
+    private void OnToggleGrid(InputAction.CallbackContext ctx)
+    {
+        useGridPlacement = !useGridPlacement;
+        BuildState.SetGridPlacement(useGridPlacement);
     }
 }

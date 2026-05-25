@@ -11,7 +11,6 @@ public class InteractionManager : MonoBehaviour
     public bool restrictToInventory = false;
 
     public static bool MasterRestriction { get; private set; }
-
     public static bool IsBlockingBuildPreview { get; private set; }
 
     [Header("Delete Settings")]
@@ -26,6 +25,7 @@ public class InteractionManager : MonoBehaviour
     private void Awake()
     {
         mainCam = Camera.main;
+        Debug.Log("[InteractionManager] Awake");
     }
 
     private void OnValidate()
@@ -55,14 +55,18 @@ public class InteractionManager : MonoBehaviour
         HandleHoldDelete();
 
         IsBlockingBuildPreview = currentHoverObj != null;
+
+        Debug.Log($"[InteractionManager] Hovering = {(currentHoverObj ? currentHoverObj.name : "NULL")} | BlockPreview = {IsBlockingBuildPreview}");
     }
 
     private Vector2 GetMouseWorldPos()
     {
         Vector2 mousePos = Mouse.current.position.ReadValue();
+
         Vector3 world = mainCam.ScreenToWorldPoint(
             new Vector3(mousePos.x, mousePos.y, Mathf.Abs(mainCam.transform.position.z))
         );
+
         return new Vector2(world.x, world.y);
     }
 
@@ -73,15 +77,17 @@ public class InteractionManager : MonoBehaviour
 
         GameObject targetObj = null;
 
+        // Large structures
         if (isShiftHeld)
         {
             Collider2D largeHit = Physics2D.OverlapPoint(point, largeStructureLayer);
             if (largeHit != null) targetObj = largeHit.gameObject;
         }
 
+        // Small objects
         if (targetObj == null)
         {
-            Collider2D smallHit = Physics2D.OverlapPoint(point, interactLayer & ~largeStructureLayer);
+            Collider2D smallHit = Physics2D.OverlapPoint(point, interactLayer);
             if (smallHit != null) targetObj = smallHit.gameObject;
         }
 
@@ -102,6 +108,8 @@ public class InteractionManager : MonoBehaviour
                     originalColor = currentRenderer.color;
                     currentRenderer.color = highlightColor;
                 }
+
+                Debug.Log("[InteractionManager] Hover set: " + targetObj.name);
             }
         }
 
@@ -127,8 +135,6 @@ public class InteractionManager : MonoBehaviour
         BuildIdentity build = target.GetComponent<BuildIdentity>();
         if (build != null)
         {
-            // ✅ NEW RULE:
-            // if GetsDestroyedByPlayer = true → no item returned
             if (!build.GetsDestroyedByPlayer && build.item != null)
             {
                 InventoryManager.Instance.AddItem(build.item, 1);
@@ -142,6 +148,8 @@ public class InteractionManager : MonoBehaviour
 
             Destroy(target);
             deconstructCooldown = deconstructInterval;
+
+            Debug.Log("[InteractionManager] Building destroyed");
             return;
         }
 
@@ -154,6 +162,8 @@ public class InteractionManager : MonoBehaviour
 
             health.Deconstruct();
             deconstructCooldown = deconstructInterval;
+
+            Debug.Log("[InteractionManager] Object deconstructed");
         }
     }
 

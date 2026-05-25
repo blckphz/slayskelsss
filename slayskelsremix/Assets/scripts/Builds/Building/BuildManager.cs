@@ -48,7 +48,7 @@ public class BuildManager : MonoBehaviour
 
     void Update()
     {
-        ActionLock.Tick(); // <-- ADD THIS LINE FIRST
+        ActionLock.Tick();
 
         bool restricted = InteractionManager.MasterRestriction;
 
@@ -68,7 +68,9 @@ public class BuildManager : MonoBehaviour
 
         MovePreview();
 
-        bool isUI = EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
+        bool isUI = EventSystem.current != null &&
+                    EventSystem.current.IsPointerOverGameObject();
+
         UpdateColor(isUI);
 
         if (!isUI &&
@@ -115,7 +117,7 @@ public class BuildManager : MonoBehaviour
         StartPlacingInternal(item, true);
     }
 
-    private void StartPlacingInternal(buildSO item, bool forced)
+    void StartPlacingInternal(buildSO item, bool forced)
     {
         ItemData snapshotTool =
             PlayerHotbarManager.Instance != null
@@ -142,18 +144,27 @@ public class BuildManager : MonoBehaviour
         }
     }
 
+    // Logic updated here to handle Free Form vs Grid
     void MovePreview()
     {
         Vector2 mouse = PlayerInputHandler.Instance.GetMousePosition();
 
         Vector3 world = playerCamera.ScreenToWorldPoint(
-            new Vector3(mouse.x, mouse.y, Mathf.Abs(playerCamera.transform.position.z))
+            new Vector3(mouse.x, mouse.y,
+            Mathf.Abs(playerCamera.transform.position.z))
         );
 
-        float x = Mathf.Floor(world.x / gridSize) * gridSize;
-        float y = Mathf.Floor(world.y / gridSize) * gridSize;
-
-        previewObject.transform.position = new Vector3(x, y, 0f);
+        if (BuildState.UseGridPlacement)
+        {
+            float x = Mathf.Floor(world.x / gridSize) * gridSize;
+            float y = Mathf.Floor(world.y / gridSize) * gridSize;
+            previewObject.transform.position = new Vector3(x, y, 0f);
+        }
+        else
+        {
+            // Free form movement
+            previewObject.transform.position = new Vector3(world.x, world.y, 0f);
+        }
     }
 
     void TryPlace()
@@ -164,9 +175,7 @@ public class BuildManager : MonoBehaviour
         if (!CanPlace())
             return;
 
-        // --- BLOCKING LOGIC ---
         ActionLock.LockThisFrame();
-        // ----------------------
 
         Vector3 pos = previewObject.transform.position;
 
@@ -183,11 +192,15 @@ public class BuildManager : MonoBehaviour
 
         if (astar != null)
         {
-            Bounds b = new Bounds(pos, Vector3.one * Mathf.Max(currentItem.size.x, currentItem.size.y));
+            float size = Mathf.Max(currentItem.size.x, currentItem.size.y);
+            Bounds b = new Bounds(pos, Vector3.one * size);
             AstarPath.active.UpdateGraphs(b);
         }
 
-        BuildIdentity id = obj.GetComponent<BuildIdentity>() ?? obj.AddComponent<BuildIdentity>();
+        BuildIdentity id = obj.GetComponent<BuildIdentity>();
+        if (id == null)
+            id = obj.AddComponent<BuildIdentity>();
+
         id.item = currentItem;
 
         if (BuildingSaveManager.Instance != null)
@@ -224,11 +237,14 @@ public class BuildManager : MonoBehaviour
 
     void UpdateColor(bool blockedUI)
     {
-        if (ghost == null) return;
+        if (ghost == null)
+            return;
 
-        ghost.SetColor(blockedUI
-            ? new Color(1, 0, 0, 0.2f)
-            : (CanPlace() ? Color.green : Color.red));
+        ghost.SetColor(
+            blockedUI
+                ? new Color(1, 0, 0, 0.2f)
+                : (CanPlace() ? Color.green : Color.red)
+        );
     }
 
     void Cancel()

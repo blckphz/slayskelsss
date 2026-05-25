@@ -271,6 +271,15 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""ToggleGrid"",
+                    ""type"": ""Button"",
+                    ""id"": ""f65b1e94-601e-4ad7-b7bc-35255e51821b"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -755,6 +764,17 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""Cancelbuild"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""9b0984b0-ce47-40b1-801b-075af3bf3a1d"",
+                    ""path"": ""<Keyboard>/t"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""ToggleGrid"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -1362,6 +1382,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         m_Player_BuildMode = m_Player.FindAction("BuildMode", throwIfNotFound: true);
         m_Player_RemoveSoil = m_Player.FindAction("RemoveSoil", throwIfNotFound: true);
         m_Player_Cancelbuild = m_Player.FindAction("Cancelbuild", throwIfNotFound: true);
+        m_Player_ToggleGrid = m_Player.FindAction("ToggleGrid", throwIfNotFound: true);
         // UI
         m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
         m_UI_Navigate = m_UI.FindAction("Navigate", throwIfNotFound: true);
@@ -1475,6 +1496,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_BuildMode;
     private readonly InputAction m_Player_RemoveSoil;
     private readonly InputAction m_Player_Cancelbuild;
+    private readonly InputAction m_Player_ToggleGrid;
     /// <summary>
     /// Provides access to input actions defined in input action map "Player".
     /// </summary>
@@ -1567,6 +1589,10 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         /// </summary>
         public InputAction @Cancelbuild => m_Wrapper.m_Player_Cancelbuild;
         /// <summary>
+        /// Provides access to the underlying input action "Player/ToggleGrid".
+        /// </summary>
+        public InputAction @ToggleGrid => m_Wrapper.m_Player_ToggleGrid;
+        /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
         public InputActionMap Get() { return m_Wrapper.m_Player; }
@@ -1652,6 +1678,9 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
             @Cancelbuild.started += instance.OnCancelbuild;
             @Cancelbuild.performed += instance.OnCancelbuild;
             @Cancelbuild.canceled += instance.OnCancelbuild;
+            @ToggleGrid.started += instance.OnToggleGrid;
+            @ToggleGrid.performed += instance.OnToggleGrid;
+            @ToggleGrid.canceled += instance.OnToggleGrid;
         }
 
         /// <summary>
@@ -1723,6 +1752,9 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
             @Cancelbuild.started -= instance.OnCancelbuild;
             @Cancelbuild.performed -= instance.OnCancelbuild;
             @Cancelbuild.canceled -= instance.OnCancelbuild;
+            @ToggleGrid.started -= instance.OnToggleGrid;
+            @ToggleGrid.performed -= instance.OnToggleGrid;
+            @ToggleGrid.canceled -= instance.OnToggleGrid;
         }
 
         /// <summary>
@@ -2163,6 +2195,13 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnCancelbuild(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "ToggleGrid" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnToggleGrid(InputAction.CallbackContext context);
     }
     /// <summary>
     /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "UI" which allows adding and removing callbacks.

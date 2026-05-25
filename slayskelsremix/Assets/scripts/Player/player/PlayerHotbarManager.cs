@@ -121,7 +121,6 @@ public class PlayerHotbarManager : MonoBehaviour
         var slot = hotbarSlots[selectedIndex];
         ItemData item = slot.GetItem();
 
-        Debug.Log($"[HOTBAR] Use slot {selectedIndex} item: {(item ? item.itemName : "NULL")} count: {slot.GetCount()}");
 
         if (item == null)
         {
@@ -139,7 +138,6 @@ public class PlayerHotbarManager : MonoBehaviour
             slot.GetAbility() ??
             (item is UseableItem u ? u.abilityToExecute : null);
 
-        Debug.Log($"[HOTBAR] Ability: {(ability ? ability.name : "NULL")}");
 
         if (ability == null)
         {
@@ -192,7 +190,6 @@ public class PlayerHotbarManager : MonoBehaviour
         UpdateSelector();
         NotifySelectionChanged();
 
-        Debug.Log($"[HOTBAR] Scroll -> {selectedIndex}");
     }
 
     void UpdateSelector()
