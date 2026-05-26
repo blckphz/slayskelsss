@@ -7,7 +7,7 @@ public class PlayerAttack : MonoBehaviour
     public PlayerAim aimScript;
     public InputActionReference[] fireActions;
 
-    private Dictionary<Ability, float> cooldownEndTime = new Dictionary<Ability, float>();
+    private Dictionary<Ability, float> cooldownEndTime = new();
 
     public float screenshakeIntensity = 0.5f;
     public float screenshakeDuration = 0.2f;
@@ -17,6 +17,16 @@ public class PlayerAttack : MonoBehaviour
     void Awake()
     {
         movement = GetComponent<PlayerMovement>();
+    }
+
+    void Start()
+    {
+        cooldownEndTime.Clear();
+    }
+
+    void OnEnable()
+    {
+        cooldownEndTime.Clear();
     }
 
     void Update()
@@ -41,49 +51,36 @@ public class PlayerAttack : MonoBehaviour
         if (actionRef == null || actionRef.action == null)
             return;
 
-        // Block build mode
         if (BuildState.IsBuildMode)
             return;
 
-        bool held = actionRef.action.IsPressed();
-
-        float remaining = GetCooldownRemaining(ability);
-        bool ready = remaining <= 0f;
-
-        if (!held || !ready)
+        if (!actionRef.action.IsPressed())
             return;
 
-        // CHECK STAMINA
+        float remaining = GetCooldownRemaining(ability);
+        if (remaining > 0f)
+            return;
+
         if (movement != null && !movement.HasEnoughStamina(ability.staminaUsed))
             return;
 
-        // EXECUTE ABILITY
         bool comboFinished = ability.Execute(transform, aimScript.anchor, true);
 
-        // CONSUME STAMINA ONLY IF SUCCESSFUL
         if (comboFinished && movement != null)
             movement.TryUseStamina(ability.staminaUsed);
 
-        // HANDLE COOLDOWNS
-        if (ability is offensivemelee melee)
-        {
-            float end = Time.time + (comboFinished ? ability.fireRate : melee.swingFreq);
-            cooldownEndTime[ability] = end;
-        }
-        else
-        {
-            cooldownEndTime[ability] = Time.time + ability.fireRate;
-        }
+        cooldownEndTime[ability] =
+            Time.time + ability.fireRate;
 
         TriggerCosmetics(ability);
     }
 
     public float GetCooldownRemaining(Ability ability)
     {
-        if (!cooldownEndTime.ContainsKey(ability))
+        if (!cooldownEndTime.TryGetValue(ability, out float t))
             return 0f;
 
-        return Mathf.Max(0f, cooldownEndTime[ability] - Time.time);
+        return Mathf.Max(0f, t - Time.time);
     }
 
     private void TriggerCosmetics(Ability ability)

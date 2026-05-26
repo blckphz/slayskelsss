@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: cefec940ed937c9428141b320e903a10
+guid: dd0c512369413cb448c56488a28e38f4
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -6470460504253458178
-    second: 3_0
+      213: 999560074069817791
+    second: axe_platinum_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -74,7 +74,7 @@ TextureImporter:
     buildTarget: DefaultTexturePlatform
     maxTextureSize: 2048
     resizeAlgorithm: 0
-    textureFormat: 4
+    textureFormat: -1
     textureCompression: 1
     compressionQuality: 50
     crunchedCompression: 0
@@ -113,13 +113,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: 3_0
+      name: axe_platinum_0
       rect:
         serializedVersion: 2
-        x: 0
+        x: 1
         y: 0
-        width: 20
-        height: 24
+        width: 15
+        height: 16
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -128,8 +128,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: ef817ce047e4436a0800000000000000
-      internalID: -6470460504253458178
+      spriteID: fb9389a67962fdd00800000000000000
+      internalID: 999560074069817791
       vertices: []
       indices: 
       edges: []
@@ -148,7 +148,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      3_0: -6470460504253458178
+      axe_platinum_0: 999560074069817791
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

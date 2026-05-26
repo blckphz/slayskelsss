@@ -56,7 +56,6 @@ public class InteractionManager : MonoBehaviour
 
         IsBlockingBuildPreview = currentHoverObj != null;
 
-        Debug.Log($"[InteractionManager] Hovering = {(currentHoverObj ? currentHoverObj.name : "NULL")} | BlockPreview = {IsBlockingBuildPreview}");
     }
 
     private Vector2 GetMouseWorldPos()

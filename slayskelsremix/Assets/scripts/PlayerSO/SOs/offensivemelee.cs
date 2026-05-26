@@ -5,7 +5,6 @@ public class offensivemelee : offensiveability
 {
     public enum SwingOwner { Player, NPC }
 
-    [Tooltip("Check this if the ability handles its own sound timing (like melee combos).")]
     public bool customAudioLogic = false;
 
     [Header("Melee Stats")]
@@ -16,15 +15,16 @@ public class offensivemelee : offensiveability
     public float spawnOffset = 1.5f;
     public float rotationOffset = 0f;
 
-    private int currentSwingIndex = 0;
-
-    // Delay between individual swings
-    private float nextSwingTime = 0f;
-
-    // Cooldown after full combo
-    private float cooldownEndTime = 0f;
+    private int currentSwingIndex;
+    private float nextSwingTime;
+    private float cooldownEndTime;
 
     public virtual float GetBonusDamage() => 0f;
+
+    private void OnEnable()
+    {
+        ResetMeleeState();
+    }
 
     public void ResetMeleeState()
     {
@@ -36,25 +36,21 @@ public class offensivemelee : offensiveability
 
     public override bool Execute(Transform caster, Transform targetAnchor, bool isHolding)
     {
-        // --- BLOCKING LOGIC ---
-        bool isPlacing = BuildManager.Instance != null && BuildManager.Instance.IsPlacing;
-        bool isLocked = ActionLock.IsLocked;
-
-        if (isPlacing || isLocked)
-        {
-            Debug.Log(
-                $"<color=red>[offensivemelee] SWING BLOCKED!</color> | " +
-                $"IsPlacing: {isPlacing} | IsLocked: {isLocked} | Frame: {Time.frameCount}"
-            );
-            return false;
-        }
-
         if (caster == null || !isHolding)
             return false;
 
-        //------------------------------------
-        // FIRE RATE cooldown (after combo)
-        //------------------------------------
+        // ❌ Global locks
+        if (BuildManager.Instance != null && BuildManager.Instance.IsPlacing)
+            return false;
+
+        if (ActionLock.IsLocked)
+            return false;
+
+        // 🔥 HARD SAFETY RESET (prevents “stuck melee forever” bug)
+        if (currentSwingIndex < 0 || currentSwingIndex > maxSwings)
+            ResetMeleeState();
+
+        // 🔥 cooldown check
         if (isOnCooldown)
         {
             if (Time.time < cooldownEndTime)
@@ -63,30 +59,24 @@ public class offensivemelee : offensiveability
             isOnCooldown = false;
         }
 
-        //------------------------------------
-        // SWING FREQUENCY (between swings)
-        //------------------------------------
+        // 🔥 swing rate limit
         if (Time.time < nextSwingTime)
             return false;
 
-        SwingOwner owner = caster.GetComponent<PlayerAttack>() != null
-            ? SwingOwner.Player
-            : SwingOwner.NPC;
+        SwingOwner owner =
+            caster.GetComponent<PlayerAttack>() != null
+                ? SwingOwner.Player
+                : SwingOwner.NPC;
 
         PerformSwing(caster, targetAnchor, currentSwingIndex, owner);
 
         currentSwingIndex++;
-
-        // Lock next swing until swingFreq passes
         nextSwingTime = Time.time + swingFreq;
 
-        //------------------------------------
-        // Combo finished → trigger fireRate
-        //------------------------------------
+        // combo finished → cooldown
         if (currentSwingIndex >= maxSwings)
         {
             currentSwingIndex = 0;
-
             isOnCooldown = true;
             cooldownEndTime = Time.time + fireRate;
 
@@ -105,9 +95,10 @@ public class offensivemelee : offensiveability
         if (prefab == null || ObjectPooler.Instance == null)
             return;
 
-        Vector3 targetPos = targetAnchor != null
-            ? targetAnchor.position
-            : caster.position + caster.right;
+        Vector3 targetPos =
+            targetAnchor != null
+                ? targetAnchor.position
+                : caster.position + caster.right;
 
         Vector2 dir = ((Vector2)targetPos - (Vector2)caster.position).normalized;
 
@@ -116,8 +107,8 @@ public class offensivemelee : offensiveability
                 ? new Vector2(Mathf.Sign(dir.x), 0)
                 : new Vector2(0, Mathf.Sign(dir.y));
 
-        Vector3 localSpawnOffset = (Vector3)(snappedDir * spawnOffset);
-        Vector3 globalSpawnPos = caster.position + localSpawnOffset;
+        Vector3 offset = (Vector3)(snappedDir * spawnOffset);
+        Vector3 spawnPos = caster.position + offset;
 
         float angle =
             Mathf.Atan2(snappedDir.y, snappedDir.x) * Mathf.Rad2Deg
@@ -125,29 +116,21 @@ public class offensivemelee : offensiveability
 
         GameObject woosh = ObjectPooler.Instance.GetPooledObject(
             prefab,
-            globalSpawnPos,
+            spawnPos,
             Quaternion.Euler(0, 0, angle)
         );
 
-        if (woosh == null)
-            return;
+        if (woosh == null) return;
 
-        if (!woosh.activeInHierarchy)
-            woosh.SetActive(true);
+        woosh.SetActive(true);
 
-        float bonus = owner == SwingOwner.Player
-            ? GetBonusDamage()
-            : 0f;
+        float bonus = owner == SwingOwner.Player ? GetBonusDamage() : 0f;
 
-        ToolType activeTool = ToolType.Axe;
-
-        if (this is ToolsSO toolAbility)
-        {
-            activeTool = toolAbility.toolType;
-        }
+        ToolType tool = ToolType.Axe;
+        if (this is ToolsSO toolSO)
+            tool = toolSO.toolType;
 
         var behav = woosh.GetComponent<meleebehav>();
-
         if (behav != null)
         {
             behav.Setup(
@@ -156,22 +139,12 @@ public class offensivemelee : offensiveability
                 index,
                 owner,
                 caster,
-                localSpawnOffset,
-                activeTool
+                offset,
+                tool
             );
         }
 
         if (owner == SwingOwner.Player && CameraShaker.Instance != null)
-        {
             CameraShaker.Instance.Shake(0.15f, 0.1f);
-        }
-    }
-
-    public string GetStatsFormat()
-    {
-        return
-            $"Combo Swings: {maxSwings}\n" +
-            $"Swing Speed: {swingFreq}s\n" +
-            $"Cooldown: {fireRate}s";
     }
 }

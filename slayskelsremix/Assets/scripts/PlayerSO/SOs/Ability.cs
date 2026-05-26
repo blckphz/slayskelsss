@@ -10,16 +10,23 @@ public abstract class Ability : ScriptableObject
     public bool isOnCooldown;
     public GameObject prefab;
 
-    // CHANGED FROM int TO float
     public float staminaUsed;
 
-    // Primary Use (Throwing)
+    private void OnEnable()
+    {
+        ResetRuntimeState();
+    }
+
+    protected virtual void ResetRuntimeState()
+    {
+        isOnCooldown = false;
+    }
+
     public abstract bool Execute(Transform caster, Transform targetAnchor, bool isHolding);
 
-    // Secondary Use (Consuming) - Defaults to false if not overridden
     public virtual bool ExecuteSecondary(Transform caster)
     {
-        Debug.LogWarning($"{this.name} does not have a Secondary Use implemented.");
+        Debug.LogWarning($"{name} does not have a Secondary Use implemented.");
         return false;
     }
 }

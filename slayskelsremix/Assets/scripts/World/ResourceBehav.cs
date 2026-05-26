@@ -1,16 +1,19 @@
 using UnityEngine;
 
-public class ResourceBehav : ItemHealth
+public class ResourceBehav : ItemHealth, IRespawnable
 {
-    // This script inherits all the hit-effects from ItemHealth.
-    // To make it behave like wood, we ensure Die() triggers the correct loot pop.
+    public string resourceID = "stone";
+    public ResourceSpawner spawner;
+
+    public string RespawnID => resourceID;
 
     protected override void Die()
     {
-
         base.Die();
-    }
 
-    // SpawnLoot is already handled by ItemHealth. 
-    // Simply assign your 'Stone_Prefab' to the 'Loot Prefab' slot in the Inspector.
+        if (spawner != null)
+        {
+            spawner.NotifyDeath(RespawnID, transform.position);
+        }
+    }
 }

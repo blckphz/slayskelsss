@@ -14,7 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::UseableItem
   itemID: 200
   itemName: Appleberry
-  icon: {fileID: 21300000, guid: cefec940ed937c9428141b320e903a10, type: 3}
+  icon: {fileID: -9150622835112388582, guid: 95646f66d4cd07b4f95f682573973c86, type: 3}
+  DragStartSound: {fileID: 0}
+  DragEndSound: {fileID: 0}
   itemType: 0
   maxStackSize: 99
   isUsable: 1

@@ -46,6 +46,22 @@ public class BuildManager : MonoBehaviour
             AstarPath.active.Scan();
     }
 
+    void OnEnable()
+    {
+        if (PlayerHotbarManager.Instance != null)
+            PlayerHotbarManager.Instance.OnSelectedItemChanged += HandleHotbarChanged;
+
+        BuildState.OnBuildModeChanged += HandleBuildModeChanged;
+    }
+
+    void OnDisable()
+    {
+        if (PlayerHotbarManager.Instance != null)
+            PlayerHotbarManager.Instance.OnSelectedItemChanged -= HandleHotbarChanged;
+
+        BuildState.OnBuildModeChanged -= HandleBuildModeChanged;
+    }
+
     void Update()
     {
         ActionLock.Tick();
@@ -59,9 +75,6 @@ public class BuildManager : MonoBehaviour
 
             return;
         }
-
-        if (!restricted || invUIToggle.IsInventoryOpen)
-            CheckHotbar();
 
         if (!isPlacing || previewObject == null)
             return;
@@ -81,13 +94,9 @@ public class BuildManager : MonoBehaviour
         }
     }
 
-    void CheckHotbar()
+    void HandleHotbarChanged(ItemData item)
     {
-        if (PlayerHotbarManager.Instance == null)
-            return;
-
-        ItemData item = PlayerHotbarManager.Instance.GetSelectedItem();
-
+        // Forced placement logic
         if (placementForcedByAbility && isPlacing)
         {
             if (item != originalToolItem)
@@ -96,20 +105,40 @@ public class BuildManager : MonoBehaviour
             return;
         }
 
-        if (item != null && item.itemType == ItemType.Constructable)
+        // Not in build mode → no ghost
+        if (!BuildState.IsBuildMode)
         {
-            buildSO build = item as buildSO;
+            Cancel();
+            return;
+        }
 
-            if (build == null)
-                return;
-
-            if (currentItem == null || currentItem.itemName != build.itemName)
+        // Selected item is constructable
+        if (item is buildSO build)
+        {
+            if (currentItem == null || currentItem != build)
                 StartPlacingInternal(build, false);
         }
-        else if (isPlacing)
+        else
         {
             Cancel();
         }
+    }
+
+    void HandleBuildModeChanged(bool enabled)
+    {
+        ItemData selected =
+            PlayerHotbarManager.Instance != null
+                ? PlayerHotbarManager.Instance.GetSelectedItem()
+                : null;
+
+        if (!enabled)
+        {
+            Cancel();
+            return;
+        }
+
+        if (selected is buildSO build)
+            StartPlacingInternal(build, false);
     }
 
     public void StartPlacing(buildSO item)
@@ -144,26 +173,30 @@ public class BuildManager : MonoBehaviour
         }
     }
 
-    // Logic updated here to handle Free Form vs Grid
     void MovePreview()
     {
         Vector2 mouse = PlayerInputHandler.Instance.GetMousePosition();
 
         Vector3 world = playerCamera.ScreenToWorldPoint(
-            new Vector3(mouse.x, mouse.y,
-            Mathf.Abs(playerCamera.transform.position.z))
+            new Vector3(
+                mouse.x,
+                mouse.y,
+                Mathf.Abs(playerCamera.transform.position.z)
+            )
         );
 
         if (BuildState.UseGridPlacement)
         {
             float x = Mathf.Floor(world.x / gridSize) * gridSize;
             float y = Mathf.Floor(world.y / gridSize) * gridSize;
-            previewObject.transform.position = new Vector3(x, y, 0f);
+
+            previewObject.transform.position =
+                new Vector3(x, y, 0f);
         }
         else
         {
-            // Free form movement
-            previewObject.transform.position = new Vector3(world.x, world.y, 0f);
+            previewObject.transform.position =
+                new Vector3(world.x, world.y, 0f);
         }
     }
 
@@ -179,25 +212,49 @@ public class BuildManager : MonoBehaviour
 
         Vector3 pos = previewObject.transform.position;
 
-        GameObject obj = Instantiate(currentItem.placeablePrefab, pos, Quaternion.identity);
+        GameObject obj = Instantiate(
+            currentItem.placeablePrefab,
+            pos,
+            Quaternion.identity
+        );
 
         if (shakeOnPlace && CameraShaker.Instance != null)
-            CameraShaker.Instance.Shake(buildShakeIntensity, buildShakeDuration);
+            CameraShaker.Instance.Shake(
+                buildShakeIntensity,
+                buildShakeDuration
+            );
 
         if (placementEffectPrefab != null)
         {
-            var fx = Instantiate(placementEffectPrefab, pos + Vector3.up * 0.1f, Quaternion.identity);
+            var fx = Instantiate(
+                placementEffectPrefab,
+                pos + Vector3.up * 0.1f,
+                Quaternion.identity
+            );
+
             Destroy(fx, 2f);
         }
 
         if (astar != null)
         {
-            float size = Mathf.Max(currentItem.size.x, currentItem.size.y);
-            Bounds b = new Bounds(pos, Vector3.one * size);
+            float size =
+                Mathf.Max(
+                    currentItem.size.x,
+                    currentItem.size.y
+                );
+
+            Bounds b =
+                new Bounds(
+                    pos,
+                    Vector3.one * size
+                );
+
             AstarPath.active.UpdateGraphs(b);
         }
 
-        BuildIdentity id = obj.GetComponent<BuildIdentity>();
+        BuildIdentity id =
+            obj.GetComponent<BuildIdentity>();
+
         if (id == null)
             id = obj.AddComponent<BuildIdentity>();
 
@@ -217,7 +274,8 @@ public class BuildManager : MonoBehaviour
         if (ghost == null)
             return false;
 
-        List<Collider2D> obstacles = ghost.GetObstacles();
+        List<Collider2D> obstacles =
+            ghost.GetObstacles();
 
         foreach (var hit in obstacles)
         {
@@ -247,7 +305,7 @@ public class BuildManager : MonoBehaviour
         );
     }
 
-    void Cancel()
+    public void Cancel()
     {
         if (previewObject)
             Destroy(previewObject);

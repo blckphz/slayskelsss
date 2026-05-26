@@ -33,7 +33,7 @@ public class InventoryManager : MonoBehaviour
 
     private string savePath;
 
-    private void Awake()
+    void Awake()
     {
         if (Instance == null) Instance = this;
         else { Destroy(gameObject); return; }
@@ -45,13 +45,13 @@ public class InventoryManager : MonoBehaviour
         LoadInventory();
     }
 
-    private void InitializeInventory()
+    void InitializeInventory()
     {
         while (inventory.Count < inventorySize)
             inventory.Add(new InventorySlot());
     }
 
-    private void InitializeHotbarData()
+    void InitializeHotbarData()
     {
         if (hotbarData == null) hotbarData = new List<HotbarSlotData>();
 
@@ -63,209 +63,238 @@ public class InventoryManager : MonoBehaviour
         }
     }
 
+    // =========================================================
+    // ADD ITEM (WITH DEBUG + SAFE STACKING)
+    // =========================================================
+
     public void AddItem(ItemData data, int amount, float customDurability = -1f)
     {
         if (data == null || amount <= 0) return;
 
         bool isDurabilityItem = data.maxDurability > 0;
+        float durability = customDurability < 0 ? data.maxDurability : customDurability;
 
-        // =========================
-        // STACKABLE ITEMS (NO DURABILITY SYSTEM)
-        // =========================
+        Debug.Log($"[INV] ADD ITEM -> {data.itemName} x{amount} | dur:{durability}");
+
+        // =====================================================
+        // NON DURABILITY ITEMS
+        // =====================================================
         if (!isDurabilityItem)
         {
-            int remaining = amount;
-
-            // fill existing stacks
-            for (int i = 0; i < inventory.Count; i++)
-            {
-                var slot = inventory[i];
-
-                if (slot.item != null &&
-                    slot.item.itemID == data.itemID &&
-                    slot.count < data.maxStackSize)
-                {
-                    int space = data.maxStackSize - slot.count;
-                    int add = Mathf.Min(space, remaining);
-
-                    slot.count += add;
-                    remaining -= add;
-
-                    if (remaining <= 0)
-                        break;
-                }
-            }
-
-            // create new stacks
-            for (int i = 0; i < inventory.Count && remaining > 0; i++)
-            {
-                if (inventory[i].item == null)
-                {
-                    int add = Mathf.Min(remaining, data.maxStackSize);
-
-                    inventory[i].item = data;
-                    inventory[i].count = add;
-                    inventory[i].currentDurability = 0f;
-
-                    remaining -= add;
-                }
-            }
+            StackIntoInventory(data, amount, 0f);
+            RefreshAll();
+            return;
         }
 
-        // =========================
-        // DURABILITY ITEMS
-        // =========================
+        bool isFull = durability >= data.maxDurability;
+
+        Debug.Log($"[INV] IsFullDurabilityStack: {isFull}");
+
+        if (isFull)
+        {
+            StackIntoInventory(data, amount, durability);
+        }
         else
         {
-            float incomingDurability =
-                (customDurability < 0f)
-                ? data.maxDurability
-                : customDurability;
-
-            bool isFullDurability = incomingDurability >= data.maxDurability;
-
-            // =========================
-            // FULL DURABILITY -> CAN STACK
-            // =========================
-            if (isFullDurability)
-            {
-                int remaining = amount;
-
-                // try fill existing FULL stacks
-                for (int i = 0; i < inventory.Count; i++)
-                {
-                    var slot = inventory[i];
-
-                    if (slot.item != null &&
-                        slot.item.itemID == data.itemID &&
-                        slot.currentDurability >= data.maxDurability)
-                    {
-                        int space = data.maxStackSize - slot.count;
-                        int add = Mathf.Min(space, remaining);
-
-                        slot.count += add;
-                        remaining -= add;
-
-                        if (remaining <= 0)
-                            break;
-                    }
-                }
-
-                // create new full stacks
-                for (int i = 0; i < inventory.Count && remaining > 0; i++)
-                {
-                    if (inventory[i].item == null)
-                    {
-                        int add = Mathf.Min(remaining, data.maxStackSize);
-
-                        inventory[i].item = data;
-                        inventory[i].count = add;
-                        inventory[i].currentDurability = data.maxDurability;
-
-                        remaining -= add;
-                    }
-                }
-            }
-
-            // =========================
-            // DAMAGED ITEMS -> NO STACKING
-            // =========================
-            else
-            {
-                for (int i = 0; i < inventory.Count && amount > 0; i++)
-                {
-                    if (inventory[i].item == null)
-                    {
-                        inventory[i].item = data;
-                        inventory[i].count = 1;
-                        inventory[i].currentDurability = incomingDurability;
-
-                        amount--;
-                    }
-                }
-            }
+            InsertAsSingleItems(data, amount, durability);
         }
 
         RefreshAll();
     }
 
-    public bool RemoveItem(ItemData data, int amount)
+    // =========================================================
+    // STACK LOGIC (FULL ITEMS ONLY)
+    // =========================================================
+
+    void StackIntoInventory(ItemData data, int amount, float durability)
     {
-        if (data == null)
+        int remaining = amount;
+
+        Debug.Log($"[INV] STACKING into FULL durability slots...");
+
+        // STEP 1: fill existing stacks
+        for (int i = 0; i < inventory.Count && remaining > 0; i++)
         {
-            Debug.LogWarning("[INV] RemoveItem FAILED: data is NULL");
-            return false;
+            var slot = inventory[i];
+
+            if (slot.item != null &&
+                slot.item.itemID == data.itemID &&
+                slot.currentDurability >= data.maxDurability)
+            {
+                int space = data.maxStackSize - slot.count;
+                int add = Mathf.Min(space, remaining);
+
+                slot.count += add;
+                remaining -= add;
+
+                Debug.Log($"[INV] STACKED into slot {i} -> now {slot.count} | remaining {remaining}");
+            }
         }
 
-        Debug.Log($"[INV] RemoveItem START -> {data.itemName} x{amount}");
+        // STEP 2: create new stacks
+        for (int i = 0; i < inventory.Count && remaining > 0; i++)
+        {
+            if (inventory[i].item == null)
+            {
+                int add = Mathf.Min(remaining, data.maxStackSize);
 
+                inventory[i].item = data;
+                inventory[i].count = add;
+                inventory[i].currentDurability = durability;
+
+                remaining -= add;
+
+                Debug.Log($"[INV] NEW STACK slot {i} -> {add} | remaining {remaining}");
+            }
+        }
+
+        if (remaining > 0)
+        {
+            Debug.LogError($"[INV] WARNING: INVENTORY FULL -> LOST {remaining}x {data.itemName}");
+        }
+    }
+
+    // =========================================================
+    // DAMAGED ITEMS (ALWAYS SINGLE INSTANCES)
+    // =========================================================
+
+    void InsertAsSingleItems(ItemData data, int amount, float durability)
+    {
         int remaining = amount;
+
+        Debug.Log($"[INV] INSERTING DAMAGED ITEMS (no stacking)");
+
+        for (int i = 0; i < inventory.Count && remaining > 0; i++)
+        {
+            if (inventory[i].item == null)
+            {
+                inventory[i].item = data;
+                inventory[i].count = 1;
+                inventory[i].currentDurability = durability;
+
+                remaining--;
+
+                Debug.Log($"[INV] DAMAGED ITEM -> slot {i} | dur:{durability} | remaining {remaining}");
+            }
+        }
+
+        if (remaining > 0)
+        {
+            Debug.LogError($"[INV] WARNING: INVENTORY FULL -> LOST {remaining}x {data.itemName}");
+        }
+    }
+
+    // =========================================================
+    // HOTBAR RETURN SUPPORT
+    // =========================================================
+
+    public void AddSeparateItemInstance(ItemData data, int amount, float durability)
+    {
+        Debug.Log($"[INV] HOTBAR RETURN -> {data.itemName} x{amount}");
+
+        InsertAsSingleItems(data, amount, durability);
+
+        RefreshAll();
+    }
+
+    // =========================================================
+    // REMOVE ITEM
+    // =========================================================
+
+    public bool RemoveItem(ItemData data, int amount)
+    {
+        int remaining = amount;
+
+        Debug.Log($"[INV] REMOVE -> {data.itemName} x{amount}");
 
         for (int i = inventory.Count - 1; i >= 0; i--)
         {
             var slot = inventory[i];
 
-            if (slot.item != null)
+            if (slot.item != null && slot.item.itemID == data.itemID)
             {
-                Debug.Log($"[INV] Slot {i}: {slot.item.itemName} x{slot.count}");
+                int take = Mathf.Min(slot.count, remaining);
 
-                if (slot.item.itemID == data.itemID)
+                slot.count -= take;
+                remaining -= take;
+
+                Debug.Log($"[INV] Removed {take} from slot {i}");
+
+                if (slot.count <= 0)
                 {
-                    int take = Mathf.Min(slot.count, remaining);
+                    slot.item = null;
+                    slot.currentDurability = 0f;
 
-                    Debug.Log($"[INV] MATCH in slot {i}, removing {take}");
-
-                    slot.count -= take;
-                    remaining -= take;
-
-                    if (slot.count <= 0)
-                    {
-                        Debug.Log($"[INV] Slot {i} emptied");
-                        slot.item = null;
-                        slot.currentDurability = 0;
-                    }
-
-                    if (remaining <= 0)
-                        break;
+                    Debug.Log($"[INV] Cleared slot {i}");
                 }
+
+                if (remaining <= 0)
+                    break;
             }
         }
-
-        Debug.Log($"[INV] RemoveItem END -> remaining = {remaining}");
 
         RefreshAll();
 
         return remaining <= 0;
     }
 
+    // =========================================================
+    // DEBUG: SEE FULL INVENTORY STATE
+    // =========================================================
+
+    void PrintInventoryState()
+    {
+        Debug.Log("===== INVENTORY STATE =====");
+
+        for (int i = 0; i < inventory.Count; i++)
+        {
+            var s = inventory[i];
+
+            if (s.item == null)
+            {
+                Debug.Log($"Slot {i}: EMPTY");
+            }
+            else
+            {
+                Debug.Log($"Slot {i}: {s.item.itemName} x{s.count} | dur {s.currentDurability}");
+            }
+        }
+    }
+
+    // =========================================================
+    // SAVE / LOAD (UNCHANGED LOGIC)
+    // =========================================================
+
     public void SaveInventory()
     {
         PlayerHotbarManager.Instance?.SyncHotbarToData();
 
-        InventorySaveData saveData = new InventorySaveData();
+        InventorySaveData save = new InventorySaveData();
 
-        foreach (var slot in inventory)
+        foreach (var s in inventory)
         {
-            saveData.savedItems.Add(new SaveSlot
+            save.savedItems.Add(new SaveSlot
             {
-                itemId = slot.item != null ? slot.item.itemID : -1,
-                count = slot.count,
-                currentDurability = slot.currentDurability
+                itemId = s.item ? s.item.itemID : -1,
+                count = s.count,
+                currentDurability = s.currentDurability
             });
         }
 
         foreach (var h in hotbarData)
         {
-            saveData.hotbarItems.Add(new HotbarSaveSlot
+            save.hotbarItems.Add(new HotbarSaveSlot
             {
-                itemId = h.item != null ? h.item.itemID : -1,
-                abilityName = h.ability != null ? h.ability.name : "",
+                itemId = h.item ? h.item.itemID : -1,
+                abilityName = h.ability ? h.ability.name : "",
                 count = h.count,
                 currentDurability = h.currentDurability
             });
         }
 
-        File.WriteAllText(savePath, JsonUtility.ToJson(saveData, true));
+        File.WriteAllText(savePath, JsonUtility.ToJson(save, true));
+
+        Debug.Log("[INV] SAVED INVENTORY");
     }
 
     public void LoadInventory()
@@ -290,6 +319,7 @@ public class InventoryManager : MonoBehaviour
         for (int i = 0; i < hotbarSize && i < data.hotbarItems.Count; i++)
         {
             var h = data.hotbarItems[i];
+
             hotbarData[i].item = database.GetItemByID(h.itemId);
             hotbarData[i].ability = abilityDatabase.GetAbilityByName(h.abilityName);
             hotbarData[i].count = h.count;
@@ -297,12 +327,14 @@ public class InventoryManager : MonoBehaviour
         }
 
         PlayerHotbarManager.Instance?.RefreshHotbar();
+
+        Debug.Log("[INV] LOADED INVENTORY");
     }
 
     public void RefreshAll()
     {
-        SaveInventory();
         InvUI.Instance?.RefreshUI();
+        SaveInventory();
     }
 
     public int GetTotalCount(ItemData data)
@@ -315,16 +347,23 @@ public class InventoryManager : MonoBehaviour
         foreach (var slot in inventory)
         {
             if (slot.item != null && slot.item.itemID == data.itemID)
+            {
                 total += slot.count;
+            }
         }
 
         // hotbar
         foreach (var h in hotbarData)
         {
             if (h.item != null && h.item.itemID == data.itemID)
+            {
                 total += h.count;
+            }
         }
+
+        Debug.Log($"[INV] GetTotalCount -> {data.itemName} = {total}");
 
         return total;
     }
+
 }

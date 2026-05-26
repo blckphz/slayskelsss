@@ -61,7 +61,6 @@ public class TiltManager : MonoBehaviour
         clickAction.canceled -= OnClickUp;
         clickAction.Disable();
 
-        Debug.Log("[TiltManager] Input disabled");
 
         if (removeSoil != null)
         {
@@ -73,7 +72,6 @@ public class TiltManager : MonoBehaviour
     void OnClickDown(InputAction.CallbackContext ctx)
     {
         clickHeld = true;
-        Debug.Log("[TiltManager] Mouse DOWN - drag painting started");
     }
 
     void OnClickUp(InputAction.CallbackContext ctx)
@@ -220,7 +218,6 @@ public class TiltManager : MonoBehaviour
             data.Add(new SoilData { x = pos.x, y = pos.y, tileID = 0 });
         }
 
-        Debug.Log($"[TiltManager] Save requested -> {data.Count} tiles");
 
         return data;
     }

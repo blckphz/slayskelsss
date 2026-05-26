@@ -7,34 +7,53 @@ public class BuildMode : MonoBehaviour
     public InputActionReference toggleBuildMode;
     public InputActionReference toggleGrid;
 
-    [Header("Hotbar UI")]
-    public CanvasGroup buildModeSpriteGroup;
-
-    [Header("Sprite movement (optional)")]
+    [Header("Build Mode UI")]
+    public CanvasGroup buildModeCanvasGroup;
     public Transform buildModeSprite;
-    public Vector3 spriteHiddenOffset = new Vector3(0, -0.2f, 0);
+
+    [Header("Hotbar UI")]
+    public CanvasGroup hotbarCanvasGroup;
+    public Transform hotbarTransform;
+
+    [Header("Movement")]
+    public Vector3 buildModeHiddenOffset = new Vector3(0, -0.2f, 0);
+    public Vector3 hotbarHiddenOffset = new Vector3(0, 0.2f, 0);
     public float spriteSpeed = 8f;
 
     private bool buildMode;
     private bool useGridPlacement = true;
 
-    private Vector3 spriteShownPos;
-    private Vector3 spriteHiddenPos;
-    private float spriteTargetAlpha;
+    private Vector3 buildModeShownPos;
+    private Vector3 buildModeHiddenPos;
 
-    private void Start()
+    private Vector3 hotbarShownPos;
+    private Vector3 hotbarHiddenPos;
+
+    void Start()
     {
+        // Build mode positions
         if (buildModeSprite != null)
         {
-            spriteShownPos = buildModeSprite.localPosition;
-            spriteHiddenPos = spriteShownPos + spriteHiddenOffset;
+            buildModeShownPos = buildModeSprite.localPosition;
+            buildModeHiddenPos = buildModeShownPos + buildModeHiddenOffset;
         }
 
-        if (buildModeSpriteGroup != null)
-            buildModeSpriteGroup.alpha = 0f;
+        // Hotbar positions
+        if (hotbarTransform != null)
+        {
+            hotbarShownPos = hotbarTransform.localPosition;
+            hotbarHiddenPos = hotbarShownPos + hotbarHiddenOffset;
+        }
+
+        // Initial visibility
+        if (buildModeCanvasGroup != null)
+            buildModeCanvasGroup.alpha = 0f;
+
+        if (hotbarCanvasGroup != null)
+            hotbarCanvasGroup.alpha = 1f;
     }
 
-    private void OnEnable()
+    void OnEnable()
     {
         if (toggleBuildMode != null)
         {
@@ -49,7 +68,7 @@ public class BuildMode : MonoBehaviour
         }
     }
 
-    private void OnDisable()
+    void OnDisable()
     {
         if (toggleBuildMode != null)
         {
@@ -64,44 +83,56 @@ public class BuildMode : MonoBehaviour
         }
     }
 
-    private void Update()
+    void Update()
     {
-        if (buildModeSpriteGroup != null)
+        // Fade build mode IN / OUT
+        if (buildModeCanvasGroup != null)
         {
-            buildModeSpriteGroup.alpha = Mathf.Lerp(
-                buildModeSpriteGroup.alpha,
-                spriteTargetAlpha,
+            buildModeCanvasGroup.alpha = Mathf.Lerp(
+                buildModeCanvasGroup.alpha,
+                buildMode ? 1f : 0f,
                 Time.unscaledDeltaTime * spriteSpeed
             );
         }
 
+        // Fade hotbar opposite
+        if (hotbarCanvasGroup != null)
+        {
+            hotbarCanvasGroup.alpha = Mathf.Lerp(
+                hotbarCanvasGroup.alpha,
+                buildMode ? 0f : 1f,
+                Time.unscaledDeltaTime * spriteSpeed
+            );
+        }
+
+        // Build mode sprite movement
         if (buildModeSprite != null)
         {
             buildModeSprite.localPosition = Vector3.Lerp(
                 buildModeSprite.localPosition,
-                buildMode ? spriteShownPos : spriteHiddenPos,
+                buildMode ? buildModeShownPos : buildModeHiddenPos,
+                Time.unscaledDeltaTime * spriteSpeed
+            );
+        }
+
+        // Hotbar movement (opposite)
+        if (hotbarTransform != null)
+        {
+            hotbarTransform.localPosition = Vector3.Lerp(
+                hotbarTransform.localPosition,
+                buildMode ? hotbarHiddenPos : hotbarShownPos,
                 Time.unscaledDeltaTime * spriteSpeed
             );
         }
     }
 
-    private void OnToggle(InputAction.CallbackContext ctx)
+    void OnToggle(InputAction.CallbackContext ctx)
     {
         buildMode = !buildMode;
-        BuildState.Toggle();
-        spriteTargetAlpha = buildMode ? 1f : 0f;
-
-        // --- NEW CLEANUP LOGIC ---
-        if (!buildMode && BuildManager.Instance != null)
-        {
-            // We use Reflection to call Cancel() since it is private in BuildManager,
-            // or you can make Cancel() public in BuildManager.
-            // RECOMMENDED: Make Cancel() public in BuildManager.cs
-            BuildManager.Instance.Invoke("Cancel", 0f);
-        }
+        BuildState.Set(buildMode);
     }
 
-    private void OnToggleGrid(InputAction.CallbackContext ctx)
+    void OnToggleGrid(InputAction.CallbackContext ctx)
     {
         useGridPlacement = !useGridPlacement;
         BuildState.SetGridPlacement(useGridPlacement);
