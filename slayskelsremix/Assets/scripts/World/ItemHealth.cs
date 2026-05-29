@@ -131,10 +131,7 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
 
             percent = Mathf.Clamp(percent, 0f, 100f);
 
-            Debug.Log(
-                $"<color=yellow>[Tool Check]</color> " +
-                $"{tool.itemName} Durability: {current}/{tool.maxDurability} ({percent:F0}%)"
-            );
+          
         }
     }
 

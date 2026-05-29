@@ -74,7 +74,6 @@ public class InventoryManager : MonoBehaviour
         bool isDurabilityItem = data.maxDurability > 0;
         float durability = customDurability < 0 ? data.maxDurability : customDurability;
 
-        Debug.Log($"[INV] ADD ITEM -> {data.itemName} x{amount} | dur:{durability}");
 
         // =====================================================
         // NON DURABILITY ITEMS
@@ -141,7 +140,6 @@ public class InventoryManager : MonoBehaviour
 
                 remaining -= add;
 
-                Debug.Log($"[INV] NEW STACK slot {i} -> {add} | remaining {remaining}");
             }
         }
 
@@ -291,7 +289,6 @@ public class InventoryManager : MonoBehaviour
 
         File.WriteAllText(savePath, JsonUtility.ToJson(save, true));
 
-        Debug.Log("[INV] SAVED INVENTORY");
     }
 
     public void LoadInventory()

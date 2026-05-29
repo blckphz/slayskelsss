@@ -15,7 +15,6 @@ public static class ActionLock
         ConsumeInputThisFrame = true;
         lockFrame = Time.frameCount;
 
-        Debug.Log($"[ActionLock] LOCK ACTIVATED on frame {lockFrame}");
     }
 
     public static void Tick()
@@ -25,7 +24,6 @@ public static class ActionLock
             IsLocked = false;
             ConsumeInputThisFrame = false;
 
-            Debug.Log("[ActionLock] Lock released.");
         }
     }
 }

@@ -7,7 +7,7 @@ public class BuildingSaveManager : MonoBehaviour
     public static BuildingSaveManager Instance;
 
     // =====================================================
-    // BUILDING SAVE DATA
+    // BUILDING DATA
     // =====================================================
 
     [System.Serializable]
@@ -157,7 +157,7 @@ public class BuildingSaveManager : MonoBehaviour
                 }
             }
 
-            // CAMPFIRE DATA
+            // CAMPFIRE
             if (obj.TryGetComponent(
                 out CampfireBehav campfire))
             {
@@ -225,6 +225,22 @@ public class BuildingSaveManager : MonoBehaviour
                 tree.GetSaveData());
         }
 
+        // SAVE STUMPS
+        TreeStumpRegrow[] stumps =
+            FindObjectsByType<TreeStumpRegrow>(
+                FindObjectsSortMode.None);
+
+        foreach (TreeStumpRegrow stump in stumps)
+        {
+            data.trees.Add(
+                new TreeSaveData
+                {
+                    treeID = stump.treeID,
+                    isCut = true,
+                    cutTime = stump.GetCutTime()
+                });
+        }
+
         // =================================================
         // 5. SAVE SOIL
         // =================================================
@@ -237,14 +253,9 @@ public class BuildingSaveManager : MonoBehaviour
             data.soilTiles =
                 tilt.GetSaveData();
         }
-        else
-        {
-            Debug.LogError(
-                "TiltManager NOT FOUND → soil not saved!");
-        }
 
         // =================================================
-        // WRITE SAVE FILE
+        // WRITE FILE
         // =================================================
 
         string json =
@@ -252,8 +263,7 @@ public class BuildingSaveManager : MonoBehaviour
 
         File.WriteAllText(savePath, json);
 
-        Debug.Log(
-            "[SaveManager] SAVE COMPLETE");
+        Debug.Log("[SaveManager] SAVE COMPLETE");
     }
 
     // =====================================================
@@ -391,7 +401,8 @@ public class BuildingSaveManager : MonoBehaviour
         {
             var treeSave =
                 data.trees.Find(
-                    x => x.treeID == tree.UniqOverworldItemID);
+                    x => x.treeID ==
+                    tree.UniqOverworldItemID);
 
             if (treeSave != null)
             {
@@ -408,14 +419,8 @@ public class BuildingSaveManager : MonoBehaviour
 
         if (tilt != null)
         {
-
             tilt.LoadSoilTiles(
                 data.soilTiles);
-        }
-        else
-        {
-            Debug.LogError(
-                "TiltManager NOT FOUND → soil not loaded!");
         }
 
         Debug.Log(

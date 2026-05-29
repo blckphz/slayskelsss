@@ -57,7 +57,6 @@ public class LevelManager : MonoBehaviour
         xpToNextLevel += 50;
         skillPoints++;
 
-        Debug.Log($"<color=yellow>{gameObject.name} LEVELED UP! Level: {level} | Points: {skillPoints}</color>");
     }
 
     public void SpendSkillPoint(int amount)
@@ -95,7 +94,6 @@ public class LevelManager : MonoBehaviour
             this.xpToNextLevel = data.xpToNextLevel;
             this.skillPoints = data.skillPoints;
 
-            Debug.Log($"{gameObject.name} Loaded: Level {level}");
         }
     }
 }

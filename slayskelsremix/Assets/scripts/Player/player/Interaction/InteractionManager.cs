@@ -108,7 +108,6 @@ public class InteractionManager : MonoBehaviour
                     currentRenderer.color = highlightColor;
                 }
 
-                Debug.Log("[InteractionManager] Hover set: " + targetObj.name);
             }
         }
 

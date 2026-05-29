@@ -24,7 +24,6 @@ public class PerkManager : MonoBehaviour
 
     private void Awake()
     {
-        Debug.Log("[PerkManager] Awake");
 
         if (abilityDatabase == null)
         {

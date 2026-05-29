@@ -89,7 +89,6 @@ public class PlayerHotbarManager : MonoBehaviour
 
         if (count <= 1) return;
 
-        Debug.Log($"[Hotbar] Splitting stack {item.itemName} x{count}");
 
         slot.SetSlot(item, slot.GetAbility(), 1, slot.GetDurability());
 
@@ -148,11 +147,9 @@ public class PlayerHotbarManager : MonoBehaviour
             item.maxDurability
         );
 
-        Debug.Log($"[Hotbar] Durability: {slot.GetDurability()} -> {newDur}");
 
         if (newDur <= 0f)
         {
-            Debug.Log("[Hotbar] Item broken");
             slot.ClearSlot();
         }
         else
