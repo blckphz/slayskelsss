@@ -50,7 +50,7 @@ public class TreeStumpRegrow : MonoBehaviour
 
         // Pass the ID to the new tree so it knows who it is
         treeItemBehav treeScript = newTree.GetComponent<treeItemBehav>();
-        if (treeScript != null) treeScript.treeID = this.treeID;
+        if (treeScript != null) treeScript.UniqOverworldItemID = this.treeID;
 
         // Clean up PlayerPrefs for this ID
         PlayerPrefs.DeleteKey("Tree_" + treeID + "_isCut");

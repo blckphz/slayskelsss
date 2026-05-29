@@ -3,15 +3,13 @@ using System.Collections;
 
 public class treeItemBehav : ItemHealth
 {
-    [Header("Tree Identity")]
-    public string treeID;
 
-    [Header("Tool Requirement Settings")]
-    public ToolType effectiveTool = ToolType.Axe;
+    [Header("Save State")]
+    public bool isCut;
+    public float cutTime;
+
     public float axeBonusDamage = 10f;
 
-    [Header("Loot override")]
-    public GameObject woodPrefab;
 
     [Header("Tree Parts")]
     public GameObject topPrefab;
@@ -46,7 +44,8 @@ public class treeItemBehav : ItemHealth
     {
         timeSystem = FindObjectOfType<DayNightCycle>();
 
-        if (PlayerPrefs.GetInt("Tree_" + treeID + "_isCut", 0) == 1)
+        // LOAD STUMP STATE
+        if (isCut)
         {
             SpawnStumpOnly();
             return;
@@ -55,11 +54,51 @@ public class treeItemBehav : ItemHealth
         if (player == null)
         {
             GameObject p = GameObject.FindGameObjectWithTag("Player");
-            if (p != null) player = p.transform;
+
+            if (p != null)
+                player = p.transform;
         }
     }
 
-    // NEW OVERLOAD: Intercepts calculation to inject tool damage, checking dynamic item asset values
+#if UNITY_EDITOR
+    private void OnValidate()
+    {
+        if (string.IsNullOrEmpty(UniqOverworldItemID))
+        {
+            UniqOverworldItemID = System.Guid.NewGuid().ToString();
+        }
+    }
+#endif
+
+    // ==========================================
+    // SAVE / LOAD
+    // ==========================================
+
+    public TreeSaveData GetSaveData()
+    {
+        return new TreeSaveData
+        {
+            treeID = UniqOverworldItemID,
+            isCut = isCut,
+            cutTime = cutTime
+        };
+    }
+
+    public void LoadData(TreeSaveData data)
+    {
+        isCut = data.isCut;
+        cutTime = data.cutTime;
+
+        if (isCut)
+        {
+            SpawnStumpOnly();
+        }
+    }
+
+    // ==========================================
+    // DAMAGE
+    // ==========================================
+
     public override void TakeDamage(float damage, ToolType usedTool, ItemData toolItem)
     {
         if (isDead) return;
@@ -71,11 +110,9 @@ public class treeItemBehav : ItemHealth
             finalDamage += axeBonusDamage;
         }
 
-        // Forwards final calculations, tool identifiers, AND item asset properties to base context
         base.TakeDamage(finalDamage, usedTool, toolItem);
     }
 
-    // Intercepts calculation to inject extra tool damage without specific item asset context
     public override void TakeDamage(float damage, ToolType usedTool)
     {
         if (isDead) return;
@@ -97,148 +134,278 @@ public class treeItemBehav : ItemHealth
         base.TakeDamage(damage);
     }
 
-    // Overridden setup processing death conditions with tool checks
+    // ==========================================
+    // DEATH
+    // ==========================================
+
     protected override void Die(ToolType killerTool)
     {
         if (isDead) return;
+
         isDead = true;
 
         NPCGlobalEvents.NotifyDestroyed(gameObject.GetInstanceID());
 
-        if (givesXP) GrantXP();
+        if (givesXP)
+            GrantXP();
 
-        // Check if the finishing tool used matches the required harvest tool
-        bool killedWithCorrectTool = (killerTool == effectiveTool);
+        bool killedWithCorrectTool =
+            (killerTool == effectiveTool);
 
         StartCoroutine(FallSequence(killedWithCorrectTool));
     }
 
-    // Fallback requirement for base implementation rules
     protected override void Die()
     {
         Die(ToolType.None);
     }
 
+    // ==========================================
+    // STUMP
+    // ==========================================
+
     private void SpawnStumpOnly()
     {
         if (bottomPrefab != null)
         {
-            GameObject stump = Instantiate(bottomPrefab, transform.position, Quaternion.identity);
-            TreeStumpRegrow regrow = stump.GetComponent<TreeStumpRegrow>();
-            if (regrow != null) regrow.treeID = treeID;
+            GameObject stump =
+                Instantiate(bottomPrefab,
+                transform.position,
+                Quaternion.identity);
+
+            TreeStumpRegrow regrow =
+                stump.GetComponent<TreeStumpRegrow>();
+
+            if (regrow != null)
+            {
+                regrow.treeID = UniqOverworldItemID;
+            }
         }
+
         Destroy(gameObject);
     }
+
+    // ==========================================
+    // FALL SEQUENCE
+    // ==========================================
 
     private IEnumerator FallSequence(bool bonusLoot)
     {
+        // SAVE TREE STATE
+        isCut = true;
+
+        cutTime =
+            timeSystem != null
+            ? timeSystem.TotalTime
+            : Time.time;
+
+        // CREATE STUMP
         if (bottomPrefab != null)
         {
-            GameObject stump = Instantiate(bottomPrefab, transform.position, Quaternion.identity);
-            TreeStumpRegrow regrow = stump.GetComponent<TreeStumpRegrow>();
+            GameObject stump =
+                Instantiate(bottomPrefab,
+                transform.position,
+                Quaternion.identity);
+
+            TreeStumpRegrow regrow =
+                stump.GetComponent<TreeStumpRegrow>();
+
             if (regrow != null)
             {
-                regrow.Setup(treeID, timeSystem.TotalTime);
+                regrow.Setup(UniqOverworldItemID, cutTime);
             }
         }
 
+        // LEAF FX
         if (leafParticlePrefab != null)
-            Instantiate(leafParticlePrefab, transform.position, Quaternion.identity);
+        {
+            Instantiate(
+                leafParticlePrefab,
+                transform.position,
+                Quaternion.identity
+            );
+        }
 
+        // TREE TOP
         GameObject top = null;
-        if (topPrefab != null)
-            top = Instantiate(topPrefab, transform.position, Quaternion.identity);
 
-        if (spriteRenderer != null) spriteRenderer.enabled = false;
-        if (treeCollider != null) treeCollider.enabled = false;
+        if (topPrefab != null)
+        {
+            top = Instantiate(
+                topPrefab,
+                transform.position,
+                Quaternion.identity
+            );
+        }
+
+        // HIDE ORIGINAL TREE
+        if (spriteRenderer != null)
+            spriteRenderer.enabled = false;
+
+        if (treeCollider != null)
+            treeCollider.enabled = false;
 
         yield return new WaitForSeconds(fallDelay);
 
+        // FALL ANIMATION
         Vector2 dir = GetFallDirection();
+
         if (top != null)
         {
-            yield return StartCoroutine(RotateTop(top.transform, dir));
+            yield return StartCoroutine(
+                RotateTop(top.transform, dir)
+            );
 
-            // Runs custom specialized wood production calculation
             SpawnTreeLoot(bonusLoot);
+
             Destroy(top);
+        }
+
+        // AUTO SAVE
+        if (BuildingSaveManager.Instance != null)
+        {
+            BuildingSaveManager.Instance.SaveAfterChange();
         }
 
         Destroy(gameObject);
     }
 
-    // Dedicated tree resource controller managing tool dynamic additions
+    // ==========================================
+    // LOOT
+    // ==========================================
+
     private void SpawnTreeLoot(bool bonusLoot)
     {
-        if (woodPrefab != null)
+
+        int amount = Random.Range(2, 4);
+
+        if (bonusLoot)
         {
-            // Base generation drop rules (Randomly yields 2 or 3 resources)
-            int amount = Random.Range(2, 4);
+            amount += correctToolUsageBonus;
+        }
 
-            // Conditional extra item injection step
-            if (bonusLoot)
+        for (int i = 0; i < amount; i++)
+        {
+            GameObject loot = Instantiate(
+                lootPrefab,
+                transform.position +
+                (Vector3)Random.insideUnitCircle * 0.5f,
+                Quaternion.identity
+            );
+
+            if (loot.TryGetComponent<LootArc>(out LootArc arc))
             {
-                amount += correctToolUsageBonus;
-            }
-
-            for (int i = 0; i < amount; i++)
-            {
-                GameObject loot = Instantiate(woodPrefab, transform.position + (Vector3)Random.insideUnitCircle * 0.5f, Quaternion.identity);
-
-                if (loot.TryGetComponent<LootArc>(out LootArc arc))
-                {
-                    arc.Initialize(transform.position);
-                }
+                arc.Initialize(transform.position);
             }
         }
     }
 
-    // Satisfies abstract declaration needs while directing processes correctly
     public override void SpawnLoot()
     {
         SpawnTreeLoot(false);
     }
 
+    // ==========================================
+    // FALL DIRECTION
+    // ==========================================
+
     private Vector2 GetFallDirection()
     {
-        if (player == null) return Vector2.right;
-        return ((Vector2)transform.position - (Vector2)player.position).normalized;
+        if (player == null)
+            return Vector2.right;
+
+        return (
+            (Vector2)transform.position -
+            (Vector2)player.position
+        ).normalized;
     }
+
+    // ==========================================
+    // ROTATION
+    // ==========================================
 
     private IEnumerator RotateTop(Transform top, Vector2 dir)
     {
         float progress = 0f;
-        RulesRotate(top, dir, out Quaternion startRot, out Quaternion endRot, out Vector3 startPos, out Vector3 endPos);
+
+        RulesRotate(
+            top,
+            dir,
+            out Quaternion startRot,
+            out Quaternion endRot,
+            out Vector3 startPos,
+            out Vector3 endPos
+        );
 
         while (progress < 1f)
         {
             progress += Time.deltaTime * fallSpeed;
-            top.rotation = Quaternion.Lerp(startRot, endRot, progress);
-            top.position = Vector3.Lerp(startPos, endPos, progress);
+
+            top.rotation =
+                Quaternion.Lerp(startRot, endRot, progress);
+
+            top.position =
+                Vector3.Lerp(startPos, endPos, progress);
+
             yield return null;
         }
 
-        SpriteRenderer topSR = top.GetComponent<SpriteRenderer>();
-        if (topSR != null) yield return StartCoroutine(FadeOut(topSR));
+        SpriteRenderer topSR =
+            top.GetComponent<SpriteRenderer>();
+
+        if (topSR != null)
+        {
+            yield return StartCoroutine(FadeOut(topSR));
+        }
     }
 
-    private void RulesRotate(Transform top, Vector2 dir, out Quaternion startRot, out Quaternion endRot, out Vector3 startPos, out Vector3 endPos)
+    private void RulesRotate(
+        Transform top,
+        Vector2 dir,
+        out Quaternion startRot,
+        out Quaternion endRot,
+        out Vector3 startPos,
+        out Vector3 endPos)
     {
         startRot = top.rotation;
-        float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
-        endRot = Quaternion.Euler(0, 0, angle - 90f);
+
+        float angle =
+            Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+
+        endRot =
+            Quaternion.Euler(0, 0, angle - 90f);
+
         startPos = top.position;
-        endPos = startPos + (Vector3)(dir * fallDistance);
+
+        endPos =
+            startPos + (Vector3)(dir * fallDistance);
     }
+
+    // ==========================================
+    // FADE
+    // ==========================================
 
     private IEnumerator FadeOut(SpriteRenderer sr)
     {
         Color col = sr.color;
+
         float elapsed = 0f;
+
         while (elapsed < fadeDuration)
         {
             elapsed += Time.deltaTime;
-            sr.color = new Color(col.r, col.g, col.b, Mathf.Lerp(1f, 0f, elapsed / fadeDuration));
+
+            sr.color = new Color(
+                col.r,
+                col.g,
+                col.b,
+                Mathf.Lerp(
+                    1f,
+                    0f,
+                    elapsed / fadeDuration
+                )
+            );
+
             yield return null;
         }
     }

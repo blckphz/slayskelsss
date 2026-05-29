@@ -41,7 +41,6 @@ public class CraftUIManager : MonoBehaviour
         foreach (Transform child in bgGridParent) bgSlots.Add(child);
         foreach (Transform child in iconGridParent) iconSlots.Add(child);
 
-        Debug.Log("[CraftUI] Awake - Slots loaded: " + bgSlots.Count);
 
         if (craftButton != null)
         {

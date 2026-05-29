@@ -6,86 +6,138 @@ public class BuildingSaveManager : MonoBehaviour
 {
     public static BuildingSaveManager Instance;
 
+    // =====================================================
+    // BUILDING SAVE DATA
+    // =====================================================
+
     [System.Serializable]
     public class BuildingData
     {
         public int itemID;
         public string uniqueID;
+
         public Vector3 position;
+
         public int currentAmmo;
         public float plantProgress;
         public int structuralDurability;
+
+        // CAMPFIRE
         public float fuelAmount;
         public bool isBurning;
         public int fuelItemID;
     }
 
+    // =====================================================
+    // ROOT SAVE FILE
+    // =====================================================
+
     [System.Serializable]
     public class SaveData
     {
-        public List<BuildingData> buildings = new List<BuildingData>();
-        public List<NpcInventorySaveData> npcInventories = new List<NpcInventorySaveData>();
-        public List<BushSaveData> bushes = new List<BushSaveData>();
+        // BUILDINGS
+        public List<BuildingData> buildings =
+            new List<BuildingData>();
 
-        // SOIL DATA
-        public List<SoilData> soilTiles = new List<SoilData>();
+        // NPCS
+        public List<NpcInventorySaveData> npcInventories =
+            new List<NpcInventorySaveData>();
+
+        // BUSHES
+        public List<BushSaveData> bushes =
+            new List<BushSaveData>();
+
+        // TREES
+        public List<TreeSaveData> trees =
+            new List<TreeSaveData>();
+
+        // SOIL
+        public List<SoilData> soilTiles =
+            new List<SoilData>();
     }
 
+    // =====================================================
+    // REFERENCES
+    // =====================================================
+
     public ItemDatabase database;
-    private List<GameObject> placedBuildings = new List<GameObject>();
+
+    private List<GameObject> placedBuildings =
+        new List<GameObject>();
+
     private string savePath;
+
+    // =====================================================
+    // UNITY
+    // =====================================================
 
     private void Awake()
     {
         if (Instance == null)
+        {
             Instance = this;
+        }
         else
         {
             Destroy(gameObject);
             return;
         }
 
-        savePath = Application.persistentDataPath + "/buildings.json";
+        savePath =
+            Application.persistentDataPath +
+            "/buildings.json";
     }
 
     private void Start()
     {
-        Debug.Log("[SaveManager] Loading world...");
         LoadEverything();
     }
 
+    // =====================================================
+    // REGISTER BUILDINGS
+    // =====================================================
+
     public void RegisterBuilding(GameObject obj)
     {
-        if (obj != null && !placedBuildings.Contains(obj))
+        if (obj != null &&
+            !placedBuildings.Contains(obj))
+        {
             placedBuildings.Add(obj);
+        }
     }
 
     public void UnregisterBuilding(GameObject obj)
     {
-        if (obj != null && placedBuildings.Contains(obj))
+        if (obj != null &&
+            placedBuildings.Contains(obj))
+        {
             placedBuildings.Remove(obj);
+        }
     }
 
-    // ==========================================
-    // SAVE SYSTEM
-    // ==========================================
+    // =====================================================
+    // SAVE EVERYTHING
+    // =====================================================
+
     public void SaveNow()
     {
         SaveData data = new SaveData();
 
-        // --------------------------------------
+        // =================================================
         // 1. SAVE BUILDINGS
-        // --------------------------------------
+        // =================================================
+
         placedBuildings.RemoveAll(item => item == null);
 
         foreach (GameObject obj in placedBuildings)
         {
-            BuildingData b = new BuildingData
-            {
-                position = obj.transform.position
-            };
+            BuildingData b = new BuildingData();
 
-            if (obj.TryGetComponent(out ISaveableBuilding saveable))
+            b.position = obj.transform.position;
+
+            // SAVEABLE BUILDINGS
+            if (obj.TryGetComponent(
+                out ISaveableBuilding saveable))
             {
                 b.itemID = saveable.GetItemID();
 
@@ -95,16 +147,28 @@ public class BuildingSaveManager : MonoBehaviour
                     out b.structuralDurability
                 );
             }
-            else if (obj.TryGetComponent(out BuildIdentity id) && id.item != null)
+            // NORMAL BUILD OBJECTS
+            else if (obj.TryGetComponent(
+                out BuildIdentity id))
             {
-                b.itemID = id.item.itemID;
+                if (id.item != null)
+                {
+                    b.itemID = id.item.itemID;
+                }
             }
 
-            if (obj.TryGetComponent(out CampfireBehav campfire))
+            // CAMPFIRE DATA
+            if (obj.TryGetComponent(
+                out CampfireBehav campfire))
             {
-                b.fuelAmount = campfire.fuelAmount;
-                b.isBurning = campfire.isBurning;
-                b.fuelItemID = campfire.fuelItem != null
+                b.fuelAmount =
+                    campfire.fuelAmount;
+
+                b.isBurning =
+                    campfire.isBurning;
+
+                b.fuelItemID =
+                    campfire.fuelItem != null
                     ? campfire.fuelItem.itemID
                     : -1;
             }
@@ -112,89 +176,139 @@ public class BuildingSaveManager : MonoBehaviour
             data.buildings.Add(b);
         }
 
-        // --------------------------------------
+        // =================================================
         // 2. SAVE NPCS
-        // --------------------------------------
+        // =================================================
+
         NpcInvBrain[] npcs =
-            FindObjectsByType<NpcInvBrain>(FindObjectsSortMode.None);
+            FindObjectsByType<NpcInvBrain>(
+                FindObjectsSortMode.None);
 
         foreach (NpcInvBrain npc in npcs)
         {
-            data.npcInventories.Add(npc.GetSaveData());
+            data.npcInventories.Add(
+                npc.GetSaveData());
         }
 
-        // --------------------------------------
+        // =================================================
         // 3. SAVE BUSHES
-        // --------------------------------------
+        // =================================================
+
         BushBehav[] bushes =
-            FindObjectsByType<BushBehav>(FindObjectsSortMode.None);
+            FindObjectsByType<BushBehav>(
+                FindObjectsSortMode.None);
 
         foreach (BushBehav bush in bushes)
         {
-            data.bushes.Add(new BushSaveData
-            {
-                bushID = bush.bushID,
-                isHarvested = bush.IsHarvested,
-                health = bush.health,
-                timeAtHarvest = bush.GetSaveData().timeAtHarvest
-            });
+            data.bushes.Add(
+                new BushSaveData
+                {
+                    bushID = bush.bushID,
+                    isHarvested = bush.IsHarvested,
+                    health = bush.health,
+                    timeAtHarvest =
+                        bush.GetSaveData().timeAtHarvest
+                });
         }
 
-        // --------------------------------------
-        // 4. SAVE SOIL
-        // --------------------------------------
-        TiltManager tilt = FindFirstObjectByType<TiltManager>();
+        // =================================================
+        // 4. SAVE TREES
+        // =================================================
+
+        treeItemBehav[] trees =
+            FindObjectsByType<treeItemBehav>(
+                FindObjectsSortMode.None);
+
+        foreach (treeItemBehav tree in trees)
+        {
+            data.trees.Add(
+                tree.GetSaveData());
+        }
+
+        // =================================================
+        // 5. SAVE SOIL
+        // =================================================
+
+        TiltManager tilt =
+            FindFirstObjectByType<TiltManager>();
 
         if (tilt != null)
         {
-            data.soilTiles = tilt.GetSaveData();
+            data.soilTiles =
+                tilt.GetSaveData();
         }
         else
         {
-            Debug.LogError("TiltManager NOT FOUND → soil not saved!");
+            Debug.LogError(
+                "TiltManager NOT FOUND → soil not saved!");
         }
 
-        // --------------------------------------
-        // WRITE FILE
-        // --------------------------------------
-        string json = JsonUtility.ToJson(data, true);
+        // =================================================
+        // WRITE SAVE FILE
+        // =================================================
+
+        string json =
+            JsonUtility.ToJson(data, true);
+
         File.WriteAllText(savePath, json);
 
+        Debug.Log(
+            "[SaveManager] SAVE COMPLETE");
     }
 
-    // ==========================================
-    // LOAD SYSTEM
-    // ==========================================
+    // =====================================================
+    // LOAD EVERYTHING
+    // =====================================================
+
     public void LoadEverything()
     {
         if (!File.Exists(savePath))
         {
-            Debug.LogWarning("No save file found.");
+            Debug.LogWarning(
+                "No save file found.");
+
             return;
         }
 
-        string json = File.ReadAllText(savePath);
-        SaveData data = JsonUtility.FromJson<SaveData>(json);
+        string json =
+            File.ReadAllText(savePath);
 
-        // --------------------------------------
+        SaveData data =
+            JsonUtility.FromJson<SaveData>(json);
+
+        // =================================================
         // 1. LOAD BUILDINGS
-        // --------------------------------------
-        foreach (var b in data.buildings)
+        // =================================================
+
+        foreach (BuildingData b in data.buildings)
         {
-            ItemData item = database.GetItemByID(b.itemID);
-            if (item == null) continue;
+            ItemData item =
+                database.GetItemByID(b.itemID);
+
+            if (item == null)
+                continue;
 
             GameObject prefab =
-                (item is buildSO build) ? build.placeablePrefab :
-                (item is SeedSO seed) ? seed.plantPrefab :
-                null;
+                (item is buildSO build)
+                    ? build.placeablePrefab
+                    : (item is SeedSO seed)
+                        ? seed.plantPrefab
+                        : null;
 
-            if (prefab == null) continue;
+            if (prefab == null)
+                continue;
 
-            GameObject obj = Instantiate(prefab, b.position, Quaternion.identity);
+            GameObject obj =
+                Instantiate(
+                    prefab,
+                    b.position,
+                    Quaternion.identity);
+
             obj.name = prefab.name;
 
-            if (obj.TryGetComponent(out ISaveableBuilding saveable))
+            // LOAD SAVEABLE BUILDINGS
+            if (obj.TryGetComponent(
+                out ISaveableBuilding saveable))
             {
                 saveable.LoadSaveData(
                     b.currentAmmo,
@@ -203,66 +317,114 @@ public class BuildingSaveManager : MonoBehaviour
                 );
             }
 
-            if (obj.TryGetComponent(out CampfireBehav campfire))
+            // LOAD CAMPFIRE
+            if (obj.TryGetComponent(
+                out CampfireBehav campfire))
             {
-                campfire.fuelAmount = b.fuelAmount;
-                campfire.isBurning = b.isBurning;
+                campfire.fuelAmount =
+                    b.fuelAmount;
+
+                campfire.isBurning =
+                    b.isBurning;
 
                 if (b.fuelItemID != -1)
-                    campfire.fuelItem = database.GetItemByID(b.fuelItemID);
+                {
+                    campfire.fuelItem =
+                        database.GetItemByID(
+                            b.fuelItemID);
+                }
 
                 campfire.SendMessage(
                     "UpdateVisuals",
-                    SendMessageOptions.DontRequireReceiver
-                );
+                    SendMessageOptions
+                        .DontRequireReceiver);
             }
 
             RegisterBuilding(obj);
         }
 
-        // --------------------------------------
+        // =================================================
         // 2. LOAD NPCS
-        // --------------------------------------
+        // =================================================
+
         foreach (NpcInvBrain npc in
-            FindObjectsByType<NpcInvBrain>(FindObjectsSortMode.None))
+            FindObjectsByType<NpcInvBrain>(
+                FindObjectsSortMode.None))
         {
             var npcSave =
-                data.npcInventories.Find(x => x.npcId == npc.npcId);
+                data.npcInventories.Find(
+                    x => x.npcId == npc.npcId);
 
             if (npcSave != null)
-                npc.LoadFromSave(npcSave, database);
+            {
+                npc.LoadFromSave(
+                    npcSave,
+                    database);
+            }
         }
 
-        // --------------------------------------
+        // =================================================
         // 3. LOAD BUSHES
-        // --------------------------------------
+        // =================================================
+
         foreach (BushBehav bush in
-            FindObjectsByType<BushBehav>(FindObjectsSortMode.None))
+            FindObjectsByType<BushBehav>(
+                FindObjectsSortMode.None))
         {
             var bushSave =
-                data.bushes.Find(x => x.bushID == bush.bushID);
+                data.bushes.Find(
+                    x => x.bushID == bush.bushID);
 
             if (bushSave != null)
+            {
                 bush.LoadData(bushSave);
+            }
         }
 
-        // --------------------------------------
-        // 4. LOAD SOIL
-        // --------------------------------------
-        TiltManager tilt = FindFirstObjectByType<TiltManager>();
+        // =================================================
+        // 4. LOAD TREES
+        // =================================================
+
+        foreach (treeItemBehav tree in
+            FindObjectsByType<treeItemBehav>(
+                FindObjectsSortMode.None))
+        {
+            var treeSave =
+                data.trees.Find(
+                    x => x.treeID == tree.UniqOverworldItemID);
+
+            if (treeSave != null)
+            {
+                tree.LoadData(treeSave);
+            }
+        }
+
+        // =================================================
+        // 5. LOAD SOIL
+        // =================================================
+
+        TiltManager tilt =
+            FindFirstObjectByType<TiltManager>();
 
         if (tilt != null)
         {
-            Debug.Log("SOIL LOADING COUNT: " + data.soilTiles.Count);
-            tilt.LoadSoilTiles(data.soilTiles);
+
+            tilt.LoadSoilTiles(
+                data.soilTiles);
         }
         else
         {
-            Debug.LogError("TiltManager NOT FOUND → soil not loaded!");
+            Debug.LogError(
+                "TiltManager NOT FOUND → soil not loaded!");
         }
 
-        Debug.Log("World loaded successfully.");
+        Debug.Log(
+            "World loaded successfully.");
     }
+
+    // =====================================================
+    // QUICK SAVE
+    // =====================================================
 
     public void SaveAfterChange()
     {

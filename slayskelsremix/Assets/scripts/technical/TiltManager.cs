@@ -35,7 +35,6 @@ public class TiltManager : MonoBehaviour
 
         clickAction = new InputAction(type: InputActionType.Button, binding: "<Pointer>/press");
 
-        Debug.Log($"[TiltManager] Awake | Camera: {cam?.name} | CompositeCollider: {compositeCollider != null}");
     }
 
     void OnEnable()
@@ -44,7 +43,6 @@ public class TiltManager : MonoBehaviour
         clickAction.canceled += OnClickUp;
         clickAction.Enable();
 
-        Debug.Log("[TiltManager] Input enabled");
 
         if (removeSoil != null)
         {
@@ -159,7 +157,6 @@ public class TiltManager : MonoBehaviour
 
         bool result = item is UseableItem usable && usable.abilityToExecute is ShowelSO;
 
-        Debug.Log($"[TiltManager] Shovel check => {result}");
 
         return result;
     }
@@ -227,7 +224,6 @@ public class TiltManager : MonoBehaviour
         tilemap.ClearAllTiles();
         placedTiles.Clear();
 
-        Debug.Log($"[TiltManager] Loading tiles -> {data?.Count ?? 0}");
 
         if (data == null || data.Count == 0)
             return;

@@ -13,7 +13,6 @@ public class ResourceBehav : ItemHealth, IRespawnable
 
         if (spawner != null)
         {
-            spawner.NotifyDeath(RespawnID, transform.position);
         }
     }
 }

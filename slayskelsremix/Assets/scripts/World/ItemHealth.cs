@@ -5,6 +5,8 @@ using UnityEngine;
 
 public abstract class ItemHealth : MonoBehaviour, IDamageable
 {
+    public string UniqOverworldItemID;
+
     [Header("Health")]
     public float health = 50f;
     protected float maxHealth;

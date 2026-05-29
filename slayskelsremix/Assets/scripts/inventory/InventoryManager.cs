@@ -328,7 +328,6 @@ public class InventoryManager : MonoBehaviour
 
         PlayerHotbarManager.Instance?.RefreshHotbar();
 
-        Debug.Log("[INV] LOADED INVENTORY");
     }
 
     public void RefreshAll()
