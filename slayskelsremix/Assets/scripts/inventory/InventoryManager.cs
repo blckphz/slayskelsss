@@ -88,7 +88,6 @@ public class InventoryManager : MonoBehaviour
 
         bool isFull = durability >= data.maxDurability;
 
-        Debug.Log($"[INV] IsFullDurabilityStack: {isFull}");
 
         if (isFull)
         {
@@ -110,7 +109,6 @@ public class InventoryManager : MonoBehaviour
     {
         int remaining = amount;
 
-        Debug.Log($"[INV] STACKING into FULL durability slots...");
 
         // STEP 1: fill existing stacks
         for (int i = 0; i < inventory.Count && remaining > 0; i++)
@@ -127,7 +125,6 @@ public class InventoryManager : MonoBehaviour
                 slot.count += add;
                 remaining -= add;
 
-                Debug.Log($"[INV] STACKED into slot {i} -> now {slot.count} | remaining {remaining}");
             }
         }
 
