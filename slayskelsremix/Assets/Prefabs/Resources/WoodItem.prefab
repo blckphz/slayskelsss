@@ -190,3 +190,4 @@ MonoBehaviour:
   spreadRadius: 1
   bounceHeight: 0.3
   bounceDuration: 0.2
+  bounceClip: {fileID: 8300000, guid: daa2b94b9674c7f4887378c4c1dd3952, type: 3}

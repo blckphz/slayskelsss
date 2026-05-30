@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ToolsSO
   abilityName: Stick
   description: sticky
-  icon: {fileID: 21300000, guid: 6187cefa0ca226948b6a46b18df2c5b9, type: 3}
+  icon: {fileID: 21300000, guid: ff122620c5a99664eaf888340d62aff2, type: 3}
   launchsound: {fileID: 0}
   fireRate: 2.2
   isOnCooldown: 0

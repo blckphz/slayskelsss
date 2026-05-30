@@ -5,7 +5,6 @@ public class treeItemBehav : ItemHealth
 {
     [Header("Save State")]
     public bool isCut;
-
     public float cutTime;
 
     [Header("Damage")]
@@ -13,7 +12,6 @@ public class treeItemBehav : ItemHealth
 
     [Header("Tree Parts")]
     public GameObject topPrefab;
-
     public GameObject bottomPrefab;
 
     [Header("Player Reference")]
@@ -21,9 +19,7 @@ public class treeItemBehav : ItemHealth
 
     [Header("Fall Settings")]
     public float fallSpeed = 2f;
-
     public float fallDistance = 0.5f;
-
     public float fallDelay = 0.05f;
 
     [Header("Fade Settings")]
@@ -32,13 +28,22 @@ public class treeItemBehav : ItemHealth
     [Header("VFX")]
     public GameObject leafParticlePrefab;
 
-    public Vector3 damageTextOffset =
-        new Vector3(0, 1.5f, 0);
+    [Header("Loot")]
+    public GameObject StickPrefab;
+
+    [Header("Stick Spawn Points")]
+    public Transform stickSpawn1;
+    public Transform stickSpawn2;
+
+    [Range(0f, 1f)]
+    public float stickSpawnChancePerDay = 0.2f;
+
+    private int lastCheckedDay = -1;
+
+    public Vector3 damageTextOffset = new Vector3(0, 1.5f, 0);
 
     private bool isDead = false;
-
     private Collider2D treeCollider;
-
     private DayNightCycle timeSystem;
 
     // ==========================================
@@ -48,17 +53,13 @@ public class treeItemBehav : ItemHealth
     protected override void Awake()
     {
         base.Awake();
-
-        treeCollider =
-            GetComponent<Collider2D>();
+        treeCollider = GetComponent<Collider2D>();
     }
 
     void Start()
     {
-        timeSystem =
-            FindFirstObjectByType<DayNightCycle>();
+        timeSystem = FindFirstObjectByType<DayNightCycle>();
 
-        // TREE WAS CUT
         if (isCut)
         {
             SpawnStumpOnly();
@@ -67,30 +68,48 @@ public class treeItemBehav : ItemHealth
 
         if (player == null)
         {
-            GameObject p =
-                GameObject.FindGameObjectWithTag(
-                    "Player");
-
+            GameObject p = GameObject.FindGameObjectWithTag("Player");
             if (p != null)
-            {
                 player = p.transform;
-            }
         }
     }
 
-#if UNITY_EDITOR
-
-    private void OnValidate()
+    void Update()
     {
-        if (string.IsNullOrEmpty(
-            UniqOverworldItemID))
-        {
-            UniqOverworldItemID =
-                System.Guid.NewGuid().ToString();
-        }
+        HandleDailyStickSpawn();
     }
 
-#endif
+    private void HandleDailyStickSpawn()
+    {
+        if (timeSystem == null)
+            return;
+
+        if (timeSystem.DaysPassed == lastCheckedDay)
+            return;
+
+        lastCheckedDay = timeSystem.DaysPassed;
+        TrySpawnStick();
+    }
+
+    private void TrySpawnStick()
+    {
+        if (StickPrefab == null)
+            return;
+
+        if (Random.value > stickSpawnChancePerDay)
+            return;
+
+        Transform spawn = Random.value < 0.5f ? stickSpawn1 : stickSpawn2;
+
+        if (spawn == null)
+            return;
+
+        float radius = 0.2f;
+        if (Physics2D.OverlapCircle(spawn.position, radius) != null)
+            return;
+
+        Instantiate(StickPrefab, spawn.position, Quaternion.identity);
+    }
 
     // ==========================================
     // SAVE / LOAD
@@ -100,14 +119,9 @@ public class treeItemBehav : ItemHealth
     {
         return new TreeSaveData
         {
-            treeID =
-                UniqOverworldItemID,
-
-            isCut =
-                isCut,
-
-            cutTime =
-                cutTime
+            treeID = UniqOverworldItemID,
+            isCut = isCut,
+            cutTime = cutTime
         };
     }
 
@@ -117,23 +131,17 @@ public class treeItemBehav : ItemHealth
             return;
 
         isCut = data.isCut;
-
         cutTime = data.cutTime;
 
         if (isCut)
-        {
             SpawnStumpOnly();
-        }
     }
 
     // ==========================================
     // DAMAGE
     // ==========================================
 
-    public override void TakeDamage(
-        float damage,
-        ToolType usedTool,
-        ItemData toolItem)
+    public override void TakeDamage(float damage, ToolType usedTool, ItemData toolItem)
     {
         if (isDead)
             return;
@@ -141,19 +149,12 @@ public class treeItemBehav : ItemHealth
         float finalDamage = damage;
 
         if (usedTool == effectiveTool)
-        {
             finalDamage += axeBonusDamage;
-        }
 
-        base.TakeDamage(
-            finalDamage,
-            usedTool,
-            toolItem);
+        base.TakeDamage(finalDamage, usedTool, toolItem);
     }
 
-    public override void TakeDamage(
-        float damage,
-        ToolType usedTool)
+    public override void TakeDamage(float damage, ToolType usedTool)
     {
         if (isDead)
             return;
@@ -161,13 +162,9 @@ public class treeItemBehav : ItemHealth
         float finalDamage = damage;
 
         if (usedTool == effectiveTool)
-        {
             finalDamage += axeBonusDamage;
-        }
 
-        base.TakeDamage(
-            finalDamage,
-            usedTool);
+        base.TakeDamage(finalDamage, usedTool);
     }
 
     public override void TakeDamage(float damage)
@@ -182,28 +179,21 @@ public class treeItemBehav : ItemHealth
     // DEATH
     // ==========================================
 
-    protected override void Die(
-        ToolType killerTool)
+    protected override void Die(ToolType killerTool)
     {
         if (isDead)
             return;
 
         isDead = true;
 
-        NPCGlobalEvents.NotifyDestroyed(
-            gameObject.GetInstanceID());
+        NPCGlobalEvents.NotifyDestroyed(gameObject.GetInstanceID());
 
         if (givesXP)
-        {
             GrantXP();
-        }
 
-        bool killedWithCorrectTool =
-            (killerTool == effectiveTool);
+        bool correctTool = (killerTool == effectiveTool);
 
-        StartCoroutine(
-            FallSequence(
-                killedWithCorrectTool));
+        StartCoroutine(FallSequence(correctTool));
     }
 
     protected override void Die()
@@ -219,21 +209,12 @@ public class treeItemBehav : ItemHealth
     {
         if (bottomPrefab != null)
         {
-            GameObject stump =
-                Instantiate(
-                    bottomPrefab,
-                    transform.position,
-                    Quaternion.identity);
+            GameObject stump = Instantiate(bottomPrefab, transform.position, Quaternion.identity);
 
-            TreeStumpRegrow regrow =
-                stump.GetComponent<TreeStumpRegrow>();
+            TreeStumpRegrow regrow = stump.GetComponent<TreeStumpRegrow>();
 
             if (regrow != null)
-            {
-                regrow.Setup(
-                    UniqOverworldItemID,
-                    cutTime);
-            }
+                regrow.Setup(UniqOverworldItemID, cutTime);
         }
 
         Destroy(gameObject);
@@ -243,95 +224,50 @@ public class treeItemBehav : ItemHealth
     // FALL SEQUENCE
     // ==========================================
 
-    private IEnumerator FallSequence(
-        bool bonusLoot)
+    private IEnumerator FallSequence(bool bonusLoot)
     {
-        // MARK CUT
         isCut = true;
+        cutTime = timeSystem != null ? timeSystem.TotalTime : Time.time;
 
-        cutTime =
-            timeSystem != null
-            ? timeSystem.TotalTime
-            : Time.time;
-
-        // SPAWN STUMP
         if (bottomPrefab != null)
         {
-            GameObject stump =
-                Instantiate(
-                    bottomPrefab,
-                    transform.position,
-                    Quaternion.identity);
+            GameObject stump = Instantiate(bottomPrefab, transform.position, Quaternion.identity);
 
-            TreeStumpRegrow regrow =
-                stump.GetComponent<TreeStumpRegrow>();
+            TreeStumpRegrow regrow = stump.GetComponent<TreeStumpRegrow>();
 
             if (regrow != null)
-            {
-                regrow.Setup(
-                    UniqOverworldItemID,
-                    cutTime);
-            }
+                regrow.Setup(UniqOverworldItemID, cutTime);
         }
 
-        // LEAF FX
         if (leafParticlePrefab != null)
-        {
-            Instantiate(
-                leafParticlePrefab,
-                transform.position,
-                Quaternion.identity);
-        }
+            Instantiate(leafParticlePrefab, transform.position, Quaternion.identity);
 
-        // TREE TOP
         GameObject top = null;
 
         if (topPrefab != null)
-        {
-            top =
-                Instantiate(
-                    topPrefab,
-                    transform.position,
-                    Quaternion.identity);
-        }
+            top = Instantiate(topPrefab, transform.position, Quaternion.identity);
 
-        // HIDE TREE
         if (spriteRenderer != null)
-        {
             spriteRenderer.enabled = false;
-        }
 
         if (treeCollider != null)
-        {
             treeCollider.enabled = false;
-        }
 
-        yield return
-            new WaitForSeconds(fallDelay);
+        yield return new WaitForSeconds(fallDelay);
 
-        // FALL
-        Vector2 dir =
-            GetFallDirection();
+        Vector2 dir = GetFallDirection();
 
         if (top != null)
         {
-            yield return
-                StartCoroutine(
-                    RotateTop(
-                        top.transform,
-                        dir));
+            yield return StartCoroutine(RotateTop(top.transform, dir));
 
             SpawnTreeLoot(bonusLoot);
 
             Destroy(top);
         }
 
-        // SAVE
         if (BuildingSaveManager.Instance != null)
-        {
-            BuildingSaveManager.Instance
-                .SaveAfterChange();
-        }
+            BuildingSaveManager.Instance.SaveAfterChange();
 
         Destroy(gameObject);
     }
@@ -342,31 +278,21 @@ public class treeItemBehav : ItemHealth
 
     private void SpawnTreeLoot(bool bonusLoot)
     {
-        int amount =
-            Random.Range(2, 4);
+        int amount = Random.Range(2, 4);
 
         if (bonusLoot)
-        {
-            amount +=
-                correctToolUsageBonus;
-        }
+            amount += correctToolUsageBonus;
 
         for (int i = 0; i < amount; i++)
         {
-            GameObject loot =
-                Instantiate(
-                    lootPrefab,
-                    transform.position +
-                    (Vector3)
-                    Random.insideUnitCircle * 0.5f,
-                    Quaternion.identity);
+            GameObject loot = Instantiate(
+                lootPrefab,
+                transform.position + (Vector3)Random.insideUnitCircle * 0.5f,
+                Quaternion.identity
+            );
 
-            if (loot.TryGetComponent<LootArc>(
-                out LootArc arc))
-            {
-                arc.Initialize(
-                    transform.position);
-            }
+            if (loot.TryGetComponent<LootArc>(out LootArc arc))
+                arc.Initialize(transform.position);
         }
     }
 
@@ -382,119 +308,62 @@ public class treeItemBehav : ItemHealth
     private Vector2 GetFallDirection()
     {
         if (player == null)
-        {
             return Vector2.right;
-        }
 
-        return (
-            (Vector2)transform.position -
-            (Vector2)player.position
-        ).normalized;
+        return ((Vector2)transform.position - (Vector2)player.position).normalized;
     }
 
     // ==========================================
     // ROTATION
     // ==========================================
 
-    private IEnumerator RotateTop(
-        Transform top,
-        Vector2 dir)
+    private IEnumerator RotateTop(Transform top, Vector2 dir)
     {
         float progress = 0f;
 
-        RulesRotate(
-            top,
-            dir,
-            out Quaternion startRot,
-            out Quaternion endRot,
-            out Vector3 startPos,
-            out Vector3 endPos);
+        float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+
+        Quaternion startRot = top.rotation;
+        Quaternion endRot = Quaternion.Euler(0, 0, angle - 90f);
+
+        Vector3 startPos = top.position;
+        Vector3 endPos = startPos + (Vector3)(dir * fallDistance);
 
         while (progress < 1f)
         {
-            progress +=
-                Time.deltaTime * fallSpeed;
+            progress += Time.deltaTime * fallSpeed;
 
-            top.rotation =
-                Quaternion.Lerp(
-                    startRot,
-                    endRot,
-                    progress);
-
-            top.position =
-                Vector3.Lerp(
-                    startPos,
-                    endPos,
-                    progress);
+            top.rotation = Quaternion.Lerp(startRot, endRot, progress);
+            top.position = Vector3.Lerp(startPos, endPos, progress);
 
             yield return null;
         }
 
-        SpriteRenderer topSR =
-            top.GetComponent<SpriteRenderer>();
+        SpriteRenderer sr = top.GetComponent<SpriteRenderer>();
 
-        if (topSR != null)
-        {
-            yield return
-                StartCoroutine(
-                    FadeOut(topSR));
-        }
-    }
-
-    private void RulesRotate(
-        Transform top,
-        Vector2 dir,
-        out Quaternion startRot,
-        out Quaternion endRot,
-        out Vector3 startPos,
-        out Vector3 endPos)
-    {
-        startRot = top.rotation;
-
-        float angle =
-            Mathf.Atan2(
-                dir.y,
-                dir.x)
-            * Mathf.Rad2Deg;
-
-        endRot =
-            Quaternion.Euler(
-                0,
-                0,
-                angle - 90f);
-
-        startPos = top.position;
-
-        endPos =
-            startPos +
-            (Vector3)
-            (dir * fallDistance);
+        if (sr != null)
+            yield return StartCoroutine(FadeOut(sr));
     }
 
     // ==========================================
     // FADE
     // ==========================================
 
-    private IEnumerator FadeOut(
-        SpriteRenderer sr)
+    private IEnumerator FadeOut(SpriteRenderer sr)
     {
         Color col = sr.color;
+        float t = 0f;
 
-        float elapsed = 0f;
-
-        while (elapsed < fadeDuration)
+        while (t < fadeDuration)
         {
-            elapsed += Time.deltaTime;
+            t += Time.deltaTime;
 
-            sr.color =
-                new Color(
-                    col.r,
-                    col.g,
-                    col.b,
-                    Mathf.Lerp(
-                        1f,
-                        0f,
-                        elapsed / fadeDuration));
+            sr.color = new Color(
+                col.r,
+                col.g,
+                col.b,
+                Mathf.Lerp(1f, 0f, t / fadeDuration)
+            );
 
             yield return null;
         }

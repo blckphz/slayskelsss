@@ -1,10 +1,8 @@
 ﻿using UnityEngine;
+using System.Collections;
 
 public class BushBehav : ItemHealth
 {
-    [Header("Save Settings")]
-    public string bushID;
-
     [Header("Bush Visuals")]
     public Sprite fullSprite;
     public Sprite harvestedSprite;
@@ -16,50 +14,49 @@ public class BushBehav : ItemHealth
     public bool isHarvested = false;
     private float timeAtHarvest = -1f;
 
+    // FIX: restores missing external reference
     public bool IsHarvested => isHarvested;
 
     private DayNightCycle timeSystem;
+    private Coroutine regrowRoutine;
+
+    // ================= UNITY =================
 
     protected override void Awake()
     {
         base.Awake();
-        timeSystem = Object.FindFirstObjectByType<DayNightCycle>();
+        timeSystem = FindFirstObjectByType<DayNightCycle>();
+        EnsureID();
     }
 
-    void Update()
+#if UNITY_EDITOR
+    private void OnValidate()
     {
-        if (isHarvested && health > 0)
+        EnsureID();
+    }
+#endif
+
+    private void EnsureID()
+    {
+        if (string.IsNullOrEmpty(UniqOverworldItemID))
         {
-            CheckForRegrowth();
+            UniqOverworldItemID = System.Guid.NewGuid().ToString();
+
+#if UNITY_EDITOR
+            UnityEditor.EditorUtility.SetDirty(this);
+#endif
         }
     }
 
-    private void CheckForRegrowth()
-    {
-        if (timeSystem == null) return;
+    // ================= INVINCIBILITY =================
 
-        if (timeSystem.TotalTime >= timeAtHarvest + regrowDays)
-        {
-            Regrow();
-        }
+    protected override bool IsDamageIgnored()
+    {
+        return isHarvested;
     }
 
-    private void Regrow()
-    {
-        isHarvested = false;
-        timeAtHarvest = -1f;
+    // ================= DAMAGE =================
 
-        if (fullSprite != null && spriteRenderer != null)
-        {
-            spriteRenderer.sprite = fullSprite;
-            health = maxHealth;
-        }
-
-        if (BuildingSaveManager.Instance != null)
-            BuildingSaveManager.Instance.SaveAfterChange();
-    }
-
-    // ✅ FIX: THIS is the missing override that was breaking everything
     public override void TakeDamage(float damage, ToolType toolType, ItemData toolItem)
     {
         if (!isHarvested)
@@ -84,6 +81,8 @@ public class BushBehav : ItemHealth
         base.TakeDamage(damage);
     }
 
+    // ================= HARVEST =================
+
     private void HarvestBush()
     {
         isHarvested = true;
@@ -91,14 +90,57 @@ public class BushBehav : ItemHealth
         if (timeSystem != null)
             timeAtHarvest = timeSystem.TotalTime;
 
-        if (harvestedSprite != null && spriteRenderer != null)
+        if (harvestedSprite != null)
             spriteRenderer.sprite = harvestedSprite;
 
         DropInitialBerries();
-
-        if (BuildingSaveManager.Instance != null)
-            BuildingSaveManager.Instance.SaveAfterChange();
+        StartRegrowRoutine();
     }
+
+    private void Regrow()
+    {
+        isHarvested = false;
+        timeAtHarvest = -1f;
+
+        if (fullSprite != null)
+        {
+            spriteRenderer.sprite = fullSprite;
+            health = maxHealth;
+        }
+
+        if (regrowRoutine != null)
+        {
+            StopCoroutine(regrowRoutine);
+            regrowRoutine = null;
+        }
+    }
+
+    // ================= REGROW =================
+
+    private IEnumerator RegrowCheckRoutine()
+    {
+        while (isHarvested && health > 0)
+        {
+            if (timeSystem != null &&
+                timeSystem.TotalTime >= timeAtHarvest + regrowDays)
+            {
+                Regrow();
+                yield break;
+            }
+
+            yield return new WaitForSeconds(5f);
+        }
+    }
+
+    private void StartRegrowRoutine()
+    {
+        if (regrowRoutine != null)
+            StopCoroutine(regrowRoutine);
+
+        regrowRoutine = StartCoroutine(RegrowCheckRoutine());
+    }
+
+    // ================= LOOT =================
 
     private void DropInitialBerries()
     {
@@ -113,6 +155,19 @@ public class BushBehav : ItemHealth
         }
     }
 
+    // ================= SAVE =================
+
+    public BushSaveData GetSaveData()
+    {
+        return new BushSaveData
+        {
+            bushID = UniqOverworldItemID,
+            isHarvested = isHarvested,
+            health = health,
+            timeAtHarvest = timeAtHarvest
+        };
+    }
+
     public void LoadData(BushSaveData data)
     {
         if (data == null) return;
@@ -121,23 +176,12 @@ public class BushBehav : ItemHealth
         health = data.health;
         timeAtHarvest = data.timeAtHarvest;
 
-        if (isHarvested && harvestedSprite != null && spriteRenderer != null)
+        if (isHarvested && harvestedSprite != null)
             spriteRenderer.sprite = harvestedSprite;
-        else if (!isHarvested && fullSprite != null && spriteRenderer != null)
+        else if (!isHarvested && fullSprite != null)
             spriteRenderer.sprite = fullSprite;
 
-        if (health <= 0)
-            gameObject.SetActive(false);
-    }
-
-    public BushSaveData GetSaveData()
-    {
-        return new BushSaveData
-        {
-            bushID = bushID,
-            isHarvested = isHarvested,
-            health = health,
-            timeAtHarvest = timeAtHarvest
-        };
+        if (isHarvested)
+            StartRegrowRoutine();
     }
 }

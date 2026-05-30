@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 5267690834375704065}
   - component: {fileID: 8462684784730460645}
   - component: {fileID: 8817587889882413920}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: Bush
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -130,7 +130,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_Sprite: {fileID: 21300000, guid: 5d436b9947c2be34b8edb7bd158214e5, type: 3}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.8113208, g: 0.8113208, b: 0.8113208, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -152,23 +152,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 494f89c797af628458337866d8efffdf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BushBehav
+  UniqOverworldItemID: sdsad
   health: 50
+  effectiveTool: 4
   durabilityPerSwing: 1
   givesXP: 1
   xpReward: 15
   lootPrefab: {fileID: 350394197004487116, guid: 6a2c298227ba1f94d99f3d3863c4759e, type: 3}
   dropAmount: 3
   correctToolUsageBonus: 0
+  hitDropChance: 0.2
+  hitDropAmount: 1
   damageTextPrefab: {fileID: 9146332368269871989, guid: e2da221bf74f11340b439450cb25f81e, type: 3}
   hitIntensityName: _Intensity
   flashDuration: 0.15
   shakeDuration: 0.1
   shakeMagnitude: 0.1
-  bushID: 
-  fullSprite: {fileID: 0}
+  fullSprite: {fileID: 21300000, guid: 5d436b9947c2be34b8edb7bd158214e5, type: 3}
   harvestedSprite: {fileID: 21300000, guid: fbf184dcee9896f4abe809343b27fd6e, type: 3}
   berriesOnFirstHit: 3
   regrowDays: 1
+  isHarvested: 0
 --- !u!114 &8817587889882413920
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -225,7 +229,7 @@ MonoBehaviour:
     m_TrimEdge: 0.1
     m_FlipX: 0
     m_FlipY: 0
-    m_InitialTrim: 0.1
+    m_InitialTrim: 0
   m_CastingOption: 1
   m_PreviousTrimEdge: 0.1
   m_PreviousEdgeProcessing: 1
@@ -246,7 +250,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2601485757924271979}
   - component: {fileID: 2262417383976894810}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: GameObject
   m_TagString: Untagged
   m_Icon: {fileID: 0}

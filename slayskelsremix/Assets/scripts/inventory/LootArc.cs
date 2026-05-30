@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections;
 
 public class LootArc : MonoBehaviour
@@ -11,22 +11,34 @@ public class LootArc : MonoBehaviour
     public float bounceHeight = 0.2f;
     public float bounceDuration = 0.15f;
 
+    [Header("Audio")]
+    public AudioClip bounceClip;
+
     private Vector3 startPos;
     private Vector3 targetPos;
+
+    // per-instance randomized values
+    private float arcH;
+    private float arcD;
+    private float bounceH;
+    private float bounceD;
 
     public void Initialize(Vector3 origin)
     {
         startPos = origin;
 
-        // Generate a random direction outward
         Vector2 randomDir = Random.insideUnitCircle.normalized;
-
-        // Distance from origin
         float distance = Random.Range(0.3f, spreadRadius);
 
         Vector3 offset = new Vector3(randomDir.x, randomDir.y, 0f) * distance;
-
         targetPos = origin + offset;
+
+        // ✨ RANDOMNESS PER ITEM
+        arcH = arcHeight * Random.Range(0.7f, 1.35f);
+        arcD = arcDuration * Random.Range(0.85f, 1.25f);
+
+        bounceH = bounceHeight * Random.Range(0.6f, 1.5f);
+        bounceD = bounceDuration * Random.Range(0.85f, 1.2f);
 
         StartCoroutine(ArcRoutine());
     }
@@ -35,16 +47,14 @@ public class LootArc : MonoBehaviour
     {
         float time = 0f;
 
-        while (time < arcDuration)
+        while (time < arcD)
         {
             time += Time.deltaTime;
-            float t = time / arcDuration;
+            float t = time / arcD;
 
-            // Base linear interpolation
             Vector3 pos = Vector3.Lerp(startPos, targetPos, t);
 
-            // Arc height (parabolic curve)
-            float height = arcHeight * 4f * (t - t * t);
+            float height = arcH * 4f * (t - t * t);
             pos.y += height;
 
             transform.position = pos;
@@ -59,14 +69,19 @@ public class LootArc : MonoBehaviour
 
     private IEnumerator BounceRoutine()
     {
+        if (bounceClip != null)
+        {
+            AudioManager.Instance.PlaySound(bounceClip, 1f);
+        }
+
         float time = 0f;
 
-        while (time < bounceDuration)
+        while (time < bounceD)
         {
             time += Time.deltaTime;
-            float t = time / bounceDuration;
+            float t = time / bounceD;
 
-            float height = bounceHeight * 4f * (t - t * t);
+            float height = bounceH * 4f * (t - t * t);
 
             Vector3 pos = targetPos;
             pos.y += height;

@@ -203,7 +203,7 @@ public class BuildingSaveManager : MonoBehaviour
             data.bushes.Add(
                 new BushSaveData
                 {
-                    bushID = bush.bushID,
+                    bushID = bush.UniqOverworldItemID,
                     isHarvested = bush.IsHarvested,
                     health = bush.health,
                     timeAtHarvest =
@@ -383,7 +383,7 @@ public class BuildingSaveManager : MonoBehaviour
         {
             var bushSave =
                 data.bushes.Find(
-                    x => x.bushID == bush.bushID);
+                    x => x.bushID == bush.UniqOverworldItemID);
 
             if (bushSave != null)
             {

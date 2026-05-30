@@ -1,5 +1,67 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &3018287315874419883
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8628264727897816204}
+  m_Layer: 0
+  m_Name: spawnpoints
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8628264727897816204
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3018287315874419883}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -1.293, y: 0.177, z: 0}
+  m_LocalScale: {x: 0.70230395, y: 0.70230395, z: 0.70230395}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 891863002307980108}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &3543546330613240987
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3272184800073676047}
+  m_Layer: 0
+  m_Name: spawnpoints
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3272184800073676047
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3543546330613240987}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 1.173, y: 0.177, z: 0}
+  m_LocalScale: {x: 0.70230395, y: 0.70230395, z: 0.70230395}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 891863002307980108}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &4036569901905884351
 GameObject:
   m_ObjectHideFlags: 0
@@ -126,6 +188,8 @@ Transform:
   m_Children:
   - {fileID: 1437647878832784821}
   - {fileID: 738280382946402957}
+  - {fileID: 8628264727897816204}
+  - {fileID: 3272184800073676047}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &7297689596997285609
@@ -140,6 +204,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e9eafdc7a88b6224ab4ffa0e0c00a662, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::treeItemBehav
+  UniqOverworldItemID: 1d285cee-8dde-4cbd-8f22-1657985b915b
   health: 50
   effectiveTool: 2
   durabilityPerSwing: 4.63
@@ -155,10 +220,9 @@ MonoBehaviour:
   flashDuration: 0.15
   shakeDuration: 0.1
   shakeMagnitude: 0.1
-  treeID: 
-  effectiveTool: 2
+  isCut: 0
+  cutTime: 0
   axeBonusDamage: 10
-  woodPrefab: {fileID: 8504423254273432661, guid: 22af6c420dc2b11488f396c164eab3b4, type: 3}
   topPrefab: {fileID: 8542049761962043926, guid: 5468e57153e3fd44594a6633bb15fdc9, type: 3}
   bottomPrefab: {fileID: 4272399698899235473, guid: f46bc3955377181479d8e75aaf364860, type: 3}
   player: {fileID: 0}
@@ -167,6 +231,10 @@ MonoBehaviour:
   fallDelay: 0.05
   fadeDuration: 1.5
   leafParticlePrefab: {fileID: 8333813898221502428}
+  StickPrefab: {fileID: 3959919176948862644, guid: 114fa677cdce30246a767e9a93c6d9c7, type: 3}
+  stickSpawn1: {fileID: 8628264727897816204}
+  stickSpawn2: {fileID: 3272184800073676047}
+  stickSpawnChancePerDay: 0.2
   damageTextOffset: {x: 0, y: 1.5, z: 0}
 --- !u!70 &3365394450542658093
 CapsuleCollider2D:
@@ -253,7 +321,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_Sprite: {fileID: 21300000, guid: 5f1098c5ad3e6104a9ff82779999316e, type: 3}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.8018868, g: 0.8018868, b: 0.8018868, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0

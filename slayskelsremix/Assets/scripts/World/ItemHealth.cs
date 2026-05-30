@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections;
 using UnityEngine;
 
 public abstract class ItemHealth : MonoBehaviour, IDamageable
@@ -21,24 +19,24 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
     public bool givesXP = true;
     public int xpReward = 15;
 
-    [Header("Loot (Base)")]
+    [Header("Loot")]
     public GameObject lootPrefab;
     public int dropAmount = 3;
     public int correctToolUsageBonus;
 
-    [Header("Bonus Drop On Hit")]
+    [Header("Hit Loot")]
     [Range(0f, 1f)]
-    public float hitDropChance = 0.2f;   // 20% chance
+    public float hitDropChance = 0.2f;
     public int hitDropAmount = 1;
 
     [Header("Damage UI")]
     public GameObject damageTextPrefab;
 
-    [Header("Flash Effect")]
+    [Header("Flash")]
     public string hitIntensityName = "_Intensity";
     public float flashDuration = 0.15f;
 
-    [Header("Shake Effect")]
+    [Header("Shake")]
     public float shakeDuration = 0.1f;
     public float shakeMagnitude = 0.1f;
 
@@ -47,8 +45,10 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
 
     private Coroutine flashCoroutine;
     private Coroutine shakeCoroutine;
-
     private Vector3 originalLocalPosition;
+
+    // ================= STATUS =================
+    private bool isSlowed = false;
 
     protected virtual void Awake()
     {
@@ -58,44 +58,38 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
         maxHealth = health;
     }
 
+    // ================= DAMAGE GATE =================
+
+    protected virtual bool IsDamageIgnored()
+    {
+        return false;
+    }
+
     // ================= DAMAGE =================
 
     public virtual void TakeDamage(float damage, ToolType toolType, ItemData toolItem)
     {
+        if (IsDamageIgnored()) return;
+
         LogToolDurability(toolItem);
-
-        if (toolItem != null &&
-            !toolItem.IsUnbreakable &&
-            PlayerHotbarManager.Instance != null)
-        {
-            float durabilityLoss = durabilityPerSwing;
-
-            // correct tool = half durability loss
-            if (toolType == effectiveTool)
-            {
-                durabilityLoss *= 0.5f;
-            }
-
-            // round up
-            int finalLoss = Mathf.CeilToInt(durabilityLoss);
-
-            PlayerHotbarManager.Instance.ReduceActiveToolDurability(finalLoss);
-        }
-
         ProcessDamage(damage, toolType);
     }
 
     public virtual void TakeDamage(float damage, ToolType toolType)
     {
+        if (IsDamageIgnored()) return;
+
         ProcessDamage(damage, toolType);
     }
 
     public virtual void TakeDamage(float damage)
     {
+        if (IsDamageIgnored()) return;
+
         ProcessDamage(damage, ToolType.None);
     }
 
-    // ================= CORE DAMAGE =================
+    // ================= CORE =================
 
     private void ProcessDamage(float damage, ToolType toolType)
     {
@@ -106,19 +100,14 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
         TriggerFlash();
         TriggerShake();
 
-        // 20% chance to drop loot on every hit
-        if (UnityEngine.Random.value <= hitDropChance)
-        {
+        if (Random.value <= hitDropChance)
             SpawnHitLoot();
-        }
 
         if (health <= 0)
-        {
             Die(toolType);
-        }
     }
 
-    // ================= TOOL DEBUG =================
+    // ================= TOOL =================
 
     private void LogToolDurability(ItemData tool)
     {
@@ -126,107 +115,57 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
 
         if (!tool.IsUnbreakable && PlayerHotbarManager.Instance != null)
         {
-            float current = PlayerHotbarManager.Instance.GetActiveToolDurability();
-            float percent = (current / tool.maxDurability) * 100f;
-
-            percent = Mathf.Clamp(percent, 0f, 100f);
-
-          
+            PlayerHotbarManager.Instance.ReduceActiveToolDurability(
+                Mathf.CeilToInt(durabilityPerSwing)
+            );
         }
-    }
-
-    // ================= XP =================
-
-    protected virtual void GrantXP()
-    {
-        GameObject player = GameObject.FindGameObjectWithTag("Player");
-
-        if (player != null &&
-            player.TryGetComponent<LevelManager>(out LevelManager lm))
-        {
-            lm.AddXP(xpReward);
-        }
-    }
-
-    // ================= DEATH =================
-
-    protected virtual void Die(ToolType killerTool)
-    {
-        NPCGlobalEvents.NotifyDestroyed(gameObject.GetInstanceID());
-
-        if (givesXP)
-            GrantXP();
-
-        SpawnLoot();
-
-        Destroy(gameObject);
-    }
-
-    protected virtual void Die()
-    {
-        Die(ToolType.None);
     }
 
     // ================= LOOT =================
 
-    public virtual void SpawnLoot()
-    {
-        if (lootPrefab == null)
-            return;
-
-        for (int i = 0; i < dropAmount; i++)
-        {
-            GameObject loot = Instantiate(
-                lootPrefab,
-                transform.position,
-                Quaternion.identity
-            );
-
-            if (loot.TryGetComponent<LootArc>(out LootArc arc))
-            {
-                arc.Initialize(transform.position);
-            }
-        }
-    }
-
     protected virtual void SpawnHitLoot()
     {
-        if (lootPrefab == null)
-            return;
+        if (lootPrefab == null) return;
 
         for (int i = 0; i < hitDropAmount; i++)
         {
-            GameObject loot = Instantiate(
-                lootPrefab,
-                transform.position,
-                Quaternion.identity
-            );
+            GameObject loot = Instantiate(lootPrefab, transform.position, Quaternion.identity);
 
             if (loot.TryGetComponent<LootArc>(out LootArc arc))
-            {
                 arc.Initialize(transform.position);
-            }
         }
     }
 
-    // ================= VISUALS =================
-
-    protected void ShowDamageText(float damage)
+    public virtual void SpawnLoot()
     {
-        if (damageTextPrefab == null || damage <= 0)
-            return;
+        if (lootPrefab == null) return;
 
-        GameObject textObj = Instantiate(
+        for (int i = 0; i < dropAmount; i++)
+        {
+            GameObject loot = Instantiate(lootPrefab, transform.position, Quaternion.identity);
+
+            if (loot.TryGetComponent<LootArc>(out LootArc arc))
+                arc.Initialize(transform.position);
+        }
+    }
+
+    // ================= DAMAGE TEXT =================
+
+    protected virtual void ShowDamageText(float damage)
+    {
+        if (damageTextPrefab == null || damage <= 0) return;
+
+        GameObject obj = Instantiate(
             damageTextPrefab,
             transform.position + Vector3.up,
             Quaternion.identity
         );
 
-        if (textObj.TryGetComponent<DamageNumber>(out DamageNumber dn))
-        {
+        if (obj.TryGetComponent<DamageNumber>(out DamageNumber dn))
             dn.Setup(damage);
-        }
     }
+
+    // ================= EFFECTS =================
 
     protected void TriggerFlash()
     {
@@ -238,30 +177,19 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
 
     private IEnumerator FlashRoutine()
     {
-        float elapsed = 0f;
+        float t = 0f;
 
-        while (elapsed < flashDuration)
+        while (t < flashDuration)
         {
-            elapsed += Time.deltaTime;
+            t += Time.deltaTime;
+            float i = Mathf.Lerp(1f, 0f, t / flashDuration);
 
-            float intensity = Mathf.Lerp(1f, 0f, elapsed / flashDuration);
-
-            UpdateShaderFloat(hitIntensityName, intensity);
+            spriteRenderer.GetPropertyBlock(propertyBlock);
+            propertyBlock.SetFloat(hitIntensityName, i);
+            spriteRenderer.SetPropertyBlock(propertyBlock);
 
             yield return null;
         }
-
-        UpdateShaderFloat(hitIntensityName, 0f);
-    }
-
-    protected void UpdateShaderFloat(string name, float value)
-    {
-        if (spriteRenderer == null)
-            return;
-
-        spriteRenderer.GetPropertyBlock(propertyBlock);
-        propertyBlock.SetFloat(name, value);
-        spriteRenderer.SetPropertyBlock(propertyBlock);
     }
 
     protected void TriggerShake()
@@ -274,17 +202,14 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
 
     private IEnumerator ShakeRoutine()
     {
-        float elapsed = 0f;
+        float t = 0f;
 
-        while (elapsed < shakeDuration)
+        while (t < shakeDuration)
         {
-            elapsed += Time.deltaTime;
+            t += Time.deltaTime;
 
-            Vector2 randomOffset =
-                UnityEngine.Random.insideUnitCircle * shakeMagnitude;
-
-            transform.localPosition =
-                originalLocalPosition + (Vector3)randomOffset;
+            Vector2 offset = Random.insideUnitCircle * shakeMagnitude;
+            transform.localPosition = originalLocalPosition + (Vector3)offset;
 
             yield return null;
         }
@@ -292,13 +217,50 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
         transform.localPosition = originalLocalPosition;
     }
 
-    public virtual void ApplySlow(
-        float slowPercent,
-        float duration,
-        float tickDmg,
-        float tickInterval)
+    // ================= XP =================
+
+    protected virtual void GrantXP()
     {
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+
+        if (player != null &&
+            player.TryGetComponent(out LevelManager lm))
+        {
+            lm.AddXP(xpReward);
+        }
     }
 
-    public bool IsSlowed => false;
+    // ================= DEATH =================
+
+    protected virtual void Die(ToolType tool)
+    {
+        NPCGlobalEvents.NotifyDestroyed(gameObject.GetInstanceID());
+
+        if (givesXP)
+            GrantXP();
+
+        SpawnLoot();
+        Destroy(gameObject);
+    }
+
+    protected virtual void Die()
+    {
+        Die(ToolType.None);
+    }
+
+    // ================= SLOW SYSTEM (INTERFACE FIX) =================
+
+    public virtual void ApplySlow(float slowPercent, float duration, float tickDmg, float tickInterval)
+    {
+        StartCoroutine(SlowRoutine(duration));
+    }
+
+    private IEnumerator SlowRoutine(float duration)
+    {
+        isSlowed = true;
+        yield return new WaitForSeconds(duration);
+        isSlowed = false;
+    }
+
+    public bool IsSlowed => isSlowed;
 }
