@@ -126,15 +126,53 @@ public class BuildMode : MonoBehaviour
         }
     }
 
+    // =========================================================
+    // TOGGLE BUILD MODE
+    // =========================================================
     void OnToggle(InputAction.CallbackContext ctx)
     {
         buildMode = !buildMode;
+
         BuildState.Set(buildMode);
+
+        // TEMP MESSAGE
+        if (InteractionUI.Instance != null)
+        {
+            if (buildMode)
+            {
+                InteractionUI.Instance.ShowTemporary(
+                    "IN BUILD MODE",
+                    1.5f
+                );
+            }
+            else
+            {
+                InteractionUI.Instance.ShowTemporary(
+                    "EXIT BUILD MODE",
+                    1.5f
+                );
+            }
+        }
     }
 
+    // =========================================================
+    // TOGGLE GRID
+    // =========================================================
     void OnToggleGrid(InputAction.CallbackContext ctx)
     {
         useGridPlacement = !useGridPlacement;
+
         BuildState.SetGridPlacement(useGridPlacement);
+
+        // TEMP MESSAGE
+        if (InteractionUI.Instance != null)
+        {
+            InteractionUI.Instance.ShowTemporary(
+                useGridPlacement
+                    ? "GRID PLACEMENT ON"
+                    : "GRID PLACEMENT OFF",
+                1f
+            );
+        }
     }
 }
