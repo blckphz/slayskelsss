@@ -78,7 +78,6 @@ public class CraftingManager : MonoBehaviour
             CraftUIManager.Instance?.RefreshGrid();
             Debug.Log("<color=white>[Crafting]</color> Opened.");
         }
-      
     }
 
     // =====================================================
@@ -104,22 +103,45 @@ public class CraftingManager : MonoBehaviour
     }
 
     // =====================================================
-    // CRAFT ITEM
+    // CRAFT ITEM (ADDITIVE DURABILITY SYSTEM)
     // =====================================================
     public void CraftItem(CraftingSO recipe)
     {
         if (recipe == null) return;
 
-        if (!recipe.CanCraft())
-        {
-            Debug.Log("<color=red>[Crafting]</color> Missing materials.");
-            return;
-        }
-
-        // consume ingredients
+        // ==============================
+        // VALIDATION (ADDED CHECK)
+        // ==============================
         foreach (var ingredient in recipe.ingredients)
         {
-            InventoryManager.Instance.RemoveItem(ingredient.item, ingredient.amount);
+            var items = InventoryManager.Instance.GetItems(ingredient.item);
+
+            int validCount = 0;
+
+            foreach (var instance in items)
+            {
+                // FULL DURABILITY ONLY RULE
+                if (instance.CurrentDurability >= instance.MaxDurability)
+                    validCount += instance.StackCount;
+            }
+
+            if (validCount < ingredient.amount)
+            {
+                Debug.Log("<color=red>[Crafting]</color> Missing fully repaired items.");
+                return;
+            }
+        }
+
+        // ==============================
+        // CONSUME ITEMS (ADDED METHOD)
+        // ==============================
+        foreach (var ingredient in recipe.ingredients)
+        {
+            InventoryManager.Instance.RemoveItemsWithCondition(
+                ingredient.item,
+                ingredient.amount,
+                (item) => item.CurrentDurability >= item.MaxDurability
+            );
         }
 
         InventoryManager.Instance.AddItem(recipe.resultItem, recipe.resultCount);
@@ -172,7 +194,6 @@ public class CraftingManager : MonoBehaviour
             if (found != null)
                 knownRecipes.Add(found);
         }
-
     }
 }
 

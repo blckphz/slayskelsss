@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System.Collections;
+using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using UnityEngine.EventSystems;
@@ -14,6 +15,10 @@ public class InventorySlotUI : MonoBehaviour,
     public Image durabilityFill;
     public Image dragPreviewIcon;
 
+    [Header("Shaker")]
+    public float duration = 0.2f;
+    public float strength = 6f;
+
     [Header("Runtime State")]
     [SerializeField] private ItemData currentItem;
     [SerializeField] private Ability currentAbility;
@@ -22,6 +27,10 @@ public class InventorySlotUI : MonoBehaviour,
 
     public bool IsEmpty => currentItem == null && currentAbility == null;
     private int SlotIndex => transform.GetSiblingIndex();
+
+    private Coroutine shakeRoutine;
+
+    // ================= SET =================
 
     public void SetSlot(ItemData item, Ability ability, int count, float durability)
     {
@@ -126,6 +135,8 @@ public class InventorySlotUI : MonoBehaviour,
             dragPreviewIcon.enabled = true;
             dragPreviewIcon.raycastTarget = false;
             dragPreviewIcon.transform.position = eventData.position;
+
+            ShakeIcon(dragPreviewIcon);
         }
 
         if (icon != null)
@@ -141,10 +152,46 @@ public class InventorySlotUI : MonoBehaviour,
     public void OnEndDrag(PointerEventData eventData)
     {
         if (dragPreviewIcon != null)
+        {
             dragPreviewIcon.enabled = false;
+            ShakeIcon(dragPreviewIcon);
+        }
 
         if (icon != null)
             icon.color = Color.white;
+    }
+
+    // ================= SHAKE SYSTEM =================
+
+    private void ShakeIcon(Image target)
+    {
+        if (target == null) return;
+
+        if (shakeRoutine != null)
+            StopCoroutine(shakeRoutine);
+
+        shakeRoutine = StartCoroutine(ShakeCoroutine(target.rectTransform));
+    }
+
+    private IEnumerator ShakeCoroutine(RectTransform rect)
+    {
+        Vector3 originalPos = rect.anchoredPosition;
+        float elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.unscaledDeltaTime;
+
+            float x = Random.Range(-strength, strength);
+            float y = Random.Range(-strength, strength);
+
+            rect.anchoredPosition = originalPos + new Vector3(x, y, 0);
+
+            yield return null;
+        }
+
+        rect.anchoredPosition = originalPos;
+        shakeRoutine = null;
     }
 
     // ================= DROP =================
@@ -153,7 +200,6 @@ public class InventorySlotUI : MonoBehaviour,
     {
         if (eventData.pointerDrag == null) return;
 
-        // ================= CHEST =================
         ChestSlotUI chestSlot =
             eventData.pointerDrag.GetComponent<ChestSlotUI>()
             ?? eventData.pointerDrag.GetComponentInParent<ChestSlotUI>();
@@ -190,7 +236,6 @@ public class InventorySlotUI : MonoBehaviour,
             return;
         }
 
-        // ================= PLAYER SLOT =================
         InventorySlotUI sourcePlayerSlot =
             eventData.pointerDrag.GetComponent<InventorySlotUI>()
             ?? eventData.pointerDrag.GetComponentInParent<InventorySlotUI>();
@@ -206,8 +251,6 @@ public class InventorySlotUI : MonoBehaviour,
             Ability sourceAbility = sourcePlayerSlot.GetAbility();
             int sourceCount = sourcePlayerSlot.GetCount();
             float sourceDurability = sourcePlayerSlot.GetDurability();
-
-            // ================= STACK RULE =================
 
             bool sameItem =
                 targetItem != null &&
@@ -262,8 +305,6 @@ public class InventorySlotUI : MonoBehaviour,
                     return;
                 }
             }
-
-            // ================= SWAP =================
 
             SetSlot(
                 sourceItem,

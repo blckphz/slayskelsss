@@ -31,8 +31,25 @@ public class CraftUIManager : MonoBehaviour
     private CraftingSO selectedRecipe;
     private int currentSelectedIndex = -1;
 
-    private RecipeType? currentFilter = null; // null = All
+    private RecipeType? currentFilter = null;
     private string currentSearch = "";
+
+    private void OnEnable()
+    {
+        if (InventoryManager.Instance != null)
+            InventoryManager.Instance.OnInventoryChanged += RefreshInfoOnly;
+    }
+
+    private void OnDisable()
+    {
+        if (InventoryManager.Instance != null)
+            InventoryManager.Instance.OnInventoryChanged -= RefreshInfoOnly;
+    }
+
+    private void RefreshInfoOnly()
+    {
+        UpdateInfoText();
+    }
 
     private void Awake()
     {
@@ -41,16 +58,12 @@ public class CraftUIManager : MonoBehaviour
         foreach (Transform child in bgGridParent) bgSlots.Add(child);
         foreach (Transform child in iconGridParent) iconSlots.Add(child);
 
-
         if (craftButton != null)
         {
             craftButton.onClick.AddListener(() =>
             {
-                Debug.Log("[CraftUI] Craft button pressed");
-
                 if (selectedRecipe != null)
                 {
-                    Debug.Log("[CraftUI] Crafting: " + selectedRecipe.name);
                     CraftingManager.Instance.CraftItem(selectedRecipe);
                 }
                 else
@@ -66,18 +79,12 @@ public class CraftUIManager : MonoBehaviour
         }
     }
 
-    // =========================
-    // SEARCH
-    // =========================
     private void OnSearchChanged(string value)
     {
         currentSearch = value.ToLower().Trim();
         RefreshGrid();
     }
 
-    // =========================
-    // FILTER BUTTON CALLS
-    // =========================
     public void SetFilter(int filter)
     {
         RecipeType newFilter = filter switch
@@ -87,25 +94,17 @@ public class CraftUIManager : MonoBehaviour
             _ => RecipeType.Tool
         };
 
-        Debug.Log("[CraftUI] Filter button pressed: " + newFilter);
-
         if (currentFilter != null && currentFilter == newFilter)
-        {
             currentFilter = null;
-            Debug.Log("[CraftUI] Filter toggled OFF → showing ALL recipes");
-        }
         else
-        {
             currentFilter = newFilter;
-            Debug.Log("[CraftUI] Filter set to: " + currentFilter);
-        }
 
         RefreshGrid();
     }
 
-    // =========================
+    // =====================================================
     // GRID
-    // =========================
+    // =====================================================
     public void RefreshGrid()
     {
         if (CraftingManager.Instance == null)
@@ -116,17 +115,18 @@ public class CraftUIManager : MonoBehaviour
 
         Debug.Log("[CraftUI] RefreshGrid called");
 
+        // ✅ SAVE CURRENT SELECTION
+        CraftingSO previousSelected = selectedRecipe;
+
         List<CraftingSO> recipes = new List<CraftingSO>();
 
         foreach (var r in CraftingManager.Instance.knownRecipes)
         {
             if (r == null) continue;
 
-            // TYPE FILTER
             if (currentFilter != null && r.recipeType != currentFilter)
                 continue;
 
-            // SEARCH FILTER
             if (!string.IsNullOrEmpty(currentSearch))
             {
                 string recipeName = r.name.ToLower();
@@ -139,8 +139,6 @@ public class CraftUIManager : MonoBehaviour
 
             recipes.Add(r);
         }
-
-        Debug.Log("[CraftUI] Recipes after filter: " + recipes.Count);
 
         currentSelectedIndex = -1;
         selectedRecipe = null;
@@ -171,7 +169,6 @@ public class CraftUIManager : MonoBehaviour
 
                     btn.onClick.AddListener(() =>
                     {
-                        Debug.Log("[CraftUI] Selected recipe: " + recipe.name);
                         SelectRecipe(recipe, index);
                     });
 
@@ -182,6 +179,19 @@ public class CraftUIManager : MonoBehaviour
             {
                 bgSlots[i].gameObject.SetActive(false);
                 iconSlots[i].gameObject.SetActive(false);
+            }
+        }
+
+        // ✅ RESTORE SELECTION AFTER REFRESH
+        if (previousSelected != null)
+        {
+            for (int i = 0; i < recipes.Count; i++)
+            {
+                if (recipes[i] == previousSelected)
+                {
+                    SelectRecipe(previousSelected, i);
+                    break;
+                }
             }
         }
     }
@@ -200,20 +210,14 @@ public class CraftUIManager : MonoBehaviour
         {
             eventID = EventTriggerType.PointerEnter
         };
-        enter.callback.AddListener((data) =>
-        {
-            OnHoverEnter(index);
-        });
+        enter.callback.AddListener((data) => OnHoverEnter(index));
         trigger.triggers.Add(enter);
 
         EventTrigger.Entry exit = new EventTrigger.Entry
         {
             eventID = EventTriggerType.PointerExit
         };
-        exit.callback.AddListener((data) =>
-        {
-            OnHoverExit(index);
-        });
+        exit.callback.AddListener((data) => OnHoverExit(index));
         trigger.triggers.Add(exit);
     }
 
@@ -230,7 +234,7 @@ public class CraftUIManager : MonoBehaviour
     }
 
     // =========================
-    // SELECT RECIPE
+    // SELECT
     // =========================
     public void SelectRecipe(CraftingSO recipe, int selectedIndex)
     {
@@ -248,9 +252,6 @@ public class CraftUIManager : MonoBehaviour
         UpdateInfoText();
     }
 
-    // =========================
-    // UI HELPERS
-    // =========================
     private void SetAlpha(Transform slot, float alpha)
     {
         Image img = slot.GetComponent<Image>();

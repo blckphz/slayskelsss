@@ -51,8 +51,6 @@ public class TreeStumpRegrow : MonoBehaviour
         float targetTime =
             cutTime + regrowTime;
 
-        Debug.Log(
-            $"[STUMP] Checking Regrow | treeID={treeID} | Current={timeSystem.TotalTime} | Target={targetTime}");
 
         if (timeSystem.TotalTime >= targetTime)
         {
