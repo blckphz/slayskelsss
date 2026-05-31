@@ -14,6 +14,21 @@ public class InventorySlotUI : MonoBehaviour,
     public Slider durabilitySlider;
     public Image durabilityFill;
     public Image dragPreviewIcon;
+    public Image Background;
+
+    [Header("Hover Settings")]
+    public float hoverAlpha = 1f;
+    public float normalAlpha = 0.35f;
+
+    [Header("Rotation Settings")]
+    public float maxRotation = 8f;
+
+    [Header("Drag Preview Scale")]
+    public float dragScale = 1.2f;
+    public float scaleSpeed = 12f;
+
+    [Header("Rotation Lerp")]
+    public float rotationLerpSpeed = 12f;
 
     [Header("Shaker")]
     public float duration = 0.2f;
@@ -26,9 +41,74 @@ public class InventorySlotUI : MonoBehaviour,
     [SerializeField] private float currentDurability;
 
     public bool IsEmpty => currentItem == null && currentAbility == null;
-    private int SlotIndex => transform.GetSiblingIndex();
 
     private Coroutine shakeRoutine;
+
+    private bool isDragging = false;
+    private bool isHovered = false;
+
+    private RectTransform bgRect;
+    private Quaternion targetRotation = Quaternion.identity;
+
+    private Color originalBackgroundColor;
+
+    // ================= UNITY =================
+
+    private void Awake()
+    {
+        if (Background != null)
+        {
+            bgRect = Background.rectTransform;
+            originalBackgroundColor = Background.color;
+
+            var c = Background.color;
+            c.a = normalAlpha;
+            Background.color = c;
+        }
+    }
+
+    private void Update()
+    {
+        if (dragPreviewIcon != null && dragPreviewIcon.enabled)
+        {
+            dragPreviewIcon.transform.localScale = Vector3.Lerp(
+                dragPreviewIcon.transform.localScale,
+                Vector3.one * dragScale,
+                Time.unscaledDeltaTime * scaleSpeed
+            );
+        }
+
+        if (bgRect != null)
+        {
+            bgRect.rotation = Quaternion.Lerp(
+                bgRect.rotation,
+                targetRotation,
+                Time.unscaledDeltaTime * rotationLerpSpeed
+            );
+        }
+    }
+
+    // ================= PUBLIC FORCE STOP =================
+
+    public void ForceStopDrag()
+    {
+        isDragging = false;
+        isHovered = false;
+
+        if (dragPreviewIcon != null)
+        {
+            dragPreviewIcon.enabled = false;
+            dragPreviewIcon.raycastTarget = false;
+        }
+
+        if (icon != null)
+            icon.color = Color.white;
+
+        targetRotation = Quaternion.identity;
+        ApplyBackgroundState();
+
+        invToolTip.Instance?.HideToolTip();
+    }
 
     // ================= SET =================
 
@@ -53,6 +133,7 @@ public class InventorySlotUI : MonoBehaviour,
         }
 
         UpdateSlotVisualElements();
+        ApplyBackgroundState();
     }
 
     public void ClearSlot()
@@ -70,6 +151,8 @@ public class InventorySlotUI : MonoBehaviour,
 
         if (countText != null) countText.enabled = false;
         if (durabilitySlider != null) durabilitySlider.gameObject.SetActive(false);
+
+        ApplyBackgroundState();
     }
 
     public void UpdateSlotVisualElements()
@@ -110,15 +193,46 @@ public class InventorySlotUI : MonoBehaviour,
 
     public void OnPointerEnter(PointerEventData eventData)
     {
-        if (IsEmpty || eventData.dragging) return;
+        if (isDragging) return;
 
-        if (invToolTip.Instance != null && currentItem != null)
-            invToolTip.Instance.ShowToolTip(currentItem, currentDurability);
+        isHovered = true;
+        ApplyBackgroundState();
+        SetHoverVisual(true);
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        invToolTip.Instance?.HideToolTip();
+        if (isDragging) return;
+
+        isHovered = false;
+        ApplyBackgroundState();
+        SetHoverVisual(false);
+    }
+
+    private void SetHoverVisual(bool state)
+    {
+        if (Background != null)
+        {
+            var c = Background.color;
+            c.a = state ? hoverAlpha : normalAlpha;
+            Background.color = c;
+        }
+
+        if (state)
+        {
+            float angle = Random.Range(-maxRotation, maxRotation);
+            targetRotation = Quaternion.Euler(0f, 0f, angle);
+        }
+        else
+        {
+            targetRotation = Quaternion.identity;
+        }
+
+        if (state && invToolTip.Instance != null && currentItem != null)
+            invToolTip.Instance.ShowToolTip(currentItem, currentDurability);
+
+        if (!state)
+            invToolTip.Instance?.HideToolTip();
     }
 
     // ================= DRAG =================
@@ -127,7 +241,17 @@ public class InventorySlotUI : MonoBehaviour,
     {
         if (IsEmpty) return;
 
+        isDragging = true;
+        isHovered = false;
+
         invToolTip.Instance?.HideToolTip();
+
+        if (Background != null)
+        {
+            var c = Background.color;
+            c.a = 1f;
+            Background.color = c;
+        }
 
         if (dragPreviewIcon != null)
         {
@@ -135,6 +259,7 @@ public class InventorySlotUI : MonoBehaviour,
             dragPreviewIcon.enabled = true;
             dragPreviewIcon.raycastTarget = false;
             dragPreviewIcon.transform.position = eventData.position;
+            dragPreviewIcon.transform.localScale = Vector3.one;
 
             ShakeIcon(dragPreviewIcon);
         }
@@ -151,6 +276,8 @@ public class InventorySlotUI : MonoBehaviour,
 
     public void OnEndDrag(PointerEventData eventData)
     {
+        isDragging = false;
+
         if (dragPreviewIcon != null)
         {
             dragPreviewIcon.enabled = false;
@@ -159,9 +286,62 @@ public class InventorySlotUI : MonoBehaviour,
 
         if (icon != null)
             icon.color = Color.white;
+
+        targetRotation = Quaternion.identity;
+        ApplyBackgroundState();
     }
 
-    // ================= SHAKE SYSTEM =================
+    // ================= DROP =================
+
+    public void OnDrop(PointerEventData eventData)
+    {
+        if (eventData.pointerDrag == null) return;
+
+        InventorySlotUI sourcePlayerSlot =
+            eventData.pointerDrag.GetComponent<InventorySlotUI>()
+            ?? eventData.pointerDrag.GetComponentInParent<InventorySlotUI>();
+
+        if (sourcePlayerSlot != null && sourcePlayerSlot != this)
+        {
+            ItemData targetItem = currentItem;
+            Ability targetAbility = currentAbility;
+            int targetCount = currentCount;
+            float targetDurability = currentDurability;
+
+            ItemData sourceItem = sourcePlayerSlot.GetItem();
+            Ability sourceAbility = sourcePlayerSlot.GetAbility();
+            int sourceCount = sourcePlayerSlot.GetCount();
+            float sourceDurability = sourcePlayerSlot.GetDurability();
+
+            SetSlot(sourceItem, sourceAbility, sourceCount, sourceDurability);
+            sourcePlayerSlot.SetSlot(targetItem, targetAbility, targetCount, targetDurability);
+
+            ApplyBackgroundState();
+            sourcePlayerSlot.ApplyBackgroundState();
+
+            FinalizeStackTransaction(sourcePlayerSlot);
+        }
+
+        ApplyBackgroundState();
+    }
+
+    // ================= STATE =================
+
+    private void ApplyBackgroundState()
+    {
+        if (Background == null) return;
+
+        var c = Background.color;
+
+        if (isDragging)
+            c.a = 1f;
+        else
+            c.a = isHovered ? hoverAlpha : normalAlpha;
+
+        Background.color = c;
+    }
+
+    // ================= SHAKE =================
 
     private void ShakeIcon(Image target)
     {
@@ -194,160 +374,17 @@ public class InventorySlotUI : MonoBehaviour,
         shakeRoutine = null;
     }
 
-    // ================= DROP =================
-
-    public void OnDrop(PointerEventData eventData)
-    {
-        if (eventData.pointerDrag == null) return;
-
-        ChestSlotUI chestSlot =
-            eventData.pointerDrag.GetComponent<ChestSlotUI>()
-            ?? eventData.pointerDrag.GetComponentInParent<ChestSlotUI>();
-
-        if (chestSlot != null)
-        {
-            if (chestSlot.GetItem() != null)
-            {
-                ItemData incomingItem = chestSlot.GetItem();
-                int incomingCount = chestSlot.GetCount();
-                float incomingDurability = chestSlot.GetDurability();
-
-                ChestInventory currentChest =
-                    ChestUI.Instance != null
-                        ? ChestUI.Instance.GetCurrentChest()
-                        : null;
-
-                if (currentChest != null)
-                {
-                    InventoryManager.Instance.AddItem(
-                        incomingItem,
-                        incomingCount,
-                        incomingDurability
-                    );
-
-                    currentChest.RemoveItem(incomingItem, incomingCount);
-
-                    chestSlot.ClearSlot();
-                    ChestUI.Instance.Refresh();
-
-                    TriggerGlobalUIAndDataRefresh();
-                }
-            }
-            return;
-        }
-
-        InventorySlotUI sourcePlayerSlot =
-            eventData.pointerDrag.GetComponent<InventorySlotUI>()
-            ?? eventData.pointerDrag.GetComponentInParent<InventorySlotUI>();
-
-        if (sourcePlayerSlot != null && sourcePlayerSlot != this)
-        {
-            ItemData targetItem = currentItem;
-            Ability targetAbility = currentAbility;
-            int targetCount = currentCount;
-            float targetDurability = currentDurability;
-
-            ItemData sourceItem = sourcePlayerSlot.GetItem();
-            Ability sourceAbility = sourcePlayerSlot.GetAbility();
-            int sourceCount = sourcePlayerSlot.GetCount();
-            float sourceDurability = sourcePlayerSlot.GetDurability();
-
-            bool sameItem =
-                targetItem != null &&
-                sourceItem != null &&
-                targetItem.itemID == sourceItem.itemID;
-
-            bool stackableType =
-                sameItem &&
-                targetItem.IsUnbreakable;
-
-            bool bothFullDurability =
-                sameItem &&
-                !targetItem.IsUnbreakable &&
-                targetDurability >= targetItem.maxDurability &&
-                sourceDurability >= sourceItem.maxDurability;
-
-            bool canStack = stackableType || bothFullDurability;
-
-            if (canStack)
-            {
-                int maxStack = targetItem.maxStackSize;
-                int spaceLeft = maxStack - targetCount;
-
-                if (spaceLeft > 0)
-                {
-                    int amountToMove = Mathf.Min(spaceLeft, sourceCount);
-
-                    SetSlot(
-                        targetItem,
-                        targetAbility,
-                        targetCount + amountToMove,
-                        targetDurability
-                    );
-
-                    int remnants = sourceCount - amountToMove;
-
-                    if (remnants > 0)
-                    {
-                        sourcePlayerSlot.SetSlot(
-                            sourceItem,
-                            sourceAbility,
-                            remnants,
-                            sourceDurability
-                        );
-                    }
-                    else
-                    {
-                        sourcePlayerSlot.ClearSlot();
-                    }
-
-                    FinalizeStackTransaction(sourcePlayerSlot);
-                    return;
-                }
-            }
-
-            SetSlot(
-                sourceItem,
-                sourceAbility,
-                sourceCount,
-                sourceDurability
-            );
-
-            sourcePlayerSlot.SetSlot(
-                targetItem,
-                targetAbility,
-                targetCount,
-                targetDurability
-            );
-
-            FinalizeStackTransaction(sourcePlayerSlot);
-        }
-    }
-
     // ================= FINALIZE =================
 
     private void FinalizeStackTransaction(InventorySlotUI sourcePlayerSlot)
-    {
-        TriggerGlobalUIAndDataRefresh();
-
-        UpdateSlotVisualElements();
-        sourcePlayerSlot.UpdateSlotVisualElements();
-
-        invToolTip.Instance?.HideToolTip();
-
-        if (!IsEmpty && currentItem != null)
-        {
-            invToolTip.Instance?.ShowToolTip(currentItem, currentDurability);
-        }
-    }
-
-    private void TriggerGlobalUIAndDataRefresh()
     {
         InvUI.Instance?.SyncToInventory();
         PlayerHotbarManager.Instance?.SyncHotbarToData();
 
         InvUI.Instance?.RefreshUI();
         PlayerHotbarManager.Instance?.RefreshHotbar();
+
+        invToolTip.Instance?.HideToolTip();
     }
 
     // ================= GETTERS =================

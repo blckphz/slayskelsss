@@ -12,10 +12,8 @@ public class meleebehav : MonoBehaviour
     private Vector3 prefabScale;
     private Coroutine deactivationRoutine;
 
-    private bool chargeConsumedThisSwing = false;
-
     private offensivemelee.SwingOwner owner;
-    private ToolType associatedTool; // Clear reference tracker variable
+    private ToolType associatedTool;
 
     private void Awake()
     {
@@ -23,7 +21,14 @@ public class meleebehav : MonoBehaviour
         prefabScale = transform.localScale;
     }
 
-    public void Setup(float dmg, float bDmg, int swingIndex, offensivemelee.SwingOwner swingOwner, Transform parentTransform, Vector3 localOffset, ToolType toolType)
+    public void Setup(
+        float dmg,
+        float bDmg,
+        int swingIndex,
+        offensivemelee.SwingOwner swingOwner,
+        Transform parentTransform,
+        Vector3 localOffset,
+        ToolType toolType)
     {
         damage = dmg;
         bonusDamage = bDmg;
@@ -31,30 +36,12 @@ public class meleebehav : MonoBehaviour
         associatedTool = toolType;
 
         hitEnemies.Clear();
-        chargeConsumedThisSwing = false;
 
-        // Attach to parent & apply local tracking offset
         if (parentTransform != null)
         {
             transform.SetParent(parentTransform);
             transform.localPosition = localOffset;
         }
-
-        // Charge consumption only for player
-        if (owner == offensivemelee.SwingOwner.Player)
-        {
-            if (chainController.isUnlocked)
-            {
-                if (chainController.hitCounter > 0)
-                {
-                    chainController.hitCounter--;
-                    chargeConsumedThisSwing = true;
-                }
-            }
-        }
-
-        if (deactivationRoutine != null)
-            StopCoroutine(deactivationRoutine);
 
         bool isEven = (swingIndex % 2 == 0);
 
@@ -85,29 +72,22 @@ public class meleebehav : MonoBehaviour
             float finalDamage = damage;
 
             if (chainController.isUnlocked)
-            {
                 finalDamage += chainController.staticBonusDmg;
-            }
 
             if (target.IsSlowed)
                 finalDamage += bonusDamage;
 
-            // 1. Fetch the active runtime tool data if the player swung the attack
             ItemData currentToolItem = null;
-            if (owner == offensivemelee.SwingOwner.Player && PlayerHotbarManager.Instance != null)
+
+            if (owner == offensivemelee.SwingOwner.Player &&
+                PlayerHotbarManager.Instance != null)
             {
                 currentToolItem = PlayerHotbarManager.Instance.GetSelectedItem();
             }
 
-            // 2. CRITICAL FIX: Pass the item asset along with damage calculations and tool types
             target.TakeDamage(finalDamage, associatedTool, currentToolItem);
 
             hitEnemies.Add(target);
-
-            if (owner == offensivemelee.SwingOwner.Player && CameraShaker.Instance != null)
-            {
-                CameraShaker.Instance.Shake(0.35f, 0.12f);
-            }
         }
     }
 
@@ -121,18 +101,12 @@ public class meleebehav : MonoBehaviour
             yield return new WaitForSeconds(duration);
         }
 
-        Deactivate();
+        gameObject.SetActive(false);
     }
 
     private IEnumerator DeactivateAfterTime(float delay)
     {
         yield return new WaitForSeconds(delay);
-        Deactivate();
-    }
-
-    void Deactivate()
-    {
-        transform.localScale = prefabScale;
         gameObject.SetActive(false);
     }
 }

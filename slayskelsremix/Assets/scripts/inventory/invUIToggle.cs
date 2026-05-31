@@ -32,30 +32,49 @@ public class invUIToggle : MonoBehaviour
 
     private void SetState(bool isOpen)
     {
-        // FIX: If we are already in the target state, stop here.
-        // This prevents the "Close" sound from playing if the menu is already closed.
+        // prevent re-applying same state
         if (IsInventoryOpen == isOpen) return;
 
         IsInventoryOpen = isOpen;
 
         if (inventoryPanel != null)
-        {
             inventoryPanel.SetActive(isOpen);
 
-            // 🎵 SOUND FX - Only plays if the state actually changed
-            PlaySound(isOpen);
+        PlaySound(isOpen);
 
-            if (playerAimScript != null)
+        if (playerAimScript != null)
+            playerAimScript.SetInventoryState(isOpen);
+
+        if (playerAttackScript != null)
+            playerAttackScript.enabled = !isOpen;
+
+        // ✅ IMPORTANT: cancel drag visuals when closing
+        if (!isOpen)
+        {
+            ForceStopAllSlotDrags();
+        }
+    }
+
+    private void ForceStopAllSlotDrags()
+    {
+        // Hotbar slots
+        if (PlayerHotbarManager.Instance != null)
+        {
+            foreach (var slot in PlayerHotbarManager.Instance.hotbarSlots)
             {
-                playerAimScript.SetInventoryState(isOpen);
+                if (slot != null)
+                    slot.ForceStopDrag();
             }
+        }
 
-            if (playerAttackScript != null)
+        // Inventory grid slots
+        if (InvUI.Instance != null && InvUI.Instance.slotMappings != null)
+        {
+            foreach (var data in InvUI.Instance.slotMappings)
             {
-                playerAttackScript.enabled = !isOpen;
+                if (data.slotUI != null)
+                    data.slotUI.ForceStopDrag();
             }
-
-      
         }
     }
 

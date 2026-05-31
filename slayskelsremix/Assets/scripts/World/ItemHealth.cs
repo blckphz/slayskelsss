@@ -12,8 +12,8 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
     [Header("Tool Requirements")]
     public ToolType effectiveTool = ToolType.None;
 
-    [Header("Tool Durability")]
-    public float durabilityPerSwing = 1f;
+    [Header("Tool Durability Cost")]
+    public float durabilityPerHit = 1f;
 
     [Header("XP Reward")]
     public bool givesXP = true;
@@ -47,7 +47,6 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
     private Coroutine shakeCoroutine;
     private Vector3 originalLocalPosition;
 
-    // ================= STATUS =================
     private bool isSlowed = false;
 
     protected virtual void Awake()
@@ -57,8 +56,6 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
         originalLocalPosition = transform.localPosition;
         maxHealth = health;
     }
-
-    // ================= DAMAGE GATE =================
 
     protected virtual bool IsDamageIgnored()
     {
@@ -71,7 +68,8 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
     {
         if (IsDamageIgnored()) return;
 
-        LogToolDurability(toolItem);
+        ApplyToolDurability(toolItem);
+
         ProcessDamage(damage, toolType);
     }
 
@@ -89,7 +87,21 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
         ProcessDamage(damage, ToolType.None);
     }
 
-    // ================= CORE =================
+    // ================= TOOL DURABILITY CONTROL (NOW OWNED HERE) =================
+
+    protected virtual void ApplyToolDurability(ItemData toolItem)
+    {
+        if (toolItem == null) return;
+        if (toolItem.IsUnbreakable) return;
+
+        if (PlayerHotbarManager.Instance == null) return;
+
+        PlayerHotbarManager.Instance.ReduceActiveToolDurability(
+            Mathf.CeilToInt(durabilityPerHit)
+        );
+    }
+
+    // ================= CORE DAMAGE =================
 
     private void ProcessDamage(float damage, ToolType toolType)
     {
@@ -105,20 +117,6 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
 
         if (health <= 0)
             Die(toolType);
-    }
-
-    // ================= TOOL =================
-
-    private void LogToolDurability(ItemData tool)
-    {
-        if (tool == null) return;
-
-        if (!tool.IsUnbreakable && PlayerHotbarManager.Instance != null)
-        {
-            PlayerHotbarManager.Instance.ReduceActiveToolDurability(
-                Mathf.CeilToInt(durabilityPerSwing)
-            );
-        }
     }
 
     // ================= LOOT =================
@@ -142,14 +140,11 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
 
         for (int i = 0; i < dropAmount; i++)
         {
-            GameObject loot = Instantiate(lootPrefab, transform.position, Quaternion.identity);
-
-            if (loot.TryGetComponent<LootArc>(out LootArc arc))
-                arc.Initialize(transform.position);
+            Instantiate(lootPrefab, transform.position, Quaternion.identity);
         }
     }
 
-    // ================= DAMAGE TEXT =================
+    // ================= DAMAGE UI =================
 
     protected virtual void ShowDamageText(float damage)
     {
@@ -182,6 +177,7 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
         while (t < flashDuration)
         {
             t += Time.deltaTime;
+
             float i = Mathf.Lerp(1f, 0f, t / flashDuration);
 
             spriteRenderer.GetPropertyBlock(propertyBlock);
@@ -223,11 +219,8 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
     {
         GameObject player = GameObject.FindGameObjectWithTag("Player");
 
-        if (player != null &&
-            player.TryGetComponent(out LevelManager lm))
-        {
+        if (player != null && player.TryGetComponent(out LevelManager lm))
             lm.AddXP(xpReward);
-        }
     }
 
     // ================= DEATH =================
@@ -248,7 +241,7 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
         Die(ToolType.None);
     }
 
-    // ================= SLOW SYSTEM (INTERFACE FIX) =================
+    // ================= SLOW =================
 
     public virtual void ApplySlow(float slowPercent, float duration, float tickDmg, float tickInterval)
     {
