@@ -12,6 +12,7 @@ public class PlayerInteraction2D : MonoBehaviour
     [SerializeField] private float scanInterval = 0.1f;
     [SerializeField] private int maxResults = 16;
 
+
     [Header("Input")]
     public InputActionReference interactAction;
 
@@ -19,14 +20,8 @@ public class PlayerInteraction2D : MonoBehaviour
     private Collider2D[] results;
     private float scanTimer;
 
-    public GameObject CurrentTarget
-    {
-        get
-        {
-            if (currentInteractable == null) return null;
-            return ((MonoBehaviour)currentInteractable).gameObject;
-        }
-    }
+    public GameObject CurrentTarget =>
+        currentInteractable == null ? null : ((MonoBehaviour)currentInteractable).gameObject;
 
     private void Awake()
     {
@@ -55,6 +50,9 @@ public class PlayerInteraction2D : MonoBehaviour
         }
     }
 
+    // =========================================================
+    // DETECTION
+    // =========================================================
     private void DetectNearest()
     {
         scanTimer += Time.deltaTime;
@@ -101,7 +99,11 @@ public class PlayerInteraction2D : MonoBehaviour
             if (currentInteractable != null)
             {
                 currentInteractable.OnFocus();
-                InteractionUI.Instance?.Show($"[E] {currentInteractable.GetPrompt()}");
+
+                InteractionUI.Instance?.Show(
+                    $"[E] {currentInteractable.GetPrompt()}"
+                    
+                );
             }
         }
     }
@@ -119,7 +121,6 @@ public class PlayerInteraction2D : MonoBehaviour
         currentInteractable.Interact(inventory);
     }
 
-    // 🔥 FORCE UI REFRESH AFTER WORLD CHANGE
     public void ForceRefreshUI()
     {
         if (currentInteractable == null) return;
@@ -127,7 +128,9 @@ public class PlayerInteraction2D : MonoBehaviour
         currentInteractable.OnLoseFocus();
         currentInteractable.OnFocus();
 
-        InteractionUI.Instance?.Show($"[E] {currentInteractable.GetPrompt()}");
+        InteractionUI.Instance?.Show(
+            $"[E] {currentInteractable.GetPrompt()}"
+        );
     }
 
     private void OnDrawGizmosSelected()

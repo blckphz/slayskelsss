@@ -263,7 +263,6 @@ public class BuildingSaveManager : MonoBehaviour
 
         File.WriteAllText(savePath, json);
 
-        Debug.Log("[SaveManager] SAVE COMPLETE");
     }
 
     // =====================================================
@@ -423,8 +422,6 @@ public class BuildingSaveManager : MonoBehaviour
                 data.soilTiles);
         }
 
-        Debug.Log(
-            "World loaded successfully.");
     }
 
     // =====================================================

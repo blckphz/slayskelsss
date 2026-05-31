@@ -23,6 +23,10 @@ public class PlayerHotbarManager : MonoBehaviour
     private bool primaryQueued;
     private bool secondaryQueued;
 
+    // simple anti-spam for build mode message
+    private float lastBuildModeMessageTime;
+    private const float buildModeMessageCooldown = 1f;
+
     void Awake()
     {
         if (Instance == null) Instance = this;
@@ -89,7 +93,6 @@ public class PlayerHotbarManager : MonoBehaviour
 
         if (count <= 1) return;
 
-
         slot.SetSlot(item, slot.GetAbility(), 1, slot.GetDurability());
 
         InventoryManager.Instance.AddItem(item, count - 1, slot.GetDurability());
@@ -104,8 +107,19 @@ public class PlayerHotbarManager : MonoBehaviour
         var slot = hotbarSlots[selectedIndex];
         ItemData item = slot.GetItem();
 
-        if (item == null || BuildState.IsBuildMode)
+        if (item == null)
             return;
+
+        // 🔥 BUILD MODE BLOCK WITH FEEDBACK
+        if (BuildState.IsBuildMode)
+        {
+            if (Time.time - lastBuildModeMessageTime > buildModeMessageCooldown)
+            {
+                InteractionUI.Instance?.Show("Currently building");
+                lastBuildModeMessageTime = Time.time;
+            }
+            return;
+        }
 
         Ability ability =
             slot.GetAbility() ??
@@ -146,7 +160,6 @@ public class PlayerHotbarManager : MonoBehaviour
             0f,
             item.maxDurability
         );
-
 
         if (newDur <= 0f)
         {

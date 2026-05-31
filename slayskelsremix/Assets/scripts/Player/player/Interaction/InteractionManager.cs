@@ -25,7 +25,6 @@ public class InteractionManager : MonoBehaviour
     private void Awake()
     {
         mainCam = Camera.main;
-        Debug.Log("[InteractionManager] Awake");
     }
 
     private void OnValidate()

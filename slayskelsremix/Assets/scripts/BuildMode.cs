@@ -140,16 +140,14 @@ public class BuildMode : MonoBehaviour
         {
             if (buildMode)
             {
-                InteractionUI.Instance.ShowTemporary(
-                    "IN BUILD MODE",
-                    1.5f
+                InteractionUI.Instance.Show(
+                    "IN BUILD MODE"
                 );
             }
             else
             {
-                InteractionUI.Instance.ShowTemporary(
-                    "EXIT BUILD MODE",
-                    1.5f
+                InteractionUI.Instance.Show(
+                    "EXIT BUILD MODE"
                 );
             }
         }
@@ -167,11 +165,10 @@ public class BuildMode : MonoBehaviour
         // TEMP MESSAGE
         if (InteractionUI.Instance != null)
         {
-            InteractionUI.Instance.ShowTemporary(
+            InteractionUI.Instance.Show(
                 useGridPlacement
                     ? "GRID PLACEMENT ON"
-                    : "GRID PLACEMENT OFF",
-                1f
+                    : "GRID PLACEMENT OFF"
             );
         }
     }

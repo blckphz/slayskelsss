@@ -3,7 +3,7 @@
 public class PickupItem : MonoBehaviour
 {
     [Header("Item Settings")]
-    [SerializeField] private ItemData woodData;
+    [SerializeField] private ItemData ItemToGive;
     [SerializeField] private int amount = 1;
 
     [Header("Pickup Mode")]
@@ -50,18 +50,18 @@ public class PickupItem : MonoBehaviour
         }
     }
 
-    public ItemData GetItemData() => woodData;
+    public ItemData GetItemData() => ItemToGive;
 
     public string GetPrompt()
     {
-        return woodData != null
-            ? $"[E] Pick up {amount} {woodData.itemName}"
+        return ItemToGive != null
+            ? $"[E] Pick up {amount} {ItemToGive.itemName}"
             : "Empty Item";
     }
 
     public void Interact(InventoryManager playerInventory)
     {
-        if (woodData == null || isPickedUp) return;
+        if (ItemToGive == null || isPickedUp) return;
 
         Pickup(playerInventory);
     }
@@ -83,7 +83,7 @@ public class PickupItem : MonoBehaviour
         // NPC pickup
         if (collision.TryGetComponent(out NpcInvBrain npcInv))
         {
-            npcInv.AddItem(woodData, amount);
+            npcInv.AddItem(ItemToGive, amount);
 
             if (collision.TryGetComponent(out NPCBrain brain))
             {
@@ -97,11 +97,11 @@ public class PickupItem : MonoBehaviour
 
     private void Pickup(InventoryManager playerInventory)
     {
-        if (woodData == null || isPickedUp) return;
+        if (ItemToGive == null || isPickedUp) return;
 
         isPickedUp = true;
 
-        playerInventory.AddItem(woodData, amount);
+        playerInventory.AddItem(ItemToGive, amount);
 
         // 🔊 play pickup sound
         if (pickupSound != null && AudioManager.Instance != null)

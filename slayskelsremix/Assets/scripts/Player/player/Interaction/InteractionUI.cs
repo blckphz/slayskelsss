@@ -9,31 +9,40 @@ public class InteractionUI : MonoBehaviour
     [Header("References")]
     public GameObject pressEPrompt;
     public TextMeshProUGUI promptText;
+    public CanvasGroup canvasGroup;
 
-    private Coroutine messageRoutine;
+    [Header("Settings")]
+    public float fadeSpeed = 8f;
+    public float defaultDuration = 1.5f;
+
+    private Coroutine fadeRoutine;
+    private Coroutine hideRoutine;
 
     private void Awake()
     {
         Instance = this;
 
-        Debug.Log("InteractionUI initialized");
-
         if (pressEPrompt != null)
             pressEPrompt.SetActive(false);
+
+        if (canvasGroup != null)
+            canvasGroup.alpha = 0f;
     }
 
     // =========================================================
-    // NORMAL SHOW
+    // SHOW (ALWAYS USE DEFAULT DURATION)
     // =========================================================
     public void Show(string text)
     {
-        Debug.Log("InteractionUI.Show(): " + text);
-
         if (promptText != null)
             promptText.text = text;
 
         if (pressEPrompt != null)
             pressEPrompt.SetActive(true);
+
+        StartFade(1f);
+
+        RestartAutoHide();
     }
 
     // =========================================================
@@ -41,38 +50,56 @@ public class InteractionUI : MonoBehaviour
     // =========================================================
     public void Hide()
     {
-        Debug.Log("InteractionUI.Hide()");
-
-        if (pressEPrompt != null)
-            pressEPrompt.SetActive(false);
+        StartFade(0f);
     }
 
     // =========================================================
-    // TEMPORARY MESSAGE
+    // ALWAYS USE DEFAULT TIMER
     // =========================================================
-    public void ShowTemporary(string text, float duration = 1f)
+    private void RestartAutoHide()
     {
-        Debug.Log("ShowTemporary(): " + text);
+        if (hideRoutine != null)
+            StopCoroutine(hideRoutine);
 
-        if (messageRoutine != null)
-            StopCoroutine(messageRoutine);
-
-        messageRoutine = StartCoroutine(
-            TemporaryMessage(text, duration)
-        );
+        hideRoutine = StartCoroutine(AutoHide());
     }
 
-    private IEnumerator TemporaryMessage(
-        string text,
-        float duration
-    )
+    private IEnumerator AutoHide()
     {
-        Show(text);
-
-        yield return new WaitForSeconds(duration);
-
+        yield return new WaitForSeconds(defaultDuration);
         Hide();
+    }
 
-        messageRoutine = null;
+    // =========================================================
+    // FADE SYSTEM
+    // =========================================================
+    private void StartFade(float targetAlpha)
+    {
+        if (fadeRoutine != null)
+            StopCoroutine(fadeRoutine);
+
+        fadeRoutine = StartCoroutine(FadeRoutine(targetAlpha));
+    }
+
+    private IEnumerator FadeRoutine(float targetAlpha)
+    {
+        if (canvasGroup == null)
+            yield break;
+
+        while (!Mathf.Approximately(canvasGroup.alpha, targetAlpha))
+        {
+            canvasGroup.alpha = Mathf.MoveTowards(
+                canvasGroup.alpha,
+                targetAlpha,
+                fadeSpeed * Time.deltaTime
+            );
+
+            yield return null;
+        }
+
+        canvasGroup.alpha = targetAlpha;
+
+        if (targetAlpha == 0f && pressEPrompt != null)
+            pressEPrompt.SetActive(false);
     }
 }

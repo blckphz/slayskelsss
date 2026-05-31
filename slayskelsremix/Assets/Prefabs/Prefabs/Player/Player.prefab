@@ -679,6 +679,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerAttack
   aimScript: {fileID: 0}
   fireActions: []
+  screenshakeIntensity: 0.5
+  screenshakeDuration: 0.2
 --- !u!61 &7810479635399899880
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -931,7 +933,9 @@ MonoBehaviour:
   inventory:
   - item: {fileID: 0}
     count: 0
+    currentDurability: 0
   hotbarData: []
+  inventorySize: 30
   hotbarSize: 9
   database: {fileID: 0}
   abilityDatabase: {fileID: 0}
@@ -967,9 +971,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 78661267de8a09e47ae15b889179b1a1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LevelManager
-  currentXP: 0
   level: 1
+  currentXP: 0
   xpToNextLevel: 100
+  skillPoints: 0
+  saveID: 
 --- !u!1 &5294298298383211905
 GameObject:
   m_ObjectHideFlags: 0
@@ -1171,6 +1177,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: '::'
   pressEPrompt: {fileID: 0}
   promptText: {fileID: 0}
+  canvasGroup: {fileID: 833789101968955582}
+  fadeDuration: 0.25
+  visibleDuration: 1
+  shakeTarget: {fileID: 7348064687145423045}
+  shakeDuration: 0.15
+  shakeStrength: 8
 --- !u!1 &8186050296107454288
 GameObject:
   m_ObjectHideFlags: 0
@@ -1180,6 +1192,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7348064687145423045}
+  - component: {fileID: 833789101968955582}
   m_Layer: 5
   m_Name: GameObject (1)
   m_TagString: Untagged
@@ -1208,3 +1221,15 @@ RectTransform:
   m_AnchoredPosition: {x: -1922.5221, y: -1079.4373}
   m_SizeDelta: {x: 3.1550293, y: 1.3425293}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!225 &833789101968955582
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8186050296107454288}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0

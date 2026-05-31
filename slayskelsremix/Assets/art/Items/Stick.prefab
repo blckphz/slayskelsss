@@ -197,9 +197,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f31a2c677b8c0e04e991389983d5fa7f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::WoodPickup
-  woodData: {fileID: 11400000, guid: d357b6ac5c3211948904ccfa9e7efd75, type: 2}
+  ItemToGive: {fileID: 11400000, guid: 68b493ef73a853a4e96f65bccff6f878, type: 2}
   amount: 1
   autoPickupOnCollision: 1
+  magnetRange: 2.5
+  magnetStrength: 8
+  pickupSound: {fileID: 0}
 --- !u!70 &4632970738025185415
 CapsuleCollider2D:
   m_ObjectHideFlags: 0
@@ -281,3 +284,4 @@ MonoBehaviour:
   spreadRadius: 3
   bounceHeight: 0.3
   bounceDuration: 0.2
+  bounceClip: {fileID: 0}
