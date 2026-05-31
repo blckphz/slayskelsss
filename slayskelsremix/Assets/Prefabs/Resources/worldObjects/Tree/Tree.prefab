@@ -166,6 +166,7 @@ GameObject:
   - component: {fileID: 6896833497799181211}
   - component: {fileID: 696859030482221376}
   - component: {fileID: 3056067628925120947}
+  - component: {fileID: 6279134934053031532}
   m_Layer: 0
   m_Name: Tree
   m_TagString: Untagged
@@ -207,7 +208,7 @@ MonoBehaviour:
   UniqOverworldItemID: 1d285cee-8dde-4cbd-8f22-1657985b915b
   health: 50
   effectiveTool: 2
-  durabilityPerSwing: 4.63
+  durabilityPerHit: 1
   givesXP: 1
   xpReward: 15
   lootPrefab: {fileID: 8504423254273432661, guid: 22af6c420dc2b11488f396c164eab3b4, type: 3}
@@ -448,6 +449,21 @@ MonoBehaviour:
     RefIds:
     - rid: -2
       type: {class: , ns: , asm: }
+--- !u!114 &6279134934053031532
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7005833747306306358}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bc72aff1992c9ec4f90262380812e884, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::treesway
+  swayAmount: 2
+  swaySpeed: 1
+  randomness: 0.5
 --- !u!1 &8333813898221502428
 GameObject:
   m_ObjectHideFlags: 0
