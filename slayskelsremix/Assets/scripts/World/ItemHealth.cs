@@ -1,8 +1,10 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using UnityEngine;
 
 public abstract class ItemHealth : MonoBehaviour, IDamageable
 {
+    [Header("Persistent ID")]
     public string UniqOverworldItemID;
 
     [Header("Health")]
@@ -41,133 +43,251 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
     public float shakeMagnitude = 0.1f;
 
     protected SpriteRenderer spriteRenderer;
+
     private MaterialPropertyBlock propertyBlock;
 
     private Coroutine flashCoroutine;
     private Coroutine shakeCoroutine;
+
     private Vector3 originalLocalPosition;
 
     private bool isSlowed = false;
 
+    // =====================================================
+    // UNITY
+    // =====================================================
+
     protected virtual void Awake()
     {
-        spriteRenderer = GetComponent<SpriteRenderer>();
-        propertyBlock = new MaterialPropertyBlock();
-        originalLocalPosition = transform.localPosition;
+        spriteRenderer =
+            GetComponent<SpriteRenderer>();
+
+        propertyBlock =
+            new MaterialPropertyBlock();
+
+        originalLocalPosition =
+            transform.localPosition;
+
         maxHealth = health;
     }
+
+#if UNITY_EDITOR
+    protected virtual void OnValidate()
+    {
+        // Prevent generating IDs during play mode
+        if (Application.isPlaying)
+            return;
+
+        GenerateUniqueIDIfNeeded();
+    }
+#endif
+
+    protected virtual void Start()
+    {
+        GenerateUniqueIDIfNeeded();
+    }
+
+    // =====================================================
+    // UNIQUE ID
+    // =====================================================
+
+    private void GenerateUniqueIDIfNeeded()
+    {
+        if (!string.IsNullOrEmpty(
+            UniqOverworldItemID))
+        {
+            return;
+        }
+
+        UniqOverworldItemID =
+            Guid.NewGuid().ToString();
+
+        Debug.Log(
+            $"[UNIQUE ID GENERATED] " +
+            $"{gameObject.name} -> " +
+            $"{UniqOverworldItemID}");
+    }
+
+    // =====================================================
+    // DAMAGE IGNORE
+    // =====================================================
 
     protected virtual bool IsDamageIgnored()
     {
         return false;
     }
 
-    // ================= DAMAGE =================
+    // =====================================================
+    // DAMAGE
+    // =====================================================
 
-    public virtual void TakeDamage(float damage, ToolType toolType, ItemData toolItem)
+    public virtual void TakeDamage(
+        float damage,
+        ToolType toolType,
+        ItemData toolItem)
     {
-        if (IsDamageIgnored()) return;
+        if (IsDamageIgnored())
+            return;
 
         ApplyToolDurability(toolItem);
 
         ProcessDamage(damage, toolType);
     }
 
-    public virtual void TakeDamage(float damage, ToolType toolType)
+    public virtual void TakeDamage(
+        float damage,
+        ToolType toolType)
     {
-        if (IsDamageIgnored()) return;
+        if (IsDamageIgnored())
+            return;
 
         ProcessDamage(damage, toolType);
     }
 
     public virtual void TakeDamage(float damage)
     {
-        if (IsDamageIgnored()) return;
+        if (IsDamageIgnored())
+            return;
 
-        ProcessDamage(damage, ToolType.None);
+        ProcessDamage(
+            damage,
+            ToolType.None);
     }
 
-    // ================= TOOL DURABILITY CONTROL (NOW OWNED HERE) =================
+    // =====================================================
+    // TOOL DURABILITY
+    // =====================================================
 
-    protected virtual void ApplyToolDurability(ItemData toolItem)
+    protected virtual void ApplyToolDurability(
+        ItemData toolItem)
     {
-        if (toolItem == null) return;
-        if (toolItem.IsUnbreakable) return;
+        if (toolItem == null)
+            return;
 
-        if (PlayerHotbarManager.Instance == null) return;
+        if (toolItem.IsUnbreakable)
+            return;
 
-        PlayerHotbarManager.Instance.ReduceActiveToolDurability(
-            Mathf.CeilToInt(durabilityPerHit)
-        );
+        if (PlayerHotbarManager.Instance == null)
+            return;
+
+        PlayerHotbarManager.Instance
+            .ReduceActiveToolDurability(
+                Mathf.CeilToInt(
+                    durabilityPerHit));
     }
 
-    // ================= CORE DAMAGE =================
+    // =====================================================
+    // CORE DAMAGE
+    // =====================================================
 
-    private void ProcessDamage(float damage, ToolType toolType)
+    private void ProcessDamage(
+        float damage,
+        ToolType toolType)
     {
         health -= damage;
-        health = Mathf.Clamp(health, 0, maxHealth);
+
+        health = Mathf.Clamp(
+            health,
+            0,
+            maxHealth);
 
         ShowDamageText(damage);
+
         TriggerFlash();
+
         TriggerShake();
 
-        if (Random.value <= hitDropChance)
+        if (UnityEngine.Random.value <= hitDropChance)
+        {
             SpawnHitLoot();
+        }
 
         if (health <= 0)
+        {
             Die(toolType);
+        }
     }
 
-    // ================= LOOT =================
+    // =====================================================
+    // LOOT
+    // =====================================================
 
     protected virtual void SpawnHitLoot()
     {
-        if (lootPrefab == null) return;
+        if (lootPrefab == null)
+            return;
 
         for (int i = 0; i < hitDropAmount; i++)
         {
-            GameObject loot = Instantiate(lootPrefab, transform.position, Quaternion.identity);
+            GameObject loot =
+                Instantiate(
+                    lootPrefab,
+                    transform.position,
+                    Quaternion.identity);
 
-            if (loot.TryGetComponent<LootArc>(out LootArc arc))
-                arc.Initialize(transform.position);
+            if (loot.TryGetComponent(
+                out LootArc arc))
+            {
+                arc.Initialize(
+                    transform.position);
+            }
         }
     }
 
     public virtual void SpawnLoot()
     {
-        if (lootPrefab == null) return;
+        if (lootPrefab == null)
+            return;
 
         for (int i = 0; i < dropAmount; i++)
         {
-            Instantiate(lootPrefab, transform.position, Quaternion.identity);
+            Instantiate(
+                lootPrefab,
+                transform.position,
+                Quaternion.identity);
         }
     }
 
-    // ================= DAMAGE UI =================
+    // =====================================================
+    // DAMAGE UI
+    // =====================================================
 
-    protected virtual void ShowDamageText(float damage)
+    protected virtual void ShowDamageText(
+        float damage)
     {
-        if (damageTextPrefab == null || damage <= 0) return;
+        if (damageTextPrefab == null)
+            return;
 
-        GameObject obj = Instantiate(
-            damageTextPrefab,
-            transform.position + Vector3.up,
-            Quaternion.identity
-        );
+        if (damage <= 0)
+            return;
 
-        if (obj.TryGetComponent<DamageNumber>(out DamageNumber dn))
+        GameObject obj =
+            Instantiate(
+                damageTextPrefab,
+                transform.position + Vector3.up,
+                Quaternion.identity);
+
+        if (obj.TryGetComponent(
+            out DamageNumber dn))
+        {
             dn.Setup(damage);
+        }
     }
 
-    // ================= EFFECTS =================
+    // =====================================================
+    // EFFECTS
+    // =====================================================
 
     protected void TriggerFlash()
     {
         if (flashCoroutine != null)
+        {
             StopCoroutine(flashCoroutine);
+        }
 
-        flashCoroutine = StartCoroutine(FlashRoutine());
+        flashCoroutine =
+            StartCoroutine(
+                FlashRoutine());
     }
 
     private IEnumerator FlashRoutine()
@@ -178,11 +298,21 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
         {
             t += Time.deltaTime;
 
-            float i = Mathf.Lerp(1f, 0f, t / flashDuration);
+            float intensity =
+                Mathf.Lerp(
+                    1f,
+                    0f,
+                    t / flashDuration);
 
-            spriteRenderer.GetPropertyBlock(propertyBlock);
-            propertyBlock.SetFloat(hitIntensityName, i);
-            spriteRenderer.SetPropertyBlock(propertyBlock);
+            spriteRenderer.GetPropertyBlock(
+                propertyBlock);
+
+            propertyBlock.SetFloat(
+                hitIntensityName,
+                intensity);
+
+            spriteRenderer.SetPropertyBlock(
+                propertyBlock);
 
             yield return null;
         }
@@ -191,9 +321,13 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
     protected void TriggerShake()
     {
         if (shakeCoroutine != null)
+        {
             StopCoroutine(shakeCoroutine);
+        }
 
-        shakeCoroutine = StartCoroutine(ShakeRoutine());
+        shakeCoroutine =
+            StartCoroutine(
+                ShakeRoutine());
     }
 
     private IEnumerator ShakeRoutine()
@@ -204,35 +338,56 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
         {
             t += Time.deltaTime;
 
-            Vector2 offset = Random.insideUnitCircle * shakeMagnitude;
-            transform.localPosition = originalLocalPosition + (Vector3)offset;
+            Vector2 offset =
+                UnityEngine.Random.insideUnitCircle *
+                shakeMagnitude;
+
+            transform.localPosition =
+                originalLocalPosition +
+                (Vector3)offset;
 
             yield return null;
         }
 
-        transform.localPosition = originalLocalPosition;
+        transform.localPosition =
+            originalLocalPosition;
     }
 
-    // ================= XP =================
+    // =====================================================
+    // XP
+    // =====================================================
 
     protected virtual void GrantXP()
     {
-        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        GameObject player =
+            GameObject.FindGameObjectWithTag(
+                "Player");
 
-        if (player != null && player.TryGetComponent(out LevelManager lm))
+        if (player != null &&
+            player.TryGetComponent(
+                out LevelManager lm))
+        {
             lm.AddXP(xpReward);
+        }
     }
 
-    // ================= DEATH =================
+    // =====================================================
+    // DEATH
+    // =====================================================
 
-    protected virtual void Die(ToolType tool)
+    protected virtual void Die(
+        ToolType tool)
     {
-        NPCGlobalEvents.NotifyDestroyed(gameObject.GetInstanceID());
+        NPCGlobalEvents.NotifyDestroyed(
+            gameObject.GetInstanceID());
 
         if (givesXP)
+        {
             GrantXP();
+        }
 
         SpawnLoot();
+
         Destroy(gameObject);
     }
 
@@ -241,17 +396,28 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
         Die(ToolType.None);
     }
 
-    // ================= SLOW =================
+    // =====================================================
+    // SLOW
+    // =====================================================
 
-    public virtual void ApplySlow(float slowPercent, float duration, float tickDmg, float tickInterval)
+    public virtual void ApplySlow(
+        float slowPercent,
+        float duration,
+        float tickDmg,
+        float tickInterval)
     {
-        StartCoroutine(SlowRoutine(duration));
+        StartCoroutine(
+            SlowRoutine(duration));
     }
 
-    private IEnumerator SlowRoutine(float duration)
+    private IEnumerator SlowRoutine(
+        float duration)
     {
         isSlowed = true;
-        yield return new WaitForSeconds(duration);
+
+        yield return new WaitForSeconds(
+            duration);
+
         isSlowed = false;
     }
 

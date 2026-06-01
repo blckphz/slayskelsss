@@ -76,7 +76,6 @@ public class CraftingManager : MonoBehaviour
             Cursor.visible = true;
 
             CraftUIManager.Instance?.RefreshGrid();
-            Debug.Log("<color=white>[Crafting]</color> Opened.");
         }
     }
 
@@ -146,7 +145,6 @@ public class CraftingManager : MonoBehaviour
 
         InventoryManager.Instance.AddItem(recipe.resultItem, recipe.resultCount);
 
-        Debug.Log($"<color=lime>[Crafting]</color> Crafted {recipe.resultItem.itemName}");
 
         CraftUIManager.Instance?.RefreshGrid();
     }

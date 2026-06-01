@@ -109,11 +109,9 @@ public class CraftUIManager : MonoBehaviour
     {
         if (CraftingManager.Instance == null)
         {
-            Debug.LogError("[CraftUI] CraftingManager missing!");
             return;
         }
 
-        Debug.Log("[CraftUI] RefreshGrid called");
 
         // ✅ SAVE CURRENT SELECTION
         CraftingSO previousSelected = selectedRecipe;

@@ -7,110 +7,78 @@ public class TreeStumpRegrow : MonoBehaviour
 
     public GameObject treePrefab;
 
-    [Tooltip("Time in Game Days")]
     public float regrowTime = 0.5f;
 
-    private float cutTime;
+    public float cutTime;
 
     private DayNightCycle timeSystem;
 
-    private bool initialized = false;
-
-    // ==========================================
-    // UNITY
-    // ==========================================
+    private bool alreadyRegrown = false;
 
     void Start()
     {
-        Debug.Log(
-            $"[STUMP] Start() | treeID={treeID}");
-
         timeSystem =
             FindFirstObjectByType<DayNightCycle>();
-
-        if (timeSystem == null)
-        {
-            Debug.LogError(
-                "[STUMP] DayNightCycle NOT FOUND");
-        }
-        else
-        {
-            Debug.Log(
-                $"[STUMP] DayNightCycle FOUND | CurrentTime={timeSystem.TotalTime}");
-        }
     }
 
     void Update()
     {
+        if (alreadyRegrown)
+            return;
+
         if (timeSystem == null)
             return;
 
-        if (string.IsNullOrEmpty(treeID))
-            return;
-
-        float targetTime =
-            cutTime + regrowTime;
-
-
-        if (timeSystem.TotalTime >= targetTime)
+        if (timeSystem.TotalTime >=
+            cutTime + regrowTime)
         {
-            Debug.Log(
-                $"[STUMP] REGROW TRIGGERED | treeID={treeID}");
-
             Regrow();
         }
     }
 
-    // ==========================================
-    // SETUP
-    // ==========================================
-
     public void Setup(string id, float time)
     {
         treeID = id;
-
         cutTime = time;
-
-        initialized = true;
-
-        Debug.Log(
-            $"[STUMP] Setup() | treeID={treeID} | cutTime={cutTime}");
-    }
-
-    public void SetCutTime(float time)
-    {
-        cutTime = time;
-
-        initialized = true;
-
-        Debug.Log(
-            $"[STUMP] SetCutTime() | cutTime={cutTime}");
     }
 
     public float GetCutTime()
     {
-        Debug.Log(
-            $"[STUMP] GetCutTime() | cutTime={cutTime}");
-
         return cutTime;
     }
 
-    // ==========================================
-    // REGROW
-    // ==========================================
-
     private void Regrow()
     {
-        Debug.Log(
-            $"[STUMP] Regrow() START | treeID={treeID}");
+        alreadyRegrown = true;
 
-        if (treePrefab == null)
+        // =========================================
+        // REMOVE OLD STUMP SAVE ENTRY
+        // =========================================
+
+        if (BuildingSaveManager.Instance != null)
         {
-            Debug.LogError(
-                "[STUMP] treePrefab is NULL");
+            var save =
+                BuildingSaveManager.Instance
+                .GetSaveData();
 
-            return;
+            if (save != null)
+            {
+                TreeSaveData oldData =
+                    save.trees.Find(
+                        t =>
+                        t.treeID == treeID &&
+                        t.isCut);
+
+                if (oldData != null)
+                {
+                    save.trees.Remove(oldData);
+                }
+            }
         }
+
+        // =========================================
+        // SPAWN NEW TREE
+        // =========================================
 
         GameObject newTree =
             Instantiate(
@@ -118,45 +86,26 @@ public class TreeStumpRegrow : MonoBehaviour
                 transform.position,
                 Quaternion.identity);
 
-        Debug.Log(
-            $"[STUMP] New tree instantiated | name={newTree.name}");
-
-        treeItemBehav tree =
-            newTree.GetComponent<treeItemBehav>();
-
-        if (tree != null)
+        if (newTree.TryGetComponent(
+            out treeItemBehav tree))
         {
-            tree.UniqOverworldItemID = treeID;
+            tree.UniqOverworldItemID =
+                treeID;
 
             tree.isCut = false;
 
             tree.cutTime = 0f;
+        }
 
-            Debug.Log(
-                $"[STUMP] Tree state restored | ID={treeID}");
-        }
-        else
-        {
-            Debug.LogError(
-                "[STUMP] treeItemBehav missing on prefab");
-        }
+        // =========================================
+        // SAVE NEW STATE
+        // =========================================
 
         if (BuildingSaveManager.Instance != null)
         {
-            Debug.Log(
-                "[STUMP] Triggering autosave");
-
             BuildingSaveManager.Instance
                 .SaveAfterChange();
         }
-        else
-        {
-            Debug.LogError(
-                "[STUMP] BuildingSaveManager.Instance NULL");
-        }
-
-        Debug.Log(
-            $"[STUMP] Destroying stump | treeID={treeID}");
 
         Destroy(gameObject);
     }

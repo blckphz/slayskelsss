@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
@@ -8,32 +9,58 @@ public class ResourceSpawner : MonoBehaviour
     public class ResourceEntry
     {
         public TileBase tile;
+
         public GameObject prefab;
+
         public int maxSpawnCount = 10;
+
         public float minDistance = 1.5f;
     }
 
-    [Header("Tilemaps")]
-    public Tilemap tilemap;              // spawn tiles
-    public Tilemap blockedTilemap;       // dirt / diggable / blocked tiles
+    [Header("Settings")]
+    public Tilemap tilemap;
 
-    [Header("Resources")]
-    public List<ResourceEntry> resources = new List<ResourceEntry>();
+    public Tilemap blockedTilemap;
+
+    public List<ResourceEntry> resources =
+        new List<ResourceEntry>();
+
+    [Header("TREE ID")]
+    public string treeIDPrefix = "tree_";
 
     void Start()
     {
+        StartCoroutine(SpawnAfterLoad());
+    }
+
+    IEnumerator SpawnAfterLoad()
+    {
+        // wait for BuildingSaveManager load
+        yield return new WaitForSeconds(0.1f);
+
         SpawnResources();
     }
 
-    // ================= SPAWN =================
-
     void SpawnResources()
     {
-        BoundsInt bounds = tilemap.cellBounds;
+        if (BuildingSaveManager.Instance == null)
+            return;
+
+        var save =
+            BuildingSaveManager.Instance
+            .GetSaveData();
+
+        BoundsInt bounds =
+            tilemap.cellBounds;
 
         foreach (ResourceEntry entry in resources)
         {
-            List<Vector3> validPositions = new List<Vector3>();
+            List<Vector3> validPositions =
+                new List<Vector3>();
+
+            // =========================================
+            // COLLECT VALID TILES
+            // =========================================
 
             foreach (Vector3Int pos in bounds.allPositionsWithin)
             {
@@ -46,53 +73,137 @@ public class ResourceSpawner : MonoBehaviour
                 if (IsBlocked(pos))
                     continue;
 
-                validPositions.Add(tilemap.GetCellCenterWorld(pos));
+                validPositions.Add(
+                    tilemap.GetCellCenterWorld(pos));
             }
 
-            List<Vector3> spawnedPositions = new List<Vector3>();
+            // =========================================
+            // RANDOMIZE POSITIONS
+            // FIXES TREE LINES
+            // =========================================
 
-            int attempts = 0;
-            int maxSpawn = Mathf.Min(entry.maxSpawnCount, validPositions.Count);
+            Shuffle(validPositions);
 
-            while (spawnedPositions.Count < maxSpawn &&
-                   validPositions.Count > 0 &&
-                   attempts < 10000)
+            int spawned = 0;
+
+            foreach (Vector3 pos in validPositions)
             {
-                attempts++;
+                if (spawned >= entry.maxSpawnCount)
+                    break;
 
-                int index = Random.Range(0, validPositions.Count);
-                Vector3 candidate = validPositions[index];
-                validPositions.RemoveAt(index);
+                // =====================================
+                // DISTANCE CHECK
+                // =====================================
 
-                if (IsTooClose(candidate, spawnedPositions, entry.minDistance))
+                if (IsTooClose(pos, entry.minDistance))
                     continue;
 
-                Instantiate(entry.prefab, candidate, Quaternion.identity);
-                spawnedPositions.Add(candidate);
+                // =====================================
+                // UNIQUE TREE ID
+                // =====================================
+
+                string id =
+                    $"{treeIDPrefix}" +
+                    $"{Mathf.RoundToInt(pos.x)}_" +
+                    $"{Mathf.RoundToInt(pos.y)}";
+
+                // =====================================
+                // IMPORTANT:
+                // DO NOT RESPAWN SAVED TREES
+                // =====================================
+
+                bool alreadyExists =
+                    save != null &&
+                    save.trees.Exists(
+                        t => t.treeID == id);
+
+                if (alreadyExists)
+                    continue;
+
+                // =====================================
+                // FINAL OVERLAP SAFETY
+                // =====================================
+
+                Collider2D hit =
+                    Physics2D.OverlapCircle(
+                        pos,
+                        0.2f);
+
+                if (hit != null)
+                    continue;
+
+                // =====================================
+                // SPAWN TREE
+                // =====================================
+
+                GameObject obj =
+                    Instantiate(
+                        entry.prefab,
+                        pos,
+                        Quaternion.identity);
+
+                if (obj.TryGetComponent(
+                    out treeItemBehav tree))
+                {
+                    tree.UniqOverworldItemID = id;
+                }
+
+                spawned++;
             }
+        }
+
+        // SAVE NEWLY SPAWNED TREES
+        BuildingSaveManager.Instance
+            .SaveAfterChange();
+    }
+
+    // =====================================================
+    // SHUFFLE
+    // =====================================================
+
+    void Shuffle(List<Vector3> list)
+    {
+        for (int i = 0; i < list.Count; i++)
+        {
+            int rand =
+                Random.Range(i, list.Count);
+
+            Vector3 temp = list[i];
+
+            list[i] = list[rand];
+
+            list[rand] = temp;
         }
     }
 
-    // ================= BLOCK CHECK =================
+    // =====================================================
+    // BLOCKED TILE CHECK
+    // =====================================================
 
     bool IsBlocked(Vector3Int cellPos)
     {
-        if (blockedTilemap == null)
-            return false;
-
-        return blockedTilemap.HasTile(cellPos);
+        return blockedTilemap != null &&
+               blockedTilemap.HasTile(cellPos);
     }
 
-    // ================= DISTANCE CHECK =================
+    // =====================================================
+    // DISTANCE CHECK
+    // =====================================================
 
-    bool IsTooClose(Vector3 pos, List<Vector3> others, float minDist)
+    bool IsTooClose(Vector3 pos, float minDist)
     {
-        float minDistSqr = minDist * minDist;
+        float sqr =
+            minDist * minDist;
 
-        foreach (var p in others)
+        foreach (treeItemBehav tree in
+            FindObjectsByType<treeItemBehav>(
+                FindObjectsSortMode.None))
         {
-            if ((p - pos).sqrMagnitude < minDistSqr)
+            if ((tree.transform.position - pos)
+                .sqrMagnitude < sqr)
+            {
                 return true;
+            }
         }
 
         return false;
