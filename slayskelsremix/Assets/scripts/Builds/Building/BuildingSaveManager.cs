@@ -2,10 +2,13 @@
 using UnityEngine;
 using System.IO;
 using System.Linq;
+using System;
 
 public class BuildingSaveManager : MonoBehaviour
 {
     public static BuildingSaveManager Instance;
+
+    public static event Action OnWorldLoaded;
 
     [System.Serializable]
     public class BuildingData
@@ -44,7 +47,6 @@ public class BuildingSaveManager : MonoBehaviour
     private void Start()
     {
         LoadEverything();
-        HasLoadedWorld = true;
     }
 
     // =====================================================
@@ -70,6 +72,7 @@ public class BuildingSaveManager : MonoBehaviour
         SaveData data = new SaveData();
         placedBuildings.RemoveAll(x => x == null);
 
+        // ---------------- BUILDINGS ----------------
         foreach (GameObject obj in placedBuildings)
         {
             BuildingData b = new BuildingData
@@ -99,11 +102,35 @@ public class BuildingSaveManager : MonoBehaviour
         foreach (BushBehav bush in FindObjectsByType<BushBehav>(FindObjectsSortMode.None))
             data.bushes.Add(bush.GetSaveData());
 
-        foreach (treeItemBehav tree in FindObjectsByType<treeItemBehav>(FindObjectsSortMode.None))
-            data.trees.Add(tree.GetSaveData());
+        // =====================================================
+        // 🌳 TREE SAVE (PATCHED - DEDUP + DEBUG)
+        // =====================================================
+        HashSet<string> seenTreeIDs = new HashSet<string>();
 
+        foreach (treeItemBehav tree in FindObjectsByType<treeItemBehav>(FindObjectsSortMode.None))
+        {
+            var t = tree.GetSaveData();
+
+            if (!seenTreeIDs.Add(t.treeID.ToString()))
+            {
+                Debug.LogWarning($"[SAVE] Duplicate treeItemBehav skipped: {t.treeID} at {tree.transform.position}");
+                continue;
+            }
+
+            data.trees.Add(t);
+        }
+
+        // =====================================================
+        // 🌱 STUMP SAVE (PATCHED - DEDUP + DEBUG)
+        // =====================================================
         foreach (TreeStumpRegrow stump in FindObjectsByType<TreeStumpRegrow>(FindObjectsSortMode.None))
         {
+            if (!seenTreeIDs.Add(stump.treeID.ToString()))
+            {
+                Debug.LogWarning($"[SAVE] Duplicate stump skipped: {stump.treeID} at {stump.transform.position}");
+                continue;
+            }
+
             data.trees.Add(new TreeSaveData
             {
                 treeID = stump.treeID,
@@ -115,6 +142,8 @@ public class BuildingSaveManager : MonoBehaviour
 
         cachedData = data;
         File.WriteAllText(savePath, JsonUtility.ToJson(data, true));
+
+        Debug.Log("BuildingSaveManager: Save complete.");
     }
 
     // =====================================================
@@ -122,8 +151,15 @@ public class BuildingSaveManager : MonoBehaviour
     // =====================================================
     public void LoadEverything()
     {
-        if (!File.Exists(savePath)) return;
+        if (!File.Exists(savePath))
+        {
+            Debug.Log("BuildingSaveManager: No save file found. Initializing fresh world.");
+            HasLoadedWorld = true;
+            OnWorldLoaded?.Invoke();
+            return;
+        }
 
+        Debug.Log("BuildingSaveManager: Loading data from " + savePath);
         cachedData = JsonUtility.FromJson<SaveData>(File.ReadAllText(savePath));
 
         // ---------------- BUILDINGS ----------------
@@ -176,9 +212,21 @@ public class BuildingSaveManager : MonoBehaviour
             }
         }
 
-        // ---------------- TREES ----------------
+        // =====================================================
+        // 🌳 TREE LOAD (PATCHED DEDUP + DEBUG)
+        // =====================================================
+        HashSet<string> spawnedTreeIDs = new HashSet<string>();
+        int duplicateCount = 0;
+
         foreach (TreeSaveData t in cachedData.trees)
         {
+            if (!spawnedTreeIDs.Add(t.treeID.ToString()))
+            {
+                duplicateCount++;
+                Debug.LogWarning($"[LOAD] Duplicate tree skipped: {t.treeID} at {t.position}");
+                continue;
+            }
+
             if (t.isCut)
             {
                 GameObject stump = Instantiate(stumpPrefab, t.position, Quaternion.identity);
@@ -196,6 +244,13 @@ public class BuildingSaveManager : MonoBehaviour
                 }
             }
         }
+
+        if (duplicateCount > 0)
+            Debug.LogWarning($"[LOAD] Total duplicate trees skipped: {duplicateCount}");
+
+        HasLoadedWorld = true;
+        Debug.Log("BuildingSaveManager: Loading complete. Invoking OnWorldLoaded.");
+        OnWorldLoaded?.Invoke();
     }
 
     public void SaveAfterChange() => SaveNow();

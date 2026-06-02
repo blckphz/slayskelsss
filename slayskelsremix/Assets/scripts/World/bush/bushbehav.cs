@@ -86,8 +86,17 @@ public class BushBehav : ItemHealth
     private void DropInitialBerries()
     {
         if (lootPrefab == null) return;
+
         for (int i = 0; i < berriesOnFirstHit; i++)
-            Instantiate(lootPrefab, transform.position, Quaternion.identity);
+        {
+            GameObject loot = Instantiate(lootPrefab, transform.position, Quaternion.identity);
+
+            LootArc arc = loot.GetComponent<LootArc>();
+            if (arc != null)
+            {
+                arc.Initialize(transform.position);
+            }
+        }
     }
 
     // ================= PERSISTENCE =================

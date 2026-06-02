@@ -52,61 +52,29 @@ public class TreeStumpRegrow : MonoBehaviour
         alreadyRegrown = true;
 
         // =========================================
-        // REMOVE OLD STUMP SAVE ENTRY
-        // =========================================
-
-        if (BuildingSaveManager.Instance != null)
-        {
-            var save =
-                BuildingSaveManager.Instance
-                .GetSaveData();
-
-            if (save != null)
-            {
-                TreeSaveData oldData =
-                    save.trees.Find(
-                        t =>
-                        t.treeID == treeID &&
-                        t.isCut);
-
-                if (oldData != null)
-                {
-                    save.trees.Remove(oldData);
-                }
-            }
-        }
-
-        // =========================================
         // SPAWN NEW TREE
         // =========================================
 
-        GameObject newTree =
-            Instantiate(
-                treePrefab,
-                transform.position,
-                Quaternion.identity);
+        GameObject newTree = Instantiate(treePrefab, transform.position, Quaternion.identity);
 
-        if (newTree.TryGetComponent(
-            out treeItemBehav tree))
+        if (newTree.TryGetComponent(out treeItemBehav tree))
         {
-            tree.UniqOverworldItemID =
-                treeID;
-
+            tree.UniqOverworldItemID = treeID;
             tree.isCut = false;
-
             tree.cutTime = 0f;
         }
 
         // =========================================
+        // DELETE STUMP FROM WORLD
+        // =========================================
+        Destroy(gameObject);
+
+        // =========================================
         // SAVE NEW STATE
         // =========================================
-
         if (BuildingSaveManager.Instance != null)
         {
-            BuildingSaveManager.Instance
-                .SaveAfterChange();
+            BuildingSaveManager.Instance.SaveAfterChange();
         }
-
-        Destroy(gameObject);
     }
 }
