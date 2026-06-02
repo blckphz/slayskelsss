@@ -7,5 +7,5 @@ public class EnemySaveData
     public string id;
     public float x;
     public float y;
-    public float health;
+    public int health;
 }

@@ -46,7 +46,7 @@ public class enemyHealth : healthMaster, IDamageable
     // =========================
     public float GetHealth() => currentHealth;
 
-    public void SetHealth(float value)
+    public void SetHealth(int value)
     {
         currentHealth = value;
         UpdateHealthUI();
@@ -82,7 +82,7 @@ public class enemyHealth : healthMaster, IDamageable
     // =========================
 
     // Overriding the base TakeDamage to include UI and FX
-    public override void TakeDamage(float damage, GameObject attacker = null)
+    public override void TakeDamage(int damage, GameObject attacker = null)
     {
         // Call the healthMaster logic (handles lastAttacker and currentHealth)
         base.TakeDamage(damage, attacker);
@@ -95,7 +95,7 @@ public class enemyHealth : healthMaster, IDamageable
     }
 
     // NEW OVERLOAD: Satisfies the newly updated IDamageable interface contract!
-    public void TakeDamage(float damage, ToolType toolType, ItemData toolItem)
+    public void TakeDamage(int damage, ToolType toolType, ItemData toolItem)
     {
         // Redirects to our main TakeDamage logic. Tool payloads are ignored for standard combat units.
         // If you ever want tools to deal extra damage to specific enemies, you can check 'toolType' here!
@@ -103,14 +103,14 @@ public class enemyHealth : healthMaster, IDamageable
     }
 
     // This implementation satisfies the IDamageable interface tool overload
-    public void TakeDamage(float damage, ToolType toolType)
+    public void TakeDamage(int damage, ToolType toolType)
     {
         // Redirects to our main TakeDamage logic, tool type is ignored for standard enemies
         TakeDamage(damage, null);
     }
 
     // This implementation is for the IDamageable interface specifically
-    public void TakeDamage(float damage)
+    public void TakeDamage(int damage)
     {
         // Redirects to our main TakeDamage logic
         TakeDamage(damage, null);
@@ -128,7 +128,7 @@ public class enemyHealth : healthMaster, IDamageable
     // =========================
     // SLOW & TICK DAMAGE
     // =========================
-    public void ApplySlow(float slowPercent, float duration, float tickDmg, float tickInterval)
+    public void ApplySlow(float slowPercent, float duration, int tickDmg, float tickInterval)
     {
         if (_slowCoroutine != null) StopCoroutine(_slowCoroutine);
         _slowCoroutine = StartCoroutine(SlowRoutine(slowPercent, duration));
@@ -140,7 +140,7 @@ public class enemyHealth : healthMaster, IDamageable
         _tickDamageCoroutine = StartCoroutine(TickDamageRoutine(tickDmg, tickInterval, duration));
     }
 
-    private IEnumerator TickDamageRoutine(float dmg, float interval, float duration)
+    private IEnumerator TickDamageRoutine(int dmg, float interval, float duration)
     {
         float elapsed = 0f;
         while (elapsed < duration)

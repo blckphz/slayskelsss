@@ -4,8 +4,8 @@ using UnityEngine.UI;
 public class playerHealth : healthMaster
 {
     [Header("Regen Settings")]
-    public float healthRegenRate = 5f;
-    public float healthRegenDelay = 5f;
+    public float healthRegenRate;
+    public float healthRegenDelay;
 
     [Header("UI Components")]
     public Slider healthSlider;
@@ -27,7 +27,7 @@ public class playerHealth : healthMaster
         // Regeneration logic
         if (currentHealth < maxHealth && Time.time >= lastDamageTime + healthRegenDelay)
         {
-            currentHealth += healthRegenRate * Time.deltaTime;
+            currentHealth += Mathf.RoundToInt(healthRegenRate * Time.deltaTime);
             currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
             UpdateUI();
         }
@@ -40,7 +40,7 @@ public class playerHealth : healthMaster
     }
 
     // Updated to match healthMaster signature
-    public override void TakeDamage(float amount, GameObject attacker = null)
+    public override void TakeDamage(int amount, GameObject attacker = null)
     {
         // Passes the damage and the attacker to the base healthMaster logic
         base.TakeDamage(amount, attacker);
@@ -50,7 +50,7 @@ public class playerHealth : healthMaster
     }
 
     // A dedicated Heal method that forces a UI update
-    public void Heal(float amount)
+    public void Heal(int amount)
     {
         currentHealth = Mathf.Min(currentHealth + amount, maxHealth);
         UpdateUI();

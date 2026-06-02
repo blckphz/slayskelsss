@@ -6,8 +6,8 @@ public class turretbuildso : buildSO
 {
     [Header("Permanent Turret Stats")]
     [Tooltip("Check this if the building is a turret to initialize combat stats.")]
-    public float turretHealth = 100f;
-    public float turretDamage = 10f;
+    public int turretHealth = 100;
+    public int turretDamage = 10;
     public float fireRate = 0.5f;
     public int pierceCount = 0; // New pierce stat
 

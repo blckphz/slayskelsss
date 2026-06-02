@@ -14,7 +14,7 @@ public partial class TurretBehaviour : MonoBehaviour
 
     [Header("Stats")]
     [SerializeField] private float health;
-    private float turretDamage;
+    private int turretDamage;
     private float shootFrequency;
     private int pierceAmount;
     [SerializeField] private float detectionRadius = 10f;
@@ -55,7 +55,7 @@ public partial class TurretBehaviour : MonoBehaviour
         if (lifetime > 0f) Invoke(nameof(Deactivate), lifetime);
     }
 
-    public void SetCombatStats(float dmg, float freq, int pierce)
+    public void SetCombatStats(int dmg, float freq, int pierce)
     {
         turretDamage = dmg;
         shootFrequency = freq;

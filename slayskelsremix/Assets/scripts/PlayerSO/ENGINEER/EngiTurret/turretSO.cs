@@ -5,7 +5,7 @@ public class turretSO : defensiveAbilities, IStatProvider // 🔥 Added Interfac
 {
     [Header("Ability Settings")]
     public float lifetime = 10f;
-    public float turretdmg;
+    public int turretdmg;
     public float shootfreq;
     public int pierceCount;
     public int maxturretcount = 3;

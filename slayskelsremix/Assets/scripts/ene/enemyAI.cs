@@ -13,7 +13,7 @@ public class EnemyAI : MonoBehaviour
     [Header("Combat Settings")]
     public float attackRange = 1.2f;
     public float attackCooldown = 1.5f;
-    public float damageAmount = 10f;
+    public int damageAmount = 10;
     private float lastAttackTime;
 
     [Header("Trigger Setup")]

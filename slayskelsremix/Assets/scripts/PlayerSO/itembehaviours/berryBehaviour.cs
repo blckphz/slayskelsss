@@ -5,7 +5,7 @@ public class berryBehaviour : MonoBehaviour
     [Header("Visual Settings")]
     public float smearStrengthPerHit = 0.3f; // ~3-4 hits for full intensity
 
-    private float _damage;
+    private int _damage;
     private float _speed;
     private Vector2 _direction;
     private Rigidbody2D rb;
@@ -15,7 +15,7 @@ public class berryBehaviour : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
     }
 
-    public void Setup(float dmg, float spd, Vector2 dir)
+    public void Setup(int dmg, float spd, Vector2 dir)
     {
         _damage = dmg;
         _speed = spd;

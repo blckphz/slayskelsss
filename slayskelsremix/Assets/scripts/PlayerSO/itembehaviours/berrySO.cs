@@ -4,7 +4,7 @@
 public class berrySO : offensiveRanged, IItemDescriptionProvider
 {
     [Header("Eat Settings")]
-    public float healAmount = 20f;
+    public int healAmount = 5;
 
     [Header("Planting Settings")]
     public GameObject plantPrefab;

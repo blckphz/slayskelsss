@@ -3,13 +3,13 @@ using System.Collections.Generic;
 
 public class Projectile : MonoBehaviour
 {
-    private float damage;
+    private int damage;
     private int pierceCount;
     private HashSet<int> hitEnemies = new HashSet<int>(); // Tracks InstanceIDs of enemies hit
 
     [SerializeField] private float lifespan = 3f;
 
-    public void SetDamage(float dmg, int pierce)
+    public void SetDamage(int dmg, int pierce)
     {
         damage = dmg;
         pierceCount = pierce;

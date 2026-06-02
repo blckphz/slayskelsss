@@ -4,8 +4,8 @@ using System.Collections.Generic;
 
 public class meleebehav : MonoBehaviour
 {
-    private float damage;
-    private float bonusDamage;
+    private int damage;
+    private int bonusDamage;
 
     private List<IDamageable> hitEnemies = new List<IDamageable>();
     private Animator anim;
@@ -22,8 +22,8 @@ public class meleebehav : MonoBehaviour
     }
 
     public void Setup(
-        float dmg,
-        float bDmg,
+        int dmg,
+        int bDmg,
         int swingIndex,
         offensivemelee.SwingOwner swingOwner,
         Transform parentTransform,
@@ -69,7 +69,7 @@ public class meleebehav : MonoBehaviour
 
         if (target != null && !hitEnemies.Contains(target))
         {
-            float finalDamage = damage;
+            int finalDamage = damage;
 
             if (chainController.isUnlocked)
                 finalDamage += chainController.staticBonusDmg;

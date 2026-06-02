@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class grenadeBehav : MonoBehaviour
 {
-    private float damage;
+    private int damage;
     public float radius;
     public float fuseTime = 2.5f;
     public GameObject explosionEffect;
@@ -17,7 +17,7 @@ public class grenadeBehav : MonoBehaviour
     public static grenadeBehav ActiveGrenade;
     public static grenadeSO ActiveGrenadeSO;
 
-    public void Initialize(float dmg, float rad, float fuse = 2.5f)
+    public void Initialize(int dmg, float rad, float fuse = 2.5f)
     {
         damage = dmg;
         radius = rad;
@@ -58,7 +58,7 @@ public class grenadeBehav : MonoBehaviour
             {
                 uniqueEnemiesHit.Add(target);
 
-                float finalDamage = damage;
+                int finalDamage = damage;
 
                 // ⚠️ GRENADE NO LONGER AFFECTS MELEE DAMAGE DIRECTLY
                 if (chainController.isUnlocked)

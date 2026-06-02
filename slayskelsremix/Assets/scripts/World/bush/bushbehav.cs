@@ -25,19 +25,19 @@ public class BushBehav : ItemHealth
 
     protected override bool IsDamageIgnored() => isHarvested;
 
-    public override void TakeDamage(float damage, ToolType toolType, ItemData toolItem)
+    public override void TakeDamage(int damage, ToolType toolType, ItemData toolItem)
     {
         if (!isHarvested) HarvestBush();
         base.TakeDamage(damage, toolType, toolItem);
     }
 
-    public override void TakeDamage(float damage, ToolType toolType)
+    public override void TakeDamage(int damage, ToolType toolType)
     {
         if (!isHarvested) HarvestBush();
         base.TakeDamage(damage, toolType);
     }
 
-    public override void TakeDamage(float damage)
+    public override void TakeDamage(int damage)
     {
         if (!isHarvested) HarvestBush();
         base.TakeDamage(damage);

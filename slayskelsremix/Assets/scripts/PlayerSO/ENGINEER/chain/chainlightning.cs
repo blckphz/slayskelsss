@@ -13,7 +13,7 @@ public class ChainLightning : offensiveRanged
 
     [Header("Tick Damage Settings")]
     public bool isapplyingtickdmg = true;
-    public float stundmg = 5f;
+    public int stundmg = 5;
     public float stuntick = 0.5f;
 
     [Tooltip("Degrees to rotate sprite so it visually faces movement")]

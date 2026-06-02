@@ -123,8 +123,7 @@ public class offensivemelee : offensiveability
         if (woosh == null) return;
 
         woosh.SetActive(true);
-
-        float bonus = owner == SwingOwner.Player ? GetBonusDamage() : 0f;
+        int bonus = owner == SwingOwner.Player ? Mathf.RoundToInt(GetBonusDamage()) : 0;
 
         ToolType tool = ToolType.Axe;
         if (this is ToolsSO toolSO)

@@ -3,8 +3,8 @@ using UnityEngine;
 public class healthMaster : MonoBehaviour
 {
     [Header("Health Stats")]
-    public float maxHealth = 100f;
-    public float currentHealth;
+    public int maxHealth = 100;
+    public int currentHealth;
 
     [Header("XP Reward")]
     public int xpReward = 20;
@@ -17,14 +17,16 @@ public class healthMaster : MonoBehaviour
         currentHealth = maxHealth;
     }
 
-    public virtual void TakeDamage(float amount, GameObject attacker = null)
+    public virtual void TakeDamage(int amount, GameObject attacker = null)
     {
-        if (attacker != null) lastAttacker = attacker;
+        if (attacker != null)
+            lastAttacker = attacker;
 
         currentHealth -= amount;
         currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
 
-        if (currentHealth <= 0f) Die();
+        if (currentHealth <= 0)
+            Die();
     }
 
     protected virtual void Die()
@@ -36,6 +38,7 @@ public class healthMaster : MonoBehaviour
                 lm.AddXP(xpReward);
             }
         }
+
         Destroy(gameObject);
     }
 }

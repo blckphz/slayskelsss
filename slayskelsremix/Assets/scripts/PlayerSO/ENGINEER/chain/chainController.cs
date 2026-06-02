@@ -3,11 +3,11 @@
 public class chainController : MonoBehaviour
 {
     public static int hitCounter;
-    public static float staticBonusDmg;
+    public static int staticBonusDmg;
     public static bool isUnlocked;
 
     [Header("Settings")]
-    public float bonusdmg = 5f;
+    public int bonusdmg = 5;
 
     [Header("Debug")]
     [SerializeField] private int currentCharges;
@@ -21,7 +21,7 @@ public class chainController : MonoBehaviour
         {
             isUnlocked = false;
             hitCounter = 0;
-            staticBonusDmg = 0f;
+            staticBonusDmg = 0;
 
             SaveState();
             PlayerPrefs.SetInt("chain_initialized", 1);
@@ -48,7 +48,7 @@ public class chainController : MonoBehaviour
     {
         PlayerPrefs.SetInt("chain_unlocked", isUnlocked ? 1 : 0);
         PlayerPrefs.SetInt("chain_charges", hitCounter);
-        PlayerPrefs.SetFloat("chain_bonus", staticBonusDmg);
+        PlayerPrefs.SetInt("chain_bonus", staticBonusDmg);
         PlayerPrefs.Save();
     }
 
@@ -57,7 +57,7 @@ public class chainController : MonoBehaviour
     {
         isUnlocked = PlayerPrefs.GetInt("chain_unlocked", 0) == 1;
         hitCounter = PlayerPrefs.GetInt("chain_charges", 0);
-        staticBonusDmg = PlayerPrefs.GetFloat("chain_bonus", 0f);
+        staticBonusDmg = PlayerPrefs.GetInt("chain_bonus", 0);
     }
 
     // 🔄 RESET
@@ -70,6 +70,6 @@ public class chainController : MonoBehaviour
 
         isUnlocked = false;
         hitCounter = 0;
-        staticBonusDmg = 0f;
+        staticBonusDmg = 0;
     }
 }

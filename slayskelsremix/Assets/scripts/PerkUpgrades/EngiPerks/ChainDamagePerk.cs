@@ -4,7 +4,7 @@
 public class ChainDamagePerk : AbilityUpgradeSO
 {
     [Header("Scaling")]
-    public float bonusPerLevel = 2f;
+    public int bonusPerLevel = 5;
 
     public override void Apply(Ability targetAbility)
     {
@@ -14,7 +14,7 @@ public class ChainDamagePerk : AbilityUpgradeSO
         {
             chainController.isUnlocked = true;
             chainController.hitCounter = 0;
-            chainController.staticBonusDmg = 0f;
+            chainController.staticBonusDmg = 0;
 
             Debug.Log("[ChainDamagePerk] System UNLOCKED");
         }
