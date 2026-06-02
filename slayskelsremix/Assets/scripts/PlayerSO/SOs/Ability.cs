@@ -22,6 +22,28 @@ public abstract class Ability : ScriptableObject
         isOnCooldown = false;
     }
 
+    // =====================================================
+    // AUDIO
+    // =====================================================
+
+    protected void PlaySound()
+    {
+        if (launchsound == null)
+            return;
+
+        if (AudioManager.Instance == null)
+        {
+            Debug.LogWarning("AudioManager instance not found in scene.");
+            return;
+        }
+
+        AudioManager.Instance.PlaySound(launchsound);
+    }
+
+    // =====================================================
+    // EXECUTION
+    // =====================================================
+
     public abstract bool Execute(Transform caster, Transform targetAnchor, bool isHolding);
 
     public virtual bool ExecuteSecondary(Transform caster)

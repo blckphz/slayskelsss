@@ -135,7 +135,6 @@ public class BuildingSaveManager : MonoBehaviour
         if (tiltManager != null)
         {
             data.soilTiles = tiltManager.GetSaveData();
-            Debug.Log($"[SAVE][SOIL] tiles collected = {data.soilTiles?.Count ?? -1}");
         }
         else
         {
@@ -144,8 +143,6 @@ public class BuildingSaveManager : MonoBehaviour
 
         cachedData = data;
         File.WriteAllText(savePath, JsonUtility.ToJson(data, true));
-
-        Debug.Log("[SAVE] Complete");
     }
 
     public void LoadEverything()
@@ -162,9 +159,6 @@ public class BuildingSaveManager : MonoBehaviour
 
         string json = File.ReadAllText(savePath);
         cachedData = JsonUtility.FromJson<SaveData>(json);
-
-        Debug.Log($"[LOAD] JSON parsed. soilTiles null? {cachedData.soilTiles == null}");
-        Debug.Log($"[LOAD] soilTiles count = {cachedData.soilTiles?.Count ?? -1}");
 
         foreach (BuildingData b in cachedData.buildings)
         {
@@ -223,25 +217,20 @@ public class BuildingSaveManager : MonoBehaviour
             else
             {
                 GameObject treeObj = Instantiate(treePrefab, t.position, Quaternion.identity);
+
                 if (treeObj.TryGetComponent(out treeItemBehav tr))
+                {
                     tr.LoadData(t);
+
+                    // 🔥 NEW: trigger stick spawn on world spawn
+                    tr.OnSpawnFromWorld();
+                }
             }
         }
 
-        // 🔥 SOIL LOAD DEBUG BLOCK
-        Debug.Log($"[LOAD][SOIL] tiltManager null? {tiltManager == null}");
-
         if (tiltManager != null && cachedData.soilTiles != null)
         {
-            Debug.Log($"[LOAD][SOIL] CALLING LoadSoilTiles with {cachedData.soilTiles.Count} tiles");
-
             tiltManager.LoadSoilTiles(cachedData.soilTiles);
-
-            Debug.Log("[LOAD][SOIL] LoadSoilTiles call finished");
-        }
-        else
-        {
-            Debug.LogError("[LOAD][SOIL] SKIPPED soil load (null manager or null data)");
         }
 
         HasLoadedWorld = true;

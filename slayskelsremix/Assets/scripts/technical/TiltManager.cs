@@ -210,14 +210,12 @@ public class TiltManager : MonoBehaviour
     {
         List<SoilData> data = new();
 
-        Debug.Log($"[SOIL DEBUG] GetSaveData called. placedTiles count = {placedTiles.Count}");
 
         foreach (Vector3Int pos in placedTiles)
         {
             data.Add(new SoilData { x = pos.x, y = pos.y, tileID = 0 });
         }
 
-        Debug.Log($"[SOIL DEBUG] Returning soil data count = {data.Count}");
 
         return data;
     }
@@ -240,6 +238,5 @@ public class TiltManager : MonoBehaviour
 
         UpdatePhysics();
 
-        Debug.Log($"[TiltManager] LOAD COMPLETE -> {placedTiles.Count} tiles");
     }
 }

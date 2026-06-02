@@ -193,7 +193,15 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
 
         for (int i = 0; i < dropAmount; i++)
         {
-            Instantiate(lootPrefab, transform.position, Quaternion.identity);
+            GameObject loot = Instantiate(
+                lootPrefab,
+                transform.position,
+                Quaternion.identity);
+
+            if (loot.TryGetComponent(out LootArc arc))
+            {
+                arc.Initialize(transform.position);
+            }
         }
     }
 

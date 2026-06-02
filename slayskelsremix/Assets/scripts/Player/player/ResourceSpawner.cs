@@ -20,9 +20,37 @@ public class ResourceSpawner : MonoBehaviour
 
     public List<ResourceEntry> resources = new List<ResourceEntry>();
 
+    [Header("Time Reference")]
+    public DayNightCycle dayNightCycle;
+
+    private int lastDay = -1;
+
     void Start()
     {
         StartCoroutine(SpawnAfterLoad());
+
+        if (dayNightCycle == null)
+            dayNightCycle = FindFirstObjectByType<DayNightCycle>();
+
+        if (dayNightCycle != null)
+            lastDay = dayNightCycle.DaysPassed;
+    }
+
+    void Update()
+    {
+        CheckNewDay();
+    }
+
+    void CheckNewDay()
+    {
+        if (dayNightCycle == null)
+            return;
+
+        if (dayNightCycle.DaysPassed != lastDay)
+        {
+            lastDay = dayNightCycle.DaysPassed;
+            SpawnResources(); // spawn once per new day
+        }
     }
 
     IEnumerator SpawnAfterLoad()
@@ -37,14 +65,13 @@ public class ResourceSpawner : MonoBehaviour
             return;
 
         var save = BuildingSaveManager.Instance.GetSaveData();
-
         BoundsInt bounds = tilemap.cellBounds;
 
         foreach (ResourceEntry entry in resources)
         {
             List<Vector3> validPositions = new List<Vector3>();
 
-            // ================= COLLECT VALID TILES =================
+            // COLLECT VALID POSITIONS
             foreach (Vector3Int pos in bounds.allPositionsWithin)
             {
                 if (!tilemap.HasTile(pos))
@@ -71,7 +98,6 @@ public class ResourceSpawner : MonoBehaviour
                 if (IsTooClose(pos, entry.minDistance))
                     continue;
 
-                // ================= SAVE CHECK (TREES + BUSHES) =================
                 bool alreadyExists =
                     save != null &&
                     (
@@ -82,15 +108,11 @@ public class ResourceSpawner : MonoBehaviour
                 if (alreadyExists)
                     continue;
 
-                // ================= OVERLAP SAFETY =================
-                Collider2D hit = Physics2D.OverlapCircle(pos, 0.2f);
-                if (hit != null)
+                if (Physics2D.OverlapCircle(pos, 0.2f) != null)
                     continue;
 
-                // ================= SPAWN =================
                 GameObject obj = Instantiate(entry.prefab, pos, Quaternion.identity);
 
-                // assign universal ID (IMPORTANT)
                 if (obj.TryGetComponent(out ItemHealth item))
                 {
                     item.UniqOverworldItemID = System.Guid.NewGuid().ToString();
@@ -103,35 +125,21 @@ public class ResourceSpawner : MonoBehaviour
         BuildingSaveManager.Instance.SaveAfterChange();
     }
 
-    // =====================================================
-    // SHUFFLE
-    // =====================================================
+    // ================= HELPERS =================
 
     void Shuffle(List<Vector3> list)
     {
         for (int i = 0; i < list.Count; i++)
         {
             int rand = Random.Range(i, list.Count);
-
-            Vector3 temp = list[i];
-            list[i] = list[rand];
-            list[rand] = temp;
+            (list[i], list[rand]) = (list[rand], list[i]);
         }
     }
 
-    // =====================================================
-    // BLOCKED TILE CHECK
-    // =====================================================
-
     bool IsBlocked(Vector3Int cellPos)
     {
-        return blockedTilemap != null &&
-               blockedTilemap.HasTile(cellPos);
+        return blockedTilemap != null && blockedTilemap.HasTile(cellPos);
     }
-
-    // =====================================================
-    // DISTANCE CHECK
-    // =====================================================
 
     bool IsTooClose(Vector3 pos, float minDist)
     {

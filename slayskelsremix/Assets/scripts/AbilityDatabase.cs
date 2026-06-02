@@ -19,7 +19,6 @@ public class AbilityDatabase : ScriptableObject
             }
         }
 
-        Debug.LogWarning($"[AbilityDatabase] Ability '{abilityName}' not found in database!");
         return null;
     }
 }

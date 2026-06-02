@@ -39,18 +39,15 @@ public class offensivemelee : offensiveability
         if (caster == null || !isHolding)
             return false;
 
-        // ❌ Global locks
         if (BuildManager.Instance != null && BuildManager.Instance.IsPlacing)
             return false;
 
         if (ActionLock.IsLocked)
             return false;
 
-        // 🔥 HARD SAFETY RESET (prevents “stuck melee forever” bug)
         if (currentSwingIndex < 0 || currentSwingIndex > maxSwings)
             ResetMeleeState();
 
-        // 🔥 cooldown check
         if (isOnCooldown)
         {
             if (Time.time < cooldownEndTime)
@@ -59,7 +56,6 @@ public class offensivemelee : offensiveability
             isOnCooldown = false;
         }
 
-        // 🔥 swing rate limit
         if (Time.time < nextSwingTime)
             return false;
 
@@ -68,12 +64,19 @@ public class offensivemelee : offensiveability
                 ? SwingOwner.Player
                 : SwingOwner.NPC;
 
+        // =====================================================
+        // 🔊 AUDIO (ADD HERE)
+        // =====================================================
+        if (!customAudioLogic && AudioManager.Instance != null && launchsound != null)
+        {
+            AudioManager.Instance.PlaySound(launchsound, 1f);
+        }
+
         PerformSwing(caster, targetAnchor, currentSwingIndex, owner);
 
         currentSwingIndex++;
         nextSwingTime = Time.time + swingFreq;
 
-        // combo finished → cooldown
         if (currentSwingIndex >= maxSwings)
         {
             currentSwingIndex = 0;
@@ -123,6 +126,7 @@ public class offensivemelee : offensiveability
         if (woosh == null) return;
 
         woosh.SetActive(true);
+
         int bonus = owner == SwingOwner.Player ? Mathf.RoundToInt(GetBonusDamage()) : 0;
 
         ToolType tool = ToolType.Axe;

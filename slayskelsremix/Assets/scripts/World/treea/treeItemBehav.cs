@@ -14,6 +14,15 @@ public class treeItemBehav : ItemHealth
     public GameObject lootPrefab;
     public int lootAmount = 3;
 
+    [Header("Stick Spawn (on world spawn)")]
+    public GameObject sticksPrefab;
+    public Transform spawnPointA;
+    public Transform spawnPointB;
+
+    [Header("Stick Spawn Chance (0 = 0%, 1 = 100%)")]
+    [Range(0f, 1f)]
+    public float stickSpawnChance = 0.2f;
+
     private bool isDead = false;
 
     private Collider2D treeCollider;
@@ -29,6 +38,10 @@ public class treeItemBehav : ItemHealth
     {
         timeSystem = FindFirstObjectByType<DayNightCycle>();
     }
+
+    // =========================
+    // SAVE / LOAD
+    // =========================
 
     public TreeSaveData GetSaveData()
     {
@@ -52,6 +65,45 @@ public class treeItemBehav : ItemHealth
         if (isCut)
             gameObject.SetActive(false);
     }
+
+    // =========================
+    // WORLD SPAWN HOOK
+    // =========================
+
+    public void OnSpawnFromWorld()
+    {
+        Debug.Log("[Tree] Spawned from world -> rolling stick chance");
+        TrySpawnSticksOnSpawn();
+    }
+
+    void TrySpawnSticksOnSpawn()
+    {
+        if (sticksPrefab == null || spawnPointA == null || spawnPointB == null)
+        {
+            Debug.LogWarning("[Tree] Missing sticksPrefab or spawn points");
+            return;
+        }
+
+        float roll = Random.value;
+        Debug.Log($"[Tree] Stick roll: {roll} vs chance {stickSpawnChance}");
+
+        if (roll > stickSpawnChance)
+        {
+            Debug.Log("[Tree] No sticks spawned (failed chance roll)");
+            return;
+        }
+
+        Transform chosenPoint =
+            (Random.value < 0.5f) ? spawnPointA : spawnPointB;
+
+        Debug.Log($"[Tree] Spawning sticks at {chosenPoint.name}");
+
+        Instantiate(sticksPrefab, chosenPoint.position, Quaternion.identity);
+    }
+
+    // =========================
+    // DEATH
+    // =========================
 
     protected override void Die(ToolType killerTool)
     {
@@ -92,7 +144,7 @@ public class treeItemBehav : ItemHealth
             }
         }
 
-        // disable original tree
+        // disable tree
         if (spriteRenderer != null)
             spriteRenderer.enabled = false;
 
