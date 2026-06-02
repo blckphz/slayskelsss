@@ -223,6 +223,9 @@ MonoBehaviour:
   isCut: 0
   cutTime: 0
   bottomPrefab: {fileID: 4272399698899235473, guid: f46bc3955377181479d8e75aaf364860, type: 3}
+  fallingTopPrefab: {fileID: 8542049761962043926, guid: 5468e57153e3fd44594a6633bb15fdc9, type: 3}
+  lootPrefab: {fileID: 8504423254273432661, guid: 22af6c420dc2b11488f396c164eab3b4, type: 3}
+  lootAmount: 3
 --- !u!70 &3365394450542658093
 CapsuleCollider2D:
   m_ObjectHideFlags: 0

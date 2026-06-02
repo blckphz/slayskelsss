@@ -9,24 +9,16 @@ public class ResourceSpawner : MonoBehaviour
     public class ResourceEntry
     {
         public TileBase tile;
-
         public GameObject prefab;
-
         public int maxSpawnCount = 10;
-
         public float minDistance = 1.5f;
     }
 
     [Header("Settings")]
     public Tilemap tilemap;
-
     public Tilemap blockedTilemap;
 
-    public List<ResourceEntry> resources =
-        new List<ResourceEntry>();
-
-    [Header("TREE ID")]
-    public string treeIDPrefix = "tree_";
+    public List<ResourceEntry> resources = new List<ResourceEntry>();
 
     void Start()
     {
@@ -35,9 +27,7 @@ public class ResourceSpawner : MonoBehaviour
 
     IEnumerator SpawnAfterLoad()
     {
-        // wait for BuildingSaveManager load
         yield return new WaitForSeconds(0.1f);
-
         SpawnResources();
     }
 
@@ -46,22 +36,15 @@ public class ResourceSpawner : MonoBehaviour
         if (BuildingSaveManager.Instance == null)
             return;
 
-        var save =
-            BuildingSaveManager.Instance
-            .GetSaveData();
+        var save = BuildingSaveManager.Instance.GetSaveData();
 
-        BoundsInt bounds =
-            tilemap.cellBounds;
+        BoundsInt bounds = tilemap.cellBounds;
 
         foreach (ResourceEntry entry in resources)
         {
-            List<Vector3> validPositions =
-                new List<Vector3>();
+            List<Vector3> validPositions = new List<Vector3>();
 
-            // =========================================
-            // COLLECT VALID TILES
-            // =========================================
-
+            // ================= COLLECT VALID TILES =================
             foreach (Vector3Int pos in bounds.allPositionsWithin)
             {
                 if (!tilemap.HasTile(pos))
@@ -73,14 +56,8 @@ public class ResourceSpawner : MonoBehaviour
                 if (IsBlocked(pos))
                     continue;
 
-                validPositions.Add(
-                    tilemap.GetCellCenterWorld(pos));
+                validPositions.Add(tilemap.GetCellCenterWorld(pos));
             }
-
-            // =========================================
-            // RANDOMIZE POSITIONS
-            // FIXES TREE LINES
-            // =========================================
 
             Shuffle(validPositions);
 
@@ -91,70 +68,39 @@ public class ResourceSpawner : MonoBehaviour
                 if (spawned >= entry.maxSpawnCount)
                     break;
 
-                // =====================================
-                // DISTANCE CHECK
-                // =====================================
-
                 if (IsTooClose(pos, entry.minDistance))
                     continue;
 
-                // =====================================
-                // UNIQUE TREE ID
-                // =====================================
-
-                string id =
-                    $"{treeIDPrefix}" +
-                    $"{Mathf.RoundToInt(pos.x)}_" +
-                    $"{Mathf.RoundToInt(pos.y)}";
-
-                // =====================================
-                // IMPORTANT:
-                // DO NOT RESPAWN SAVED TREES
-                // =====================================
-
+                // ================= SAVE CHECK (TREES + BUSHES) =================
                 bool alreadyExists =
                     save != null &&
-                    save.trees.Exists(
-                        t => t.treeID == id);
+                    (
+                        save.trees.Exists(t => Vector3.Distance(t.position, pos) < 0.1f) ||
+                        save.bushes.Exists(b => Vector3.Distance(b.position, pos) < 0.1f)
+                    );
 
                 if (alreadyExists)
                     continue;
 
-                // =====================================
-                // FINAL OVERLAP SAFETY
-                // =====================================
-
-                Collider2D hit =
-                    Physics2D.OverlapCircle(
-                        pos,
-                        0.2f);
-
+                // ================= OVERLAP SAFETY =================
+                Collider2D hit = Physics2D.OverlapCircle(pos, 0.2f);
                 if (hit != null)
                     continue;
 
-                // =====================================
-                // SPAWN TREE
-                // =====================================
+                // ================= SPAWN =================
+                GameObject obj = Instantiate(entry.prefab, pos, Quaternion.identity);
 
-                GameObject obj =
-                    Instantiate(
-                        entry.prefab,
-                        pos,
-                        Quaternion.identity);
-
-                if (obj.TryGetComponent(
-                    out treeItemBehav tree))
+                // assign universal ID (IMPORTANT)
+                if (obj.TryGetComponent(out ItemHealth item))
                 {
-                    tree.UniqOverworldItemID = id;
+                    item.UniqOverworldItemID = System.Guid.NewGuid().ToString();
                 }
 
                 spawned++;
             }
         }
 
-        // SAVE NEWLY SPAWNED TREES
-        BuildingSaveManager.Instance
-            .SaveAfterChange();
+        BuildingSaveManager.Instance.SaveAfterChange();
     }
 
     // =====================================================
@@ -165,13 +111,10 @@ public class ResourceSpawner : MonoBehaviour
     {
         for (int i = 0; i < list.Count; i++)
         {
-            int rand =
-                Random.Range(i, list.Count);
+            int rand = Random.Range(i, list.Count);
 
             Vector3 temp = list[i];
-
             list[i] = list[rand];
-
             list[rand] = temp;
         }
     }
@@ -192,18 +135,12 @@ public class ResourceSpawner : MonoBehaviour
 
     bool IsTooClose(Vector3 pos, float minDist)
     {
-        float sqr =
-            minDist * minDist;
+        float sqr = minDist * minDist;
 
-        foreach (treeItemBehav tree in
-            FindObjectsByType<treeItemBehav>(
-                FindObjectsSortMode.None))
+        foreach (var item in FindObjectsByType<ItemHealth>(FindObjectsSortMode.None))
         {
-            if ((tree.transform.position - pos)
-                .sqrMagnitude < sqr)
-            {
+            if ((item.transform.position - pos).sqrMagnitude < sqr)
                 return true;
-            }
         }
 
         return false;

@@ -1,8 +1,13 @@
+using System;
+using UnityEngine;
+
 [System.Serializable]
 public class BushSaveData
 {
-    public string bushID;
+    public string uniqID;
     public bool isHarvested;
     public float health;
-    public float timeAtHarvest; // Add this
+    public float timeAtHarvest;
+    public Vector3 position;
+
 }

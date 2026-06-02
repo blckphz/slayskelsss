@@ -15,10 +15,13 @@ MonoBehaviour:
   itemID: 2050
   itemName: blume
   icon: {fileID: 21300000, guid: 3aed1969eebf8264d9df595271801ccc, type: 3}
-  itemType: 1
+  DragStartSound: {fileID: 0}
+  DragEndSound: {fileID: 0}
+  itemType: 0
   maxStackSize: 99
   isUsable: 1
   consumeAmount: 1
+  maxDurability: 0
   placeablePrefab: {fileID: 8498060712212700713, guid: c622cc0b2f7c9984ba4152e47ef84793, type: 3}
   size: {x: 1, y: 1}
   placementSound: {fileID: 0}

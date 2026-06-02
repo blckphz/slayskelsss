@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class treeItemBehav : ItemHealth
 {
@@ -7,11 +6,18 @@ public class treeItemBehav : ItemHealth
     public bool isCut;
     public float cutTime;
 
+    [Header("Prefabs")]
+    public GameObject bottomPrefab;
+    public GameObject fallingTopPrefab;
+
+    [Header("Loot")]
+    public GameObject lootPrefab;
+    public int lootAmount = 3;
+
     private bool isDead = false;
+
     private Collider2D treeCollider;
     private DayNightCycle timeSystem;
-    public GameObject bottomPrefab;
-
 
     protected override void Awake()
     {
@@ -41,44 +47,57 @@ public class treeItemBehav : ItemHealth
 
         isCut = data.isCut;
         cutTime = data.cutTime;
-
         transform.position = data.position;
 
-        // IMPORTANT FIX:
-        // DO NOT spawn stump here anymore
         if (isCut)
-        {
             gameObject.SetActive(false);
-        }
     }
 
     protected override void Die(ToolType killerTool)
     {
         if (isDead) return;
-
         isDead = true;
 
         isCut = true;
-        cutTime = timeSystem != null ? timeSystem.TotalTime : Time.time;
 
+        cutTime = timeSystem != null
+            ? timeSystem.TotalTime
+            : Time.time;
+
+        // stump
         if (bottomPrefab != null)
         {
-            GameObject stump =
-                Instantiate(bottomPrefab, transform.position, Quaternion.identity);
+            GameObject stump = Instantiate(
+                bottomPrefab,
+                transform.position,
+                Quaternion.identity
+            );
 
             if (stump.TryGetComponent(out TreeStumpRegrow regrow))
                 regrow.Setup(UniqOverworldItemID, cutTime);
         }
 
-        StartCoroutine(FallSequence());
-    }
+        // falling top
+        if (fallingTopPrefab != null)
+        {
+            GameObject top = Instantiate(
+                fallingTopPrefab,
+                transform.position,
+                transform.rotation
+            );
 
-    private IEnumerator FallSequence()
-    {
-        if (spriteRenderer != null) spriteRenderer.enabled = false;
-        if (treeCollider != null) treeCollider.enabled = false;
+            if (top.TryGetComponent(out treefallsequence fall))
+            {
+                fall.SetupLoot(lootPrefab, lootAmount);
+            }
+        }
 
-        yield return new WaitForSeconds(0.05f);
+        // disable original tree
+        if (spriteRenderer != null)
+            spriteRenderer.enabled = false;
+
+        if (treeCollider != null)
+            treeCollider.enabled = false;
 
         if (BuildingSaveManager.Instance != null)
             BuildingSaveManager.Instance.SaveAfterChange();
