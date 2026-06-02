@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 8782549136003390621}
   - component: {fileID: 21330222433530521}
   - component: {fileID: 1249014321818453310}
-  m_Layer: 8
+  m_Layer: 10
   m_Name: walls (1)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -141,7 +141,7 @@ GameObject:
   - component: {fileID: 3264304991939650011}
   - component: {fileID: 1256790866687314417}
   - component: {fileID: 6754082335281762924}
-  m_Layer: 8
+  m_Layer: 10
   m_Name: Tent!
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -397,7 +397,7 @@ GameObject:
   - component: {fileID: 3224948270092868644}
   - component: {fileID: 7594549348728223196}
   - component: {fileID: 464789108659862445}
-  m_Layer: 8
+  m_Layer: 10
   m_Name: walls (2)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -523,7 +523,7 @@ GameObject:
   - component: {fileID: 7872361223340916770}
   - component: {fileID: 2325206409270062495}
   - component: {fileID: 5699870505283922380}
-  m_Layer: 8
+  m_Layer: 10
   m_Name: walls
   m_TagString: Untagged
   m_Icon: {fileID: 0}
