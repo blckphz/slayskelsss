@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::UseableItem
   itemID: 2049
   itemName: Shovel
-  icon: {fileID: 21300000, guid: a571bd13890e8084ea06db7f8e53fe97, type: 3}
+  icon: {fileID: 21300000, guid: 1b228093e9e97e049b79a6bcd2536c75, type: 3}
   DragStartSound: {fileID: 0}
   DragEndSound: {fileID: 0}
   itemType: 0

@@ -15,8 +15,8 @@ MonoBehaviour:
   itemID: 200
   itemName: Appleberry
   icon: {fileID: -9150622835112388582, guid: 95646f66d4cd07b4f95f682573973c86, type: 3}
-  DragStartSound: {fileID: 0}
-  DragEndSound: {fileID: 0}
+  DragStartSound: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
+  DragEndSound: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
   itemType: 0
   maxStackSize: 99
   isUsable: 1

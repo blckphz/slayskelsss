@@ -34,8 +34,10 @@ public class treeItemBehav : ItemHealth
         treeCollider = GetComponent<Collider2D>();
     }
 
-    void Start()
+    protected override void Start()
     {
+        base.Start();
+
         timeSystem = FindFirstObjectByType<DayNightCycle>();
     }
 

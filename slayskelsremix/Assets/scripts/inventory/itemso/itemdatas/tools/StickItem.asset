@@ -15,11 +15,11 @@ MonoBehaviour:
   itemID: 204
   itemName: Stick
   icon: {fileID: 21300000, guid: ff122620c5a99664eaf888340d62aff2, type: 3}
-  DragStartSound: {fileID: 0}
-  DragEndSound: {fileID: 0}
+  DragStartSound: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
+  DragEndSound: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
   itemType: 0
   maxStackSize: 99
-  isUsable: 1
+  isUsable: 0
   consumeAmount: 0
   maxDurability: 10
   abilityToExecute: {fileID: 11400000, guid: 65565434f0ca3c14b8e0ab238877f4eb, type: 2}

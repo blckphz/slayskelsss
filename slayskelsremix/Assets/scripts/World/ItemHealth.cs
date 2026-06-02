@@ -42,6 +42,14 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
     public float shakeDuration = 0.1f;
     public float shakeMagnitude = 0.1f;
 
+    [Header("Camera Shake")]
+    public float cameraShakeIntensity = 1.5f;
+    public float cameraShakeDuration = 0.15f;
+
+    [Header("Hit Audio")]
+    public AudioClip hitSound;
+    [Range(0f, 1f)] public float hitVolume = 1f;
+
     protected SpriteRenderer spriteRenderer;
     private MaterialPropertyBlock propertyBlock;
 
@@ -128,6 +136,15 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
     {
         health -= damage;
         health = Mathf.Clamp(health, 0, maxHealth);
+
+        // 🔊 hit sound
+        AudioManager.Instance?.PlaySound(hitSound, hitVolume);
+
+        // 📳 camera shake
+        CameraShaker.Instance?.Shake(
+            cameraShakeIntensity,
+            cameraShakeDuration
+        );
 
         ShowDamageText(damage);
         TriggerFlash();
@@ -256,6 +273,10 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
 
             yield return null;
         }
+
+        spriteRenderer.GetPropertyBlock(propertyBlock);
+        propertyBlock.SetFloat(hitIntensityName, 0f);
+        spriteRenderer.SetPropertyBlock(propertyBlock);
     }
 
     protected void TriggerShake()

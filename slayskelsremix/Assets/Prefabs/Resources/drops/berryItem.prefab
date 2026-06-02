@@ -111,7 +111,7 @@ MonoBehaviour:
   autoPickupOnCollision: 1
   magnetRange: 2.5
   magnetStrength: 8
-  pickupSound: {fileID: 0}
+  pickupSound: {fileID: 8300000, guid: be2a3ea2760529e429024e018f69e258, type: 3}
 --- !u!70 &1485674715499249377
 CapsuleCollider2D:
   m_ObjectHideFlags: 0
