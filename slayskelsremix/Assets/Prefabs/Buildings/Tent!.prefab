@@ -254,7 +254,7 @@ MonoBehaviour:
   gridSize: 1
   placementMask:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 256
 --- !u!114 &326114646395407521
 MonoBehaviour:
   m_ObjectHideFlags: 0

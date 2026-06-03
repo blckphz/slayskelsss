@@ -106,12 +106,16 @@ public class CameraShaker : MonoBehaviour
                 }
             }
 
+            /*
+
             UnityEngine.Debug.Log(
                 $"[CameraShaker] SHAKE REQUESTED " +
                 $"| Intensity: {intensity} " +
                 $"| Duration: {duration} " +
                 $"| From: {caller}"
             );
+            */
+
         }
 
         // ================= APPLY SHAKE =================

@@ -12,8 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2e0351e2672834f42bfde66072954537, type: 3}
   m_Name: WoodenFloor
   m_EditorClassIdentifier: Assembly-CSharp::buildSO
-  itemID: 110
+  itemID: 99990
   itemName: WoodFloor
+  ItemDescription: 
   icon: {fileID: 742373601, guid: d05a44c56ccae5745a4eb68499f3b45e, type: 3}
   DragStartSound: {fileID: 0}
   DragEndSound: {fileID: 0}

@@ -4,6 +4,7 @@ public class ItemData : ScriptableObject
 {
     public int itemID;
     public string itemName;
+    public string ItemDescription;
     public Sprite icon;
 
     public AudioClip DragStartSound;

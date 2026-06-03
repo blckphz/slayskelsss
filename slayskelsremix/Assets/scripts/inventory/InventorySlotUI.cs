@@ -15,9 +15,10 @@ public class InventorySlotUI : MonoBehaviour,
     public Image durabilityFill;
     public Image dragPreviewIcon;
     public Image Background;
+    public Image SlotItemPrevirew;
 
     [Header("Hover Settings")]
-    public float hoverAlpha = 1f;
+    public float hoverAlpha = 0.8f;
     public float normalAlpha = 0.35f;
 
     [Header("Rotation Settings")]
@@ -39,6 +40,9 @@ public class InventorySlotUI : MonoBehaviour,
     public AudioClip dragEndClip;
     public AudioClip dragHoverSlotClip;
 
+    [Header("Drop Preview")]
+    public Image slotDropPreviewIcon;
+
     [Header("Runtime State")]
     [SerializeField] private ItemData currentItem;
     [SerializeField] private Ability currentAbility;
@@ -57,31 +61,28 @@ public class InventorySlotUI : MonoBehaviour,
 
     private Color originalBackgroundColor;
 
-    // prevents hover sound spam
     private static InventorySlotUI lastHoveredDragSlot;
-
-    // =====================================================
-    // UNITY
-    // =====================================================
 
     private void Awake()
     {
         if (Background != null)
         {
             bgRect = Background.rectTransform;
-
             originalBackgroundColor = Background.color;
 
             var c = Background.color;
             c.a = normalAlpha;
-
             Background.color = c;
+        }
+
+        if (slotDropPreviewIcon != null)
+        {
+            slotDropPreviewIcon.enabled = false;
         }
     }
 
     private void Update()
     {
-        // drag icon scaling
         if (dragPreviewIcon != null && dragPreviewIcon.enabled)
         {
             dragPreviewIcon.transform.localScale =
@@ -92,7 +93,6 @@ public class InventorySlotUI : MonoBehaviour,
                 );
         }
 
-        // slot rotation lerp
         if (bgRect != null)
         {
             bgRect.rotation =
@@ -103,10 +103,6 @@ public class InventorySlotUI : MonoBehaviour,
                 );
         }
     }
-
-    // =====================================================
-    // PUBLIC FORCE STOP
-    // =====================================================
 
     public void ForceStopDrag()
     {
@@ -122,26 +118,17 @@ public class InventorySlotUI : MonoBehaviour,
         }
 
         if (icon != null)
-        {
             icon.color = Color.white;
-        }
+
+        HideDropPreview();
 
         targetRotation = Quaternion.identity;
-
         ApplyBackgroundState();
 
         invToolTip.Instance?.HideToolTip();
     }
 
-    // =====================================================
-    // SET
-    // =====================================================
-
-    public void SetSlot(
-        ItemData item,
-        Ability ability,
-        int count,
-        float durability)
+    public void SetSlot(ItemData item, Ability ability, int count, float durability)
     {
         currentItem = item;
         currentAbility = ability;
@@ -156,17 +143,12 @@ public class InventorySlotUI : MonoBehaviour,
 
         if (icon != null)
         {
-            icon.sprite =
-                item != null
-                    ? item.icon
-                    : ability.icon;
-
+            icon.sprite = item != null ? item.icon : ability.icon;
             icon.enabled = true;
             icon.color = Color.white;
         }
 
         UpdateSlotVisualElements();
-
         ApplyBackgroundState();
     }
 
@@ -184,40 +166,29 @@ public class InventorySlotUI : MonoBehaviour,
         }
 
         if (countText != null)
-        {
             countText.enabled = false;
-        }
 
         if (durabilitySlider != null)
-        {
             durabilitySlider.gameObject.SetActive(false);
-        }
 
         ApplyBackgroundState();
     }
 
     public void UpdateSlotVisualElements()
     {
-        // stack count
         if (countText != null)
         {
             countText.text = currentCount.ToString();
-
             countText.enabled = (currentCount > 1);
         }
 
-        // durability
         if (currentItem != null && !currentItem.IsUnbreakable)
         {
             if (durabilitySlider != null)
             {
                 durabilitySlider.gameObject.SetActive(true);
-
-                durabilitySlider.maxValue =
-                    currentItem.maxDurability;
-
-                durabilitySlider.value =
-                    currentDurability;
+                durabilitySlider.maxValue = currentItem.maxDurability;
+                durabilitySlider.value = currentDurability;
             }
 
             if (durabilityFill != null)
@@ -228,32 +199,17 @@ public class InventorySlotUI : MonoBehaviour,
                         : 0f;
 
                 durabilityFill.color =
-                    Color.Lerp(
-                        Color.red,
-                        Color.green,
-                        percentage
-                    );
+                    Color.Lerp(Color.red, Color.green, percentage);
             }
         }
-        else
+        else if (durabilitySlider != null)
         {
-            if (durabilitySlider != null)
-            {
-                durabilitySlider.gameObject.SetActive(false);
-            }
+            durabilitySlider.gameObject.SetActive(false);
         }
     }
 
-    // =====================================================
-    // POINTER
-    // =====================================================
-
     public void OnPointerEnter(PointerEventData eventData)
     {
-        // =========================================
-        // DRAG HOVER SOUND
-        // =========================================
-
         if (eventData.pointerDrag != null)
         {
             InventorySlotUI draggingSlot =
@@ -262,344 +218,205 @@ public class InventorySlotUI : MonoBehaviour,
 
             if (draggingSlot != null && draggingSlot != this)
             {
+                if (IsEmpty)
+                    ShowDropPreview(draggingSlot);
+
                 if (lastHoveredDragSlot != this)
                 {
                     lastHoveredDragSlot = this;
-
-                    AudioManager.Instance?.PlayUISound(
-                        dragHoverSlotClip
-                    );
+                    AudioManager.Instance?.PlayUISound(dragHoverSlotClip);
                 }
             }
         }
 
-        // =========================================
-        // NORMAL HOVER
-        // =========================================
-
-        if (isDragging)
-            return;
+        if (isDragging) return;
 
         isHovered = true;
-
         ApplyBackgroundState();
-
         SetHoverVisual(true);
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
-        if (isDragging)
-            return;
+        if (isDragging) return;
 
         isHovered = false;
 
-        ApplyBackgroundState();
+        HideDropPreview();
 
+        ApplyBackgroundState();
         SetHoverVisual(false);
     }
 
-    private void SetHoverVisual(bool state)
+    private void ShowDropPreview(InventorySlotUI source)
     {
-        // alpha
-        if (Background != null)
-        {
-            var c = Background.color;
+        if (slotDropPreviewIcon == null || source == null) return;
 
-            c.a =
-                state
-                    ? hoverAlpha
-                    : normalAlpha;
+        var item = source.GetItem();
+        var ability = source.GetAbility();
 
-            Background.color = c;
-        }
+        slotDropPreviewIcon.enabled = true;
+        slotDropPreviewIcon.raycastTarget = false;
+        slotDropPreviewIcon.sprite = item != null ? item.icon : ability.icon;
+        slotDropPreviewIcon.color = new Color(1f, 1f, 1f, 0.35f);
 
-        // rotation
-        if (state)
-        {
-            float angle =
-                Random.Range(
-                    -maxRotation,
-                    maxRotation
-                );
+        // ✅ FIX: move preview to slot position
+        RectTransform previewRect = slotDropPreviewIcon.rectTransform;
+        RectTransform slotRect = GetComponent<RectTransform>();
 
-            targetRotation =
-                Quaternion.Euler(0f, 0f, angle);
-        }
-        else
-        {
-            targetRotation = Quaternion.identity;
-        }
-
-        // tooltip
-        if (state &&
-            invToolTip.Instance != null &&
-            currentItem != null)
-        {
-            invToolTip.Instance.ShowToolTip(
-                currentItem,
-                currentDurability
-            );
-        }
-
-        if (!state)
-        {
-            invToolTip.Instance?.HideToolTip();
-        }
+        previewRect.position = slotRect.position;
     }
 
-    // =====================================================
-    // DRAG
-    // =====================================================
+    private void HideDropPreview()
+    {
+        if (slotDropPreviewIcon != null)
+            slotDropPreviewIcon.enabled = false;
+    }
 
     public void OnBeginDrag(PointerEventData eventData)
     {
-        if (IsEmpty)
-            return;
+        if (IsEmpty) return;
 
         isDragging = true;
         isHovered = false;
 
-        invToolTip.Instance?.HideToolTip();
+        HideDropPreview();
 
-        // 🔊 drag start
-        AudioManager.Instance?.PlayUISound(
-            dragStartClip
-        );
+        AudioManager.Instance?.PlayUISound(dragStartClip);
 
-        // background alpha
-        if (Background != null)
-        {
-            var c = Background.color;
-            c.a = 1f;
-
-            Background.color = c;
-        }
-
-        // drag preview
         if (dragPreviewIcon != null)
         {
             dragPreviewIcon.sprite = icon.sprite;
-
             dragPreviewIcon.enabled = true;
-
             dragPreviewIcon.raycastTarget = false;
-
-            dragPreviewIcon.transform.position =
-                eventData.position;
-
-            dragPreviewIcon.transform.localScale =
-                Vector3.one;
-
+            dragPreviewIcon.transform.position = eventData.position;
+            dragPreviewIcon.transform.localScale = Vector3.one;
             ShakeIcon(dragPreviewIcon);
         }
 
-        // faded source icon
         if (icon != null)
-        {
-            icon.color =
-                new Color(1, 1, 1, 0.5f);
-        }
+            icon.color = new Color(1, 1, 1, 0.5f);
     }
 
     public void OnDrag(PointerEventData eventData)
     {
-        if (dragPreviewIcon != null &&
-            dragPreviewIcon.enabled)
-        {
-            dragPreviewIcon.transform.position =
-                eventData.position;
-        }
+        if (dragPreviewIcon != null && dragPreviewIcon.enabled)
+            dragPreviewIcon.transform.position = eventData.position;
     }
 
     public void OnEndDrag(PointerEventData eventData)
     {
         isDragging = false;
-
         lastHoveredDragSlot = null;
 
-        // 🔊 drag end
-        AudioManager.Instance?.PlayUISound(
-            dragEndClip
-        );
+        AudioManager.Instance?.PlayUISound(dragEndClip);
 
         if (dragPreviewIcon != null)
-        {
             dragPreviewIcon.enabled = false;
 
-            ShakeIcon(dragPreviewIcon);
-        }
-
         if (icon != null)
-        {
             icon.color = Color.white;
-        }
+
+        HideDropPreview();
 
         targetRotation = Quaternion.identity;
-
         ApplyBackgroundState();
     }
-
-    // =====================================================
-    // DROP
-    // =====================================================
 
     public void OnDrop(PointerEventData eventData)
     {
+        HideDropPreview();
+
         if (eventData.pointerDrag == null)
             return;
 
-        InventorySlotUI sourcePlayerSlot =
+        InventorySlotUI source =
             eventData.pointerDrag.GetComponent<InventorySlotUI>()
             ?? eventData.pointerDrag.GetComponentInParent<InventorySlotUI>();
 
-        if (sourcePlayerSlot != null &&
-            sourcePlayerSlot != this)
+        if (source != null && source != this)
         {
-            ItemData targetItem = currentItem;
-            Ability targetAbility = currentAbility;
-            int targetCount = currentCount;
-            float targetDurability = currentDurability;
+            var tempItem = currentItem;
+            var tempAbility = currentAbility;
+            var tempCount = currentCount;
+            var tempDurability = currentDurability;
 
-            ItemData sourceItem =
-                sourcePlayerSlot.GetItem();
+            SetSlot(source.GetItem(), source.GetAbility(), source.GetCount(), source.GetDurability());
+            source.SetSlot(tempItem, tempAbility, tempCount, tempDurability);
 
-            Ability sourceAbility =
-                sourcePlayerSlot.GetAbility();
-
-            int sourceCount =
-                sourcePlayerSlot.GetCount();
-
-            float sourceDurability =
-                sourcePlayerSlot.GetDurability();
-
-            SetSlot(
-                sourceItem,
-                sourceAbility,
-                sourceCount,
-                sourceDurability
-            );
-
-            sourcePlayerSlot.SetSlot(
-                targetItem,
-                targetAbility,
-                targetCount,
-                targetDurability
-            );
-
-            ApplyBackgroundState();
-
-            sourcePlayerSlot.ApplyBackgroundState();
-
-            FinalizeStackTransaction(
-                sourcePlayerSlot
-            );
+            FinalizeStackTransaction(source);
         }
-
-        ApplyBackgroundState();
     }
 
-    // =====================================================
-    // STATE
-    // =====================================================
+    private void SetHoverVisual(bool state)
+    {
+        if (Background != null)
+        {
+            var c = Background.color;
+            c.a = state ? hoverAlpha : normalAlpha;
+            Background.color = c;
+        }
+
+        targetRotation = state
+            ? Quaternion.Euler(0f, 0f, Random.Range(-maxRotation, maxRotation))
+            : Quaternion.identity;
+
+        if (state && currentItem != null)
+            invToolTip.Instance?.ShowToolTip(currentItem, currentDurability);
+        else
+            invToolTip.Instance?.HideToolTip();
+    }
 
     private void ApplyBackgroundState()
     {
-        if (Background == null)
-            return;
+        if (Background == null) return;
 
         var c = Background.color;
-
-        if (isDragging)
-        {
-            c.a = 1f;
-        }
-        else
-        {
-            c.a =
-                isHovered
-                    ? hoverAlpha
-                    : normalAlpha;
-        }
-
+        c.a = isDragging ? 1f : (isHovered ? hoverAlpha : normalAlpha);
         Background.color = c;
     }
 
-    // =====================================================
-    // SHAKE
-    // =====================================================
-
     private void ShakeIcon(Image target)
     {
-        if (target == null)
-            return;
-
         if (shakeRoutine != null)
-        {
             StopCoroutine(shakeRoutine);
-        }
 
-        shakeRoutine =
-            StartCoroutine(
-                ShakeCoroutine(target.rectTransform)
-            );
+        shakeRoutine = StartCoroutine(ShakeCoroutine(target.rectTransform));
     }
 
     private IEnumerator ShakeCoroutine(RectTransform rect)
     {
-        Vector3 originalPos =
-            rect.anchoredPosition;
+        Vector3 original = rect.anchoredPosition;
+        float t = 0f;
 
-        float elapsed = 0f;
-
-        while (elapsed < duration)
+        while (t < duration)
         {
-            elapsed += Time.unscaledDeltaTime;
-
-            float x =
-                Random.Range(-strength, strength);
-
-            float y =
-                Random.Range(-strength, strength);
+            t += Time.unscaledDeltaTime;
 
             rect.anchoredPosition =
-                originalPos + new Vector3(x, y, 0);
+                original + new Vector3(
+                    Random.Range(-strength, strength),
+                    Random.Range(-strength, strength),
+                    0
+                );
 
             yield return null;
         }
 
-        rect.anchoredPosition = originalPos;
-
-        shakeRoutine = null;
+        rect.anchoredPosition = original;
     }
 
-    // =====================================================
-    // FINALIZE
-    // =====================================================
-
-    private void FinalizeStackTransaction(
-        InventorySlotUI sourcePlayerSlot)
+    private void FinalizeStackTransaction(InventorySlotUI source)
     {
         InvUI.Instance?.SyncToInventory();
-
         PlayerHotbarManager.Instance?.SyncHotbarToData();
-
         InvUI.Instance?.RefreshUI();
-
         PlayerHotbarManager.Instance?.RefreshHotbar();
-
         invToolTip.Instance?.HideToolTip();
     }
 
-    // =====================================================
-    // GETTERS
-    // =====================================================
-
     public ItemData GetItem() => currentItem;
-
     public Ability GetAbility() => currentAbility;
-
     public int GetCount() => currentCount;
-
     public float GetDurability() => currentDurability;
 }

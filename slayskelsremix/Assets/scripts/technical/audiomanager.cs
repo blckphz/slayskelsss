@@ -73,7 +73,7 @@ public class AudioManager : MonoBehaviour
     // UI SOUND (NO RANDOM PITCH)
     // =====================================================
 
-    public void PlayUISound(AudioClip clip, float volume = 1f)
+    public void PlayUISound(AudioClip clip, float volume = 1f, bool useRandomPitch = false)
     {
         if (clip == null)
         {
@@ -81,11 +81,15 @@ public class AudioManager : MonoBehaviour
             return;
         }
 
-        audioSource.pitch = 1f;
+        if (useRandomPitch && randomizePitch)
+        {
+            audioSource.pitch = Random.Range(minPitch, maxPitch);
+        }
+        else
+        {
+            audioSource.pitch = 1f;
+        }
 
-        audioSource.PlayOneShot(
-            clip,
-            volume * masterVolume
-        );
+        audioSource.PlayOneShot(clip, volume * masterVolume);
     }
 }

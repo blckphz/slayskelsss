@@ -79,6 +79,17 @@ public class BuildManager : MonoBehaviour
         if (!isPlacing || previewObject == null)
             return;
 
+        // 🔥 NEW SAFETY CHECK (CRITICAL FIX)
+        ItemData selectedItem = PlayerHotbarManager.Instance != null
+            ? PlayerHotbarManager.Instance.GetSelectedItem()
+            : null;
+
+        if (!(selectedItem is buildSO))
+        {
+            Cancel();
+            return;
+        }
+
         MovePreview();
 
         bool isUI = EventSystem.current != null &&
@@ -208,7 +219,7 @@ public class BuildManager : MonoBehaviour
         if (!CanPlace())
             return;
 
-        ActionLock.LockThisFrame();
+        //ActionLock.LockThisFrame();
 
         Vector3 pos = previewObject.transform.position;
 
@@ -266,7 +277,7 @@ public class BuildManager : MonoBehaviour
             BuildingSaveManager.Instance.SaveAfterChange();
         }
 
-        Cancel();
+        //Cancel();
     }
 
     bool CanPlace()

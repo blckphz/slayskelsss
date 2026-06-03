@@ -12,8 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2e0351e2672834f42bfde66072954537, type: 3}
   m_Name: LeaveTent
   m_EditorClassIdentifier: Assembly-CSharp::buildSO
-  itemID: 110
+  itemID: 11203
   itemName: Leaf Tent
+  ItemDescription: 
   icon: {fileID: 21300000, guid: 90866fda680432e428eee3fd5290b5ed, type: 3}
   DragStartSound: {fileID: 0}
   DragEndSound: {fileID: 0}

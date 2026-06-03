@@ -39,7 +39,7 @@ public class invToolTip : MonoBehaviour
             transform.position = Mouse.current.position.ReadValue();
     }
 
-    // UPDATED: now accepts current durability
+    // SHOW TOOLTIP
     public void ShowToolTip(ItemData item, float currentDurability)
     {
         if (item == null) return;
@@ -55,7 +55,7 @@ public class invToolTip : MonoBehaviour
 
         gameObject.SetActive(true);
 
-        // Force text to update before measuring lines
+        // Force TMP refresh before calculating line count
         Canvas.ForceUpdateCanvases();
 
         int totalLines = descriptionText.textInfo.lineCount;
@@ -70,44 +70,71 @@ public class invToolTip : MonoBehaviour
         }
     }
 
+    // HIDE TOOLTIP
     public void HideToolTip()
     {
         gameObject.SetActive(false);
     }
 
+    // GENERATE DESCRIPTION
     private string GenerateDescription(ItemData item, float currentDurability)
     {
         string desc = "";
 
+        // =====================================================
+        // BASE ITEM DESCRIPTION
+        // =====================================================
+        if (!string.IsNullOrWhiteSpace(item.ItemDescription))
+        {
+            desc += item.ItemDescription;
+        }
+
+        // =====================================================
+        // USEABLE ITEM / ABILITY INFO
+        // =====================================================
         if (item is UseableItem u && u.abilityToExecute != null)
         {
+            // Add spacing if description already exists
+            if (!string.IsNullOrEmpty(desc))
+                desc += "\n\n";
+
+            // Custom provider
             if (u.abilityToExecute is IItemDescriptionProvider p)
             {
                 desc += p.GetDetailedDescription();
             }
             else
             {
+                // Example ranged weapon stats
                 if (u.abilityToExecute is offensiveRanged r)
                     desc += $"Damage: {r.damage}\n";
 
-                desc += $"Use Rate: {u.useRate}s\n";
+                desc += $"Use Rate: {u.useRate}s";
             }
         }
         else if (item is IItemDescriptionProvider ip)
         {
+            if (!string.IsNullOrEmpty(desc))
+                desc += "\n\n";
+
             desc += ip.GetDetailedDescription();
         }
 
-        // Show CURRENT durability instead of max only
+        // =====================================================
+        // DURABILITY
+        // =====================================================
+        if (!string.IsNullOrEmpty(desc))
+            desc += "\n\n";
+
         if (item.IsUnbreakable)
         {
-            desc += "\nUnbreakable";
+            desc += "Unbreakable";
         }
         else
         {
-            desc += $"\nDurability: {currentDurability}/{item.maxDurability}";
+            desc += $"Durability: {currentDurability}/{item.maxDurability}";
         }
 
-        return desc;
+        return desc.Trim();
     }
 }

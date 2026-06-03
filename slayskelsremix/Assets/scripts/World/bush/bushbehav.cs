@@ -11,6 +11,10 @@ public class BushBehav : ItemHealth
     public int berriesOnFirstHit = 3;
     public float regrowDays = 1f;
 
+    [Header("Bush Audio")]
+    public AudioClip harvestSFX;
+
+
     public bool isHarvested = false;
     private float timeAtHarvest = -1f;
 
@@ -23,65 +27,115 @@ public class BushBehav : ItemHealth
         timeSystem = FindFirstObjectByType<DayNightCycle>();
     }
 
-    protected override bool IsDamageIgnored() => isHarvested;
+    // ❌ IMPORTANT FIX:
+    // Do NOT block damage pipeline here, or you lose VFX + damage numbers.
+    protected override bool IsDamageIgnored()
+    {
+        return false;
+    }
+
+    // =========================
+    // DAMAGE ENTRY POINTS
+    // =========================
 
     public override void TakeDamage(int damage, ToolType toolType, ItemData toolItem)
     {
-        if (!isHarvested) HarvestBush();
+        HandleHit();
         base.TakeDamage(damage, toolType, toolItem);
+        CheckForDeath();
     }
 
     public override void TakeDamage(int damage, ToolType toolType)
     {
-        if (!isHarvested) HarvestBush();
+        HandleHit();
         base.TakeDamage(damage, toolType);
+        CheckForDeath();
     }
 
     public override void TakeDamage(int damage)
     {
-        if (!isHarvested) HarvestBush();
+        HandleHit();
         base.TakeDamage(damage);
+        CheckForDeath();
+    }
+
+    // =========================
+    // HARVEST LOGIC
+    // =========================
+
+    private void HandleHit()
+    {
+        if (!isHarvested)
+            HarvestBush();
     }
 
     private void HarvestBush()
     {
         isHarvested = true;
-        if (timeSystem != null) timeAtHarvest = timeSystem.TotalTime;
-        if (harvestedSprite != null) spriteRenderer.sprite = harvestedSprite;
+
+        if (timeSystem != null)
+            timeAtHarvest = timeSystem.TotalTime;
+
+        if (harvestedSprite != null && spriteRenderer != null)
+            spriteRenderer.sprite = harvestedSprite;
+
+        if (harvestSFX != null && AudioManager.Instance != null)
+            AudioManager.Instance.PlaySound(harvestSFX);
 
         DropInitialBerries();
         StartRegrowRoutine();
     }
 
+    private void CheckForDeath()
+    {
+        if (health <= 0)
+        {
+            if (deathSFX != null && AudioManager.Instance != null)
+                AudioManager.Instance.PlaySound(deathSFX);
+        }
+    }
+
+    // =========================
+    // REGROW SYSTEM
+    // =========================
+
     private void Regrow()
     {
         isHarvested = false;
         timeAtHarvest = -1f;
-        if (fullSprite != null)
-        {
+
+        if (fullSprite != null && spriteRenderer != null)
             spriteRenderer.sprite = fullSprite;
-            health = maxHealth;
-        }
+
+        health = maxHealth;
     }
 
     private IEnumerator RegrowCheckRoutine()
     {
         while (isHarvested && health > 0)
         {
-            if (timeSystem != null && timeSystem.TotalTime >= timeAtHarvest + regrowDays)
+            if (timeSystem != null &&
+                timeSystem.TotalTime >= timeAtHarvest + regrowDays)
             {
                 Regrow();
                 yield break;
             }
+
             yield return new WaitForSeconds(5f);
         }
     }
 
     private void StartRegrowRoutine()
     {
-        if (regrowRoutine != null) StopCoroutine(regrowRoutine);
+        if (regrowRoutine != null)
+            StopCoroutine(regrowRoutine);
+
         regrowRoutine = StartCoroutine(RegrowCheckRoutine());
     }
+
+    // =========================
+    // LOOT
+    // =========================
 
     private void DropInitialBerries()
     {
@@ -89,17 +143,22 @@ public class BushBehav : ItemHealth
 
         for (int i = 0; i < berriesOnFirstHit; i++)
         {
-            GameObject loot = Instantiate(lootPrefab, transform.position, Quaternion.identity);
+            GameObject loot = Instantiate(
+                lootPrefab,
+                transform.position,
+                Quaternion.identity
+            );
 
-            LootArc arc = loot.GetComponent<LootArc>();
-            if (arc != null)
+            if (loot.TryGetComponent(out LootArc arc))
             {
                 arc.Initialize(transform.position);
             }
         }
     }
 
-    // ================= PERSISTENCE =================
+    // =========================
+    // SAVE / LOAD
+    // =========================
 
     public BushSaveData GetSaveData()
     {
@@ -117,17 +176,15 @@ public class BushBehav : ItemHealth
     {
         if (data == null) return;
 
-        // Restore state
         isHarvested = data.isHarvested;
         health = data.health;
         timeAtHarvest = data.timeAtHarvest;
         transform.position = data.position;
 
-        // Immediate visual update
         if (spriteRenderer != null)
-            spriteRenderer.sprite = isHarvested ? harvestedSprite : fullSprite;
+            spriteRenderer.sprite =
+                isHarvested ? harvestedSprite : fullSprite;
 
-        // Restart regrow logic if the bush is still in a harvested state
         if (isHarvested)
             StartRegrowRoutine();
     }

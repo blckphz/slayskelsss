@@ -14,9 +14,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ResourceSO
   itemID: 203
   itemName: Wood
+  ItemDescription: A sturdy Material gathered by chopping trees
   icon: {fileID: 21300000, guid: 8152add850cba6646a0bbcc811ab751c, type: 3}
+  DragStartSound: {fileID: 0}
+  DragEndSound: {fileID: 0}
   itemType: 2
   maxStackSize: 99
   isUsable: 1
   consumeAmount: 1
+  maxDurability: 0
   isBurnable: 1

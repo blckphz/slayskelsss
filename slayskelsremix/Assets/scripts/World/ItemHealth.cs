@@ -48,6 +48,7 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
 
     [Header("Hit Audio")]
     public AudioClip hitSound;
+    public AudioClip deathSFX;
     [Range(0f, 1f)] public float hitVolume = 1f;
 
     protected SpriteRenderer spriteRenderer;

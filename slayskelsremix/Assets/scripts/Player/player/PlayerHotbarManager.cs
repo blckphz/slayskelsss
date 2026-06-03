@@ -56,15 +56,8 @@ public class PlayerHotbarManager : MonoBehaviour
         controls.Disable();
     }
 
-    void OnPrimaryUse(InputAction.CallbackContext ctx)
-    {
-        primaryQueued = true;
-    }
-
-    void OnSecondaryUse(InputAction.CallbackContext ctx)
-    {
-        secondaryQueued = true;
-    }
+    void OnPrimaryUse(InputAction.CallbackContext ctx) => primaryQueued = true;
+    void OnSecondaryUse(InputAction.CallbackContext ctx) => secondaryQueued = true;
 
     void OnScroll(InputAction.CallbackContext ctx)
     {
@@ -99,6 +92,35 @@ public class PlayerHotbarManager : MonoBehaviour
         return item != null && item.maxDurability > 0;
     }
 
+    // 🔥 HOTBAR IS NOW SOURCE OF TRUTH
+    void ConsumeFromHotbar(int amount)
+    {
+        var slot = hotbarSlots[selectedIndex];
+        ItemData item = slot.GetItem();
+
+        if (item == null)
+            return;
+
+        int current = slot.GetCount();
+        int newCount = current - amount;
+
+        if (newCount <= 0)
+        {
+            slot.ClearSlot();
+        }
+        else
+        {
+            slot.SetSlot(
+                item,
+                slot.GetAbility(),
+                newCount,
+                slot.GetDurability()
+            );
+        }
+
+        SyncHotbarToData();
+    }
+
     void EnsureSingleItemInHotbar()
     {
         var slot = hotbarSlots[selectedIndex];
@@ -114,11 +136,7 @@ public class PlayerHotbarManager : MonoBehaviour
 
         slot.SetSlot(item, slot.GetAbility(), 1, slot.GetDurability());
 
-        InventoryManager.Instance.AddItem(
-            item,
-            count - 1,
-            slot.GetDurability()
-        );
+        InventoryManager.Instance.AddItem(item, count - 1, slot.GetDurability());
     }
 
     public void ExecuteActiveSlot()
@@ -129,7 +147,6 @@ public class PlayerHotbarManager : MonoBehaviour
         if (item == null)
             return;
 
-        // ONLY split stacks for durability items
         if (UsesDurability(item))
         {
             EnsureSingleItemInHotbar();
@@ -142,7 +159,6 @@ public class PlayerHotbarManager : MonoBehaviour
                 InteractionUI.Instance?.Show("Currently building");
                 lastBuildModeMessageTime = Time.time;
             }
-
             return;
         }
 
@@ -153,7 +169,14 @@ public class PlayerHotbarManager : MonoBehaviour
         if (ability == null)
             return;
 
-        ability.Execute(caster, targetAnchor, true);
+        bool success = ability.Execute(caster, targetAnchor, true);
+
+        // 🔥 ONLY HOTBAR IS CONSUMED NOW
+        if (success && item.isUsable)
+        {
+            ConsumeFromHotbar(item.consumeAmount);
+            OnSelectedItemChanged?.Invoke(GetSelectedItem());
+        }
     }
 
     void ExecuteSecondaryActiveSlot()
@@ -165,12 +188,6 @@ public class PlayerHotbarManager : MonoBehaviour
         {
             useable.abilityToExecute.ExecuteSecondary(caster);
         }
-    }
-
-    // Unused now
-    public void ReduceActiveToolDurability(float amount)
-    {
-        return;
     }
 
     public float GetActiveToolDurability()
@@ -203,9 +220,7 @@ public class PlayerHotbarManager : MonoBehaviour
     public void SelectSlot(int index)
     {
         selectedIndex = Mathf.Clamp(index, 0, hotbarSlots.Count - 1);
-
         UpdateSelector();
-
         OnSelectedItemChanged?.Invoke(GetSelectedItem());
     }
 
@@ -216,7 +231,6 @@ public class PlayerHotbarManager : MonoBehaviour
             : (selectedIndex + 1) % hotbarSlots.Count;
 
         UpdateSelector();
-
         OnSelectedItemChanged?.Invoke(GetSelectedItem());
     }
 
@@ -252,32 +266,54 @@ public class PlayerHotbarManager : MonoBehaviour
             data[i].count = hotbarSlots[i].GetCount();
             data[i].currentDurability = hotbarSlots[i].GetDurability();
         }
+
+        OnSelectedItemChanged?.Invoke(GetSelectedItem());
     }
 
     public void UseSelectedStack(int amount)
     {
+        ConsumeFromHotbar(amount);
+    }
+
+
+    public void ReduceActiveToolDurability(float amount)
+    {
         var slot = hotbarSlots[selectedIndex];
+
         ItemData item = slot.GetItem();
 
         if (item == null)
             return;
 
-        int newCount = slot.GetCount() - amount;
+        // item has no durability
+        if (item.maxDurability <= 0)
+            return;
 
-        if (newCount <= 0)
+        float currentDurability = slot.GetDurability();
+
+        currentDurability -= amount;
+
+        // TOOL BROKE
+        if (currentDurability <= 0)
         {
             slot.ClearSlot();
+
+            SyncHotbarToData();
+
+            OnSelectedItemChanged?.Invoke(GetSelectedItem());
+
+            return;
         }
-        else
-        {
-            slot.SetSlot(
-                item,
-                slot.GetAbility(),
-                newCount,
-                slot.GetDurability()
-            );
-        }
+
+        // UPDATE SLOT DURABILITY
+        slot.SetSlot(
+            item,
+            slot.GetAbility(),
+            slot.GetCount(),
+            currentDurability
+        );
 
         SyncHotbarToData();
     }
+
 }

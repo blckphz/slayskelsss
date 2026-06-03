@@ -15,11 +15,13 @@ public class PickupItem : MonoBehaviour
 
     [Header("Audio")]
     [SerializeField] private AudioClip pickupSound;
+    [SerializeField] private AudioClip magnetStartSound;
 
     private Highlightable highlight;
     private Transform player;
 
     private bool isPickedUp = false;
+    private bool magnetSoundPlayed = false;
 
     private void Awake()
     {
@@ -41,12 +43,28 @@ public class PickupItem : MonoBehaviour
 
         if (dist <= magnetRange)
         {
+            // 🔊 Play magnet SFX once
+            if (!magnetSoundPlayed)
+            {
+                magnetSoundPlayed = true;
+
+                if (magnetStartSound != null && AudioManager.Instance != null)
+                {
+                    AudioManager.Instance.PlaySound(magnetStartSound, 1f);
+                }
+            }
+
             Vector3 direction = (player.position - transform.position).normalized;
 
             // stronger pull when closer
             float strength = 1f - (dist / magnetRange);
 
             transform.position += direction * magnetStrength * strength * Time.deltaTime;
+        }
+        else
+        {
+            // reset if player leaves range
+            magnetSoundPlayed = false;
         }
     }
 

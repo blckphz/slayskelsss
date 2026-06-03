@@ -15,9 +15,17 @@ public class offensivemelee : offensiveability
     public float spawnOffset = 1.5f;
     public float rotationOffset = 0f;
 
+    [Header("Miss Recovery")]
+    [Range(0f, 1f)]
+    public float missCooldownMultiplier = 0.65f;
+
     private int currentSwingIndex;
     private float nextSwingTime;
     private float cooldownEndTime;
+
+    private bool comboConnected;
+
+    public bool IsOnCooldown => Time.time < cooldownEndTime;
 
     public virtual float GetBonusDamage() => 0f;
 
@@ -31,7 +39,7 @@ public class offensivemelee : offensiveability
         currentSwingIndex = 0;
         nextSwingTime = 0f;
         cooldownEndTime = 0f;
-        isOnCooldown = false;
+        comboConnected = false;
     }
 
     public override bool Execute(Transform caster, Transform targetAnchor, bool isHolding)
@@ -45,16 +53,8 @@ public class offensivemelee : offensiveability
         if (ActionLock.IsLocked)
             return false;
 
-        if (currentSwingIndex < 0 || currentSwingIndex > maxSwings)
-            ResetMeleeState();
-
-        if (isOnCooldown)
-        {
-            if (Time.time < cooldownEndTime)
-                return false;
-
-            isOnCooldown = false;
-        }
+        if (IsOnCooldown)
+            return false;
 
         if (Time.time < nextSwingTime)
             return false;
@@ -64,24 +64,44 @@ public class offensivemelee : offensiveability
                 ? SwingOwner.Player
                 : SwingOwner.NPC;
 
-        // =====================================================
-        // 🔊 AUDIO (ADD HERE)
-        // =====================================================
-        if (!customAudioLogic && AudioManager.Instance != null && launchsound != null)
+        // AUDIO
+        if (!customAudioLogic &&
+            AudioManager.Instance != null &&
+            launchsound != null)
         {
             AudioManager.Instance.PlaySound(launchsound, 1f);
         }
 
-        PerformSwing(caster, targetAnchor, currentSwingIndex, owner);
+        // SWING
+        meleebehav swing = PerformSwing(
+            caster,
+            targetAnchor,
+            currentSwingIndex,
+            owner
+        );
+
+        if (swing != null)
+        {
+            // 🔥 IMPORTANT: no coroutine, just reset per swing instance
+            swing.OnSwingFinished = OnSwingFinished;
+        }
 
         currentSwingIndex++;
         nextSwingTime = Time.time + swingFreq;
 
+        // FINISH COMBO
         if (currentSwingIndex >= maxSwings)
         {
             currentSwingIndex = 0;
-            isOnCooldown = true;
-            cooldownEndTime = Time.time + fireRate;
+
+            float finalCooldown =
+                comboConnected
+                    ? fireRate
+                    : fireRate * missCooldownMultiplier;
+
+            cooldownEndTime = Time.time + finalCooldown;
+
+            comboConnected = false;
 
             return true;
         }
@@ -89,21 +109,29 @@ public class offensivemelee : offensiveability
         return false;
     }
 
-    public void PerformSwing(
+    // 🔥 called by melee behavior
+    private void OnSwingFinished(bool hit)
+    {
+        comboConnected |= hit;
+    }
+
+    public meleebehav PerformSwing(
         Transform caster,
         Transform targetAnchor,
         int index,
-        SwingOwner owner)
+        SwingOwner owner
+    )
     {
         if (prefab == null || ObjectPooler.Instance == null)
-            return;
+            return null;
 
         Vector3 targetPos =
             targetAnchor != null
                 ? targetAnchor.position
                 : caster.position + caster.right;
 
-        Vector2 dir = ((Vector2)targetPos - (Vector2)caster.position).normalized;
+        Vector2 dir =
+            ((Vector2)targetPos - (Vector2)caster.position).normalized;
 
         Vector2 snappedDir =
             Mathf.Abs(dir.x) > Mathf.Abs(dir.y)
@@ -123,17 +151,23 @@ public class offensivemelee : offensiveability
             Quaternion.Euler(0, 0, angle)
         );
 
-        if (woosh == null) return;
+        if (woosh == null)
+            return null;
 
         woosh.SetActive(true);
 
-        int bonus = owner == SwingOwner.Player ? Mathf.RoundToInt(GetBonusDamage()) : 0;
+        int bonus =
+            owner == SwingOwner.Player
+                ? Mathf.RoundToInt(GetBonusDamage())
+                : 0;
 
         ToolType tool = ToolType.Axe;
+
         if (this is ToolsSO toolSO)
             tool = toolSO.toolType;
 
         var behav = woosh.GetComponent<meleebehav>();
+
         if (behav != null)
         {
             behav.Setup(
@@ -147,7 +181,12 @@ public class offensivemelee : offensiveability
             );
         }
 
-        if (owner == SwingOwner.Player && CameraShaker.Instance != null)
+        if (owner == SwingOwner.Player &&
+            CameraShaker.Instance != null)
+        {
             CameraShaker.Instance.Shake(0.15f, 0.1f);
+        }
+
+        return behav;
     }
 }

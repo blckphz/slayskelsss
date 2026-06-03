@@ -7,29 +7,23 @@ public abstract class Ability : ScriptableObject
     public Sprite icon;
     public AudioClip launchsound;
     public float fireRate;
-    public bool isOnCooldown;
     public GameObject prefab;
 
     public float staminaUsed;
 
-    private void OnEnable()
+    protected virtual void OnEnable()
     {
         ResetRuntimeState();
     }
 
     protected virtual void ResetRuntimeState()
     {
-        isOnCooldown = false;
+        // runtime reset hook (kept for consistency)
     }
-
-    // =====================================================
-    // AUDIO
-    // =====================================================
 
     protected void PlaySound()
     {
-        if (launchsound == null)
-            return;
+        if (launchsound == null) return;
 
         if (AudioManager.Instance == null)
         {
@@ -39,10 +33,6 @@ public abstract class Ability : ScriptableObject
 
         AudioManager.Instance.PlaySound(launchsound);
     }
-
-    // =====================================================
-    // EXECUTION
-    // =====================================================
 
     public abstract bool Execute(Transform caster, Transform targetAnchor, bool isHolding);
 
