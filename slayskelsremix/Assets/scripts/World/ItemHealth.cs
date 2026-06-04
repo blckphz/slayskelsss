@@ -91,9 +91,7 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
 
     private void GenerateUniqueIDIfNeeded()
     {
-        if (!string.IsNullOrEmpty(UniqOverworldItemID))
-            return;
-
+      
         UniqOverworldItemID = Guid.NewGuid().ToString();
 
         Debug.Log($"[UNIQUE ID GENERATED] {gameObject.name} -> {UniqOverworldItemID}");

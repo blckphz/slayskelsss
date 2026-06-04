@@ -27,13 +27,13 @@ public class ResourceSpawner : MonoBehaviour
 
     void Start()
     {
-        StartCoroutine(SpawnAfterLoad());
-
         if (dayNightCycle == null)
             dayNightCycle = FindFirstObjectByType<DayNightCycle>();
 
         if (dayNightCycle != null)
             lastDay = dayNightCycle.DaysPassed;
+
+        StartCoroutine(SpawnAfterLoad());
     }
 
     void Update()
@@ -46,16 +46,29 @@ public class ResourceSpawner : MonoBehaviour
         if (dayNightCycle == null)
             return;
 
+        // IMPORTANT: don't respawn if world is loaded from save
+        if (BuildingSaveManager.Instance != null &&
+            BuildingSaveManager.Instance.HasSaveFile())
+            return;
+
         if (dayNightCycle.DaysPassed != lastDay)
         {
             lastDay = dayNightCycle.DaysPassed;
-            SpawnResources(); // spawn once per new day
+            SpawnResources();
         }
     }
 
     IEnumerator SpawnAfterLoad()
     {
         yield return new WaitForSeconds(0.1f);
+
+        // ONLY spawn in new worlds
+        if (BuildingSaveManager.Instance != null &&
+            BuildingSaveManager.Instance.HasSaveFile())
+        {
+            yield break;
+        }
+
         SpawnResources();
     }
 

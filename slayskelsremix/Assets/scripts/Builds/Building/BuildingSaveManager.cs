@@ -55,6 +55,16 @@ public class BuildingSaveManager : MonoBehaviour
         LoadEverything();
     }
 
+    // =========================================================
+    // 🔥 NEW: external check for ResourceSpawner
+    // =========================================================
+    public bool HasSaveFile()
+    {
+        return File.Exists(savePath);
+    }
+
+    // =========================================================
+
     public void RegisterBuilding(GameObject obj)
     {
         if (obj == null)
@@ -221,8 +231,6 @@ public class BuildingSaveManager : MonoBehaviour
                 if (treeObj.TryGetComponent(out treeItemBehav tr))
                 {
                     tr.LoadData(t);
-
-                    // 🔥 NEW: trigger stick spawn on world spawn
                     tr.OnSpawnFromWorld();
                 }
             }
