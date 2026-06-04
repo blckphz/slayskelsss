@@ -11,5 +11,5 @@ public class SaveData
     public List<BushSaveData> bushes = new();
     public List<TreeSaveData> trees = new();
     public List<SoilData> soilTiles = new();
-    public List<StoneSaveData> stones = new();
+    public List<ResourceSaveData> stones = new();
 }

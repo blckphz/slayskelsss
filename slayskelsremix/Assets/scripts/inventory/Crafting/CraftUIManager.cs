@@ -118,7 +118,7 @@ public class CraftUIManager : MonoBehaviour
 
         List<CraftingSO> recipes = new List<CraftingSO>();
 
-        foreach (var r in CraftingManager.Instance.knownRecipes)
+        foreach (var r in CraftingManager.Instance.GetVisibleRecipes())
         {
             if (r == null) continue;
 

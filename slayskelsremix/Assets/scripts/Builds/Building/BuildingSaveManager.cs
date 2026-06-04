@@ -146,7 +146,7 @@ public class BuildingSaveManager : MonoBehaviour
         // =========================
         foreach (ResourceBehav stone in FindObjectsByType<ResourceBehav>(FindObjectsSortMode.None))
         {
-            data.stones.Add(new StoneSaveData
+            data.stones.Add(new ResourceSaveData
             {
                 id = stone.UniqOverworldItemID,
                 position = stone.transform.position,
@@ -265,7 +265,7 @@ public class BuildingSaveManager : MonoBehaviour
         // =========================
         // ✅ LOAD STONES
         // =========================
-        foreach (StoneSaveData s in cachedData.stones)
+        foreach (ResourceSaveData s in cachedData.stones)
         {
             if (s.destroyed)
                 continue;

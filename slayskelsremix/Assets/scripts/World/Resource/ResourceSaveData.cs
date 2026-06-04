@@ -1,10 +1,10 @@
 using UnityEngine;
 
 [System.Serializable]
-public class StoneSaveData
+public class ResourceSaveData
 {
     public string id;
-    public Vector2 position;
-    public float health;
     public bool destroyed;
+    public float health;
+    public Vector3 position;
 }

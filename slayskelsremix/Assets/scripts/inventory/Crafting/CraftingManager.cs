@@ -18,6 +18,11 @@ public class CraftingManager : MonoBehaviour
 
     private string savePath;
 
+    // =========================
+    // RUNTIME (TEMP UI CONTEXT)
+    // =========================
+    private List<CraftingSO> runtimeRecipes = null;
+
     private void Awake()
     {
         if (Instance == null) Instance = this;
@@ -34,8 +39,6 @@ public class CraftingManager : MonoBehaviour
         }
         else
         {
-            Debug.Log("<color=yellow>[Crafting]</color> No save found. Loading starter recipes.");
-
             foreach (var recipe in startingRecipes)
             {
                 if (recipe != null && !knownRecipes.Contains(recipe))
@@ -63,6 +66,9 @@ public class CraftingManager : MonoBehaviour
         ToggleCraftingUI();
     }
 
+    // =========================
+    // UI OPEN / CLOSE
+    // =========================
     public void ToggleCraftingUI()
     {
         if (craftingUI == null) return;
@@ -77,40 +83,67 @@ public class CraftingManager : MonoBehaviour
 
             CraftUIManager.Instance?.RefreshGrid();
         }
+        else
+        {
+            ClearRuntimeRecipes();
+        }
     }
 
-    // =====================================================
-    // LEARN RECIPE
-    // =====================================================
+    // =========================
+    // VISUAL RECIPE SOURCE
+    // =========================
+    public List<CraftingSO> GetVisibleRecipes()
+    {
+        return runtimeRecipes ?? knownRecipes;
+    }
+
+    public void SetRuntimeRecipes(List<CraftingSO> extraRecipes)
+    {
+        runtimeRecipes = new List<CraftingSO>();
+
+        // base recipes
+        runtimeRecipes.AddRange(knownRecipes);
+
+        // add station recipes
+        foreach (var r in extraRecipes)
+        {
+            if (r != null && !runtimeRecipes.Contains(r))
+                runtimeRecipes.Add(r);
+        }
+
+        CraftUIManager.Instance?.RefreshGrid();
+    }
+
+    public void ClearRuntimeRecipes()
+    {
+        runtimeRecipes = null;
+        CraftUIManager.Instance?.RefreshGrid();
+    }
+
+    // =========================
+    // LEARN RECIPE (PERMANENT)
+    // =========================
     public bool LearnRecipe(CraftingSO recipe)
     {
         if (recipe == null) return false;
 
         if (knownRecipes.Contains(recipe))
-        {
-            Debug.Log("<color=white>[Crafting]</color> Already known.");
             return false;
-        }
 
         knownRecipes.Add(recipe);
         SaveRecipes();
-
-        Debug.Log($"<color=green>[Crafting]</color> Learned {recipe.name}");
 
         CraftUIManager.Instance?.RefreshGrid();
         return true;
     }
 
-    // =====================================================
-    // CRAFT ITEM (ADDITIVE DURABILITY SYSTEM)
-    // =====================================================
+    // =========================
+    // CRAFTING LOGIC (UNCHANGED)
+    // =========================
     public void CraftItem(CraftingSO recipe)
     {
         if (recipe == null) return;
 
-        // ==============================
-        // VALIDATION (ADDED CHECK)
-        // ==============================
         foreach (var ingredient in recipe.ingredients)
         {
             var items = InventoryManager.Instance.GetItems(ingredient.item);
@@ -119,21 +152,14 @@ public class CraftingManager : MonoBehaviour
 
             foreach (var instance in items)
             {
-                // FULL DURABILITY ONLY RULE
                 if (instance.CurrentDurability >= instance.MaxDurability)
                     validCount += instance.StackCount;
             }
 
             if (validCount < ingredient.amount)
-            {
-                Debug.Log("<color=red>[Crafting]</color> Missing fully repaired items.");
                 return;
-            }
         }
 
-        // ==============================
-        // CONSUME ITEMS (ADDED METHOD)
-        // ==============================
         foreach (var ingredient in recipe.ingredients)
         {
             InventoryManager.Instance.RemoveItemsWithCondition(
@@ -145,13 +171,12 @@ public class CraftingManager : MonoBehaviour
 
         InventoryManager.Instance.AddItem(recipe.resultItem, recipe.resultCount);
 
-
         CraftUIManager.Instance?.RefreshGrid();
     }
 
-    // =====================================================
-    // SAVE
-    // =====================================================
+    // =========================
+    // SAVE / LOAD
+    // =========================
     public void SaveRecipes()
     {
         RecipeSaveData data = new RecipeSaveData();
@@ -163,31 +188,21 @@ public class CraftingManager : MonoBehaviour
         }
 
         File.WriteAllText(savePath, JsonUtility.ToJson(data, true));
-
-        Debug.Log("<color=grey>[Crafting]</color> Saved recipes.");
     }
 
-    // =====================================================
-    // LOAD
-    // =====================================================
     public void LoadRecipes()
     {
-        if (!File.Exists(savePath)) return;
-
         string json = File.ReadAllText(savePath);
         RecipeSaveData data = JsonUtility.FromJson<RecipeSaveData>(json);
 
         knownRecipes.Clear();
 
         if (recipeDatabase == null)
-        {
-            Debug.LogError("<color=red>[Crafting]</color> Missing database!");
             return;
-        }
 
-        foreach (string recipeName in data.learnedRecipeNames)
+        foreach (string name in data.learnedRecipeNames)
         {
-            CraftingSO found = recipeDatabase.GetRecipeByName(recipeName);
+            CraftingSO found = recipeDatabase.GetRecipeByName(name);
 
             if (found != null)
                 knownRecipes.Add(found);
