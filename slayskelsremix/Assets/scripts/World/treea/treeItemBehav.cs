@@ -10,8 +10,6 @@ public class treeItemBehav : ItemHealth
     public GameObject bottomPrefab;
     public GameObject fallingTopPrefab;
 
-    [Header("Loot")]
-    public GameObject lootPrefab;
     public int lootAmount = 3;
 
     [Header("Stick Spawn (on world spawn)")]
@@ -32,6 +30,8 @@ public class treeItemBehav : ItemHealth
     {
         base.Awake();
         treeCollider = GetComponent<Collider2D>();
+        TrySpawnSticksOnSpawn();
+
     }
 
     protected override void Start()
@@ -53,6 +53,7 @@ public class treeItemBehav : ItemHealth
             isCut = isCut,
             cutTime = cutTime,
             position = transform.position
+
         };
     }
 
@@ -63,6 +64,8 @@ public class treeItemBehav : ItemHealth
         isCut = data.isCut;
         cutTime = data.cutTime;
         transform.position = data.position;
+
+
 
         if (isCut)
             gameObject.SetActive(false);

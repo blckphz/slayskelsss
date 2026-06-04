@@ -101,6 +101,7 @@ GameObject:
   - component: {fileID: 7208816122101253887}
   - component: {fileID: 508285678147993437}
   - component: {fileID: 1702189935939130270}
+  - component: {fileID: 3557776354170382073}
   m_Layer: 0
   m_Name: stump
   m_TagString: Untagged
@@ -194,6 +195,74 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1d22da432f8d1244d8709f835af5e22b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TreeStumpRegrow
+  UniqOverworldItemID: af9d7154-6ce7-4b72-86d8-89434cbfa3f3
+  health: 15
+  effectiveTool: 2
+  durabilityPerHit: 1
+  givesXP: 1
+  xpReward: 15
+  lootPrefab: {fileID: 8504423254273432661, guid: 22af6c420dc2b11488f396c164eab3b4, type: 3}
+  dropAmount: 3
+  correctToolUsageBonus: 0
+  hitDropChance: 0.2
+  hitDropAmount: 1
+  damageTextPrefab: {fileID: 9146332368269871989, guid: e2da221bf74f11340b439450cb25f81e, type: 3}
+  hitIntensityName: _Intensity
+  flashDuration: 0.15
+  shakeDuration: 0.1
+  shakeMagnitude: 0.1
+  cameraShakeIntensity: 1.5
+  cameraShakeDuration: 0.15
+  hitSound: {fileID: 8300000, guid: c868435d4fc6ae240bab799a6c39d3e3, type: 3}
+  deathSFX: {fileID: 8300000, guid: 516a69b0c85ebbf48b7eba6994cbebd1, type: 3}
+  hitVolume: 1
   treeID: 
   treePrefab: {fileID: 7005833747306306358, guid: 80a2f909dc74a784e8a5d5ac5bf6d90c, type: 3}
   regrowTime: 0.1
+  cutTime: 0
+--- !u!61 &3557776354170382073
+BoxCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4272399698899235473}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 1
+  m_UsedByEffector: 0
+  m_CompositeOperation: 0
+  m_CompositeOrder: 0
+  m_Offset: {x: 0, y: 0.50939393}
+  m_SpriteTilingProperty:
+    border: {x: 0, y: 0, z: 0, w: 0}
+    pivot: {x: 0.5, y: 0.09}
+    oldSize: {x: 1.5151515, y: 1.2424242}
+    newSize: {x: 2.878788, y: 3.5454545}
+    adaptiveTilingThreshold: 0.5
+    drawMode: 0
+    adaptiveTiling: 0
+  m_AutoTiling: 0
+  m_Size: {x: 1.5151515, y: 1.2424242}
+  m_EdgeRadius: 0

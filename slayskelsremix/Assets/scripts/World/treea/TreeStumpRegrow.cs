@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class TreeStumpRegrow : MonoBehaviour
+public class TreeStumpRegrow : ItemHealth
 {
     [Header("Settings")]
     public string treeID;

@@ -25,8 +25,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3886317286663123245}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: 0.34482598, w: 0.93866664}
-  m_LocalPosition: {x: 0.035, y: -0.028, z: 0}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.002, y: -0.03, z: 0}
   m_LocalScale: {x: 1.2238499, y: 0.26258823, z: 0.46890762}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -119,14 +119,14 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3959919176948862644}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0.34482598, w: 0.93866664}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 9.057341, y: -2.8585815, z: 0}
   m_LocalScale: {x: 2.865, y: 2.865, z: 2.865}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 4760074565462458018}
   m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: -40.342}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &5719720031106715302
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -202,7 +202,8 @@ MonoBehaviour:
   autoPickupOnCollision: 1
   magnetRange: 2.5
   magnetStrength: 8
-  pickupSound: {fileID: 0}
+  pickupSound: {fileID: 8300000, guid: be2a3ea2760529e429024e018f69e258, type: 3}
+  magnetStartSound: {fileID: 0}
 --- !u!70 &4632970738025185415
 CapsuleCollider2D:
   m_ObjectHideFlags: 0

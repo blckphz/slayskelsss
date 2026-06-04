@@ -60,7 +60,6 @@ public class ResourceSpawner : MonoBehaviour
 
     IEnumerator SpawnAfterLoad()
     {
-        yield return new WaitForSeconds(0.1f);
 
         // ONLY spawn in new worlds
         if (BuildingSaveManager.Instance != null &&

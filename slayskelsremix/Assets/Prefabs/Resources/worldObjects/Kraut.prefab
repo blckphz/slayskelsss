@@ -242,9 +242,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4aab5be093298a948b815445d7eae465, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ResourceBehav
-  UniqOverworldItemID: a26eeaaf-4008-4c9b-9d38-abf02519b039
+  UniqOverworldItemID: 07893d4c-2bbe-49e1-9895-96007f3bb7d6
   health: 10
-  effectiveTool: 1
+  effectiveTool: 2
   durabilityPerHit: 1
   givesXP: 1
   xpReward: 5

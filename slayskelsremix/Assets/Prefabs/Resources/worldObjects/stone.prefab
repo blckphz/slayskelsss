@@ -102,7 +102,6 @@ GameObject:
   - component: {fileID: 5553068737315625402}
   - component: {fileID: 512176677166505769}
   - component: {fileID: 1169483223643054696}
-  - component: {fileID: 3887806738031074784}
   m_Layer: 8
   m_Name: stone
   m_TagString: Untagged
@@ -243,10 +242,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4aab5be093298a948b815445d7eae465, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ResourceBehav
-  UniqOverworldItemID: 
+  UniqOverworldItemID: 533cab85-c6d1-40f4-9db5-a94a0065aafa
   health: 50
-  effectiveTool: 4
-  durabilityPerSwing: 1
+  effectiveTool: 1
+  durabilityPerHit: 1
   givesXP: 1
   xpReward: 15
   lootPrefab: {fileID: 7419506218884482566, guid: 785514fc593b4044e91b9b6f017dbe2f, type: 3}
@@ -259,23 +258,11 @@ MonoBehaviour:
   flashDuration: 0.15
   shakeDuration: 0.1
   shakeMagnitude: 0.1
---- !u!114 &3887806738031074784
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5216174609153863728}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 480bf6f5b63fd37448bfb150bbe29e4f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::objectHealth
-  maxHealth: 100
-  currentHealth: 0
-  xpReward: 20
-  givesXP: 0
-  interactionRange: 3
+  cameraShakeIntensity: 1.5
+  cameraShakeDuration: 0.15
+  hitSound: {fileID: 8300000, guid: b143415fe2fc1564cae39958d86bf433, type: 3}
+  deathSFX: {fileID: 8300000, guid: 7a8d24db71c4a0c46b11a8af7be499b5, type: 3}
+  hitVolume: 1
 --- !u!1 &6568064563501181661
 GameObject:
   m_ObjectHideFlags: 0

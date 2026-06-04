@@ -808,7 +808,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7297689596997285609, guid: 80a2f909dc74a784e8a5d5ac5bf6d90c, type: 3}
       propertyPath: UniqOverworldItemID
-      value: 875464f4-a0d5-47df-a2ec-730b18476362
+      value: f9cab0b6-0d06-431e-a20a-6fb94f611595
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -4131,7 +4131,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7297689596997285609, guid: 80a2f909dc74a784e8a5d5ac5bf6d90c, type: 3}
       propertyPath: UniqOverworldItemID
-      value: 853fca88-554b-4e9d-a52a-8b8dd747b3ea
+      value: 36dcbedf-7992-40d2-903c-3385807cd616
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -5597,7 +5597,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7297689596997285609, guid: 80a2f909dc74a784e8a5d5ac5bf6d90c, type: 3}
       propertyPath: UniqOverworldItemID
-      value: 84df2696-1a33-4d63-ba62-1ed0db07b591
+      value: 307504ee-fc75-4ddd-8278-8c1a5ce1315f
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -6414,7 +6414,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7297689596997285609, guid: 80a2f909dc74a784e8a5d5ac5bf6d90c, type: 3}
       propertyPath: UniqOverworldItemID
-      value: 7b2af631-1207-48fd-992c-3bcc43cf35be
+      value: 31faa515-a796-4ebe-a812-4c6fbe17926a
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -8174,7 +8174,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7297689596997285609, guid: 80a2f909dc74a784e8a5d5ac5bf6d90c, type: 3}
       propertyPath: UniqOverworldItemID
-      value: b9dd9eea-4747-41a6-b80e-06e89f299844
+      value: 68a4d4a1-5547-4655-9a79-594c9975d883
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -8482,7 +8482,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7297689596997285609, guid: 80a2f909dc74a784e8a5d5ac5bf6d90c, type: 3}
       propertyPath: UniqOverworldItemID
-      value: d3d7a20f-b4c2-4bdf-a89f-3700e6593089
+      value: 6d293ddd-ff0e-4335-bbac-37a2f6054b41
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -8857,6 +8857,184 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 422031550}
   m_CullTransparentMesh: 1
+--- !u!43 &422947905
+Mesh:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  serializedVersion: 12
+  m_SubMeshes:
+  - serializedVersion: 2
+    firstByte: 0
+    indexCount: 0
+    topology: 0
+    baseVertex: 0
+    firstVertex: 0
+    vertexCount: 0
+    localAABB:
+      m_Center: {x: 0, y: 0, z: 0}
+      m_Extent: {x: 0, y: 0, z: 0}
+  m_Shapes:
+    vertices: []
+    shapes: []
+    channels: []
+    fullWeights: []
+  m_BindPose: []
+  m_BoneNameHashes: 
+  m_RootBoneNameHash: 0
+  m_BonesAABB: []
+  m_VariableBoneCountWeights:
+    m_Data: 
+  m_MeshCompression: 0
+  m_IsReadable: 1
+  m_KeepVertices: 1
+  m_KeepIndices: 1
+  m_IndexFormat: 0
+  m_IndexBuffer: 
+  m_VertexData:
+    serializedVersion: 3
+    m_VertexCount: 0
+    m_Channels:
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 3
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    m_DataSize: 0
+    _typelessdata: 
+  m_CompressedMesh:
+    m_Vertices:
+      m_NumItems: 0
+      m_Range: 0
+      m_Start: 0
+      m_Data: 
+      m_BitSize: 0
+    m_UV:
+      m_NumItems: 0
+      m_Range: 0
+      m_Start: 0
+      m_Data: 
+      m_BitSize: 0
+    m_Normals:
+      m_NumItems: 0
+      m_Range: 0
+      m_Start: 0
+      m_Data: 
+      m_BitSize: 0
+    m_Tangents:
+      m_NumItems: 0
+      m_Range: 0
+      m_Start: 0
+      m_Data: 
+      m_BitSize: 0
+    m_Weights:
+      m_NumItems: 0
+      m_Data: 
+      m_BitSize: 0
+    m_NormalSigns:
+      m_NumItems: 0
+      m_Data: 
+      m_BitSize: 0
+    m_TangentSigns:
+      m_NumItems: 0
+      m_Data: 
+      m_BitSize: 0
+    m_FloatColors:
+      m_NumItems: 0
+      m_Range: 0
+      m_Start: 0
+      m_Data: 
+      m_BitSize: 0
+    m_BoneIndices:
+      m_NumItems: 0
+      m_Data: 
+      m_BitSize: 0
+    m_Triangles:
+      m_NumItems: 0
+      m_Data: 
+      m_BitSize: 0
+    m_UVInfo: 0
+  m_LocalAABB:
+    m_Center: {x: 0, y: 0, z: 0}
+    m_Extent: {x: 0, y: 0, z: 0}
+  m_MeshUsageFlags: 0
+  m_CookingOptions: 30
+  m_BakedConvexCollisionMesh: 
+  m_BakedTriangleCollisionMesh: 
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 1
+  m_MeshOptimizationFlags: 1
+  m_StreamData:
+    serializedVersion: 2
+    offset: 0
+    size: 0
+    path: 
+  m_MeshLodInfo:
+    serializedVersion: 2
+    m_LodSelectionCurve:
+      serializedVersion: 1
+      m_LodSlope: 0
+      m_LodBias: 0
+    m_NumLevels: 1
+    m_SubMeshes:
+    - serializedVersion: 2
+      m_Levels:
+      - serializedVersion: 1
+        m_IndexStart: 0
+        m_IndexCount: 0
 --- !u!1001 &424388690
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -8915,7 +9093,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7297689596997285609, guid: 80a2f909dc74a784e8a5d5ac5bf6d90c, type: 3}
       propertyPath: UniqOverworldItemID
-      value: e8b827e6-b51b-4e7f-b318-e14127fa5ac1
+      value: fa72254b-1a47-4b6b-8b83-a3812b8f69c3
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -9045,7 +9223,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7297689596997285609, guid: 80a2f909dc74a784e8a5d5ac5bf6d90c, type: 3}
       propertyPath: UniqOverworldItemID
-      value: 796b7591-4b83-4549-b95d-acf41ea46612
+      value: 60298809-f62e-4b69-ac6d-68e5d884d0ac
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -11068,7 +11246,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7297689596997285609, guid: 80a2f909dc74a784e8a5d5ac5bf6d90c, type: 3}
       propertyPath: UniqOverworldItemID
-      value: a0be1d5c-1f32-44f5-ad3f-17bc026e95b1
+      value: 0fe85c27-9817-42d3-8fad-275a87c44f77
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -12327,7 +12505,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7297689596997285609, guid: 80a2f909dc74a784e8a5d5ac5bf6d90c, type: 3}
       propertyPath: UniqOverworldItemID
-      value: fa2052fa-beda-49f1-86a6-54ee598977c6
+      value: f3af548e-ce26-4369-8491-abf4a9d5e445
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -14502,7 +14680,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7297689596997285609, guid: 80a2f909dc74a784e8a5d5ac5bf6d90c, type: 3}
       propertyPath: UniqOverworldItemID
-      value: f85e8a76-f160-4c4e-91fa-100ae619feb7
+      value: 7b2b55f1-a377-492c-b6e9-a54ff772e96a
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -14778,7 +14956,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7297689596997285609, guid: 80a2f909dc74a784e8a5d5ac5bf6d90c, type: 3}
       propertyPath: UniqOverworldItemID
-      value: 89806c30-adee-485f-9855-54b369be1945
+      value: 02b8c9dd-fb04-437c-aecf-82c793012ac8
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -15156,7 +15334,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7297689596997285609, guid: 80a2f909dc74a784e8a5d5ac5bf6d90c, type: 3}
       propertyPath: UniqOverworldItemID
-      value: 75cc4793-ab68-4cfb-9b89-964a14221cd5
+      value: 28486169-1031-485b-88a8-8adcc5d78802
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -15221,7 +15399,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7297689596997285609, guid: 80a2f909dc74a784e8a5d5ac5bf6d90c, type: 3}
       propertyPath: UniqOverworldItemID
-      value: c2ac2208-2249-4a65-b5af-f168aa5d0c7a
+      value: 4a931faa-ca72-409e-8158-91f7bb3cc116
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -16456,7 +16634,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7297689596997285609, guid: 80a2f909dc74a784e8a5d5ac5bf6d90c, type: 3}
       propertyPath: UniqOverworldItemID
-      value: e0f38930-e23b-49c5-99ef-8ce5087e6faa
+      value: 1a68337b-0c9a-4484-8699-4780404f5efe
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -16984,7 +17162,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7297689596997285609, guid: 80a2f909dc74a784e8a5d5ac5bf6d90c, type: 3}
       propertyPath: UniqOverworldItemID
-      value: f9260cd0-28fd-4c0c-9772-dcbe502a2b91
+      value: fa62e7ef-b779-4fa1-8f0d-2c462f2f93be
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -18014,7 +18192,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7297689596997285609, guid: 80a2f909dc74a784e8a5d5ac5bf6d90c, type: 3}
       propertyPath: UniqOverworldItemID
-      value: 10417ae0-6899-4d5e-bd24-91791ae5eccb
+      value: 79f02962-1097-45bf-bda5-93ec128e31e4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -18356,7 +18534,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7297689596997285609, guid: 80a2f909dc74a784e8a5d5ac5bf6d90c, type: 3}
       propertyPath: UniqOverworldItemID
-      value: 224512fc-9962-4d67-8fcf-310ce399e83e
+      value: 885d6ad0-8820-4a58-84c5-a3b6e10b4aa2
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -20264,7 +20442,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7297689596997285609, guid: 80a2f909dc74a784e8a5d5ac5bf6d90c, type: 3}
       propertyPath: UniqOverworldItemID
-      value: 5df1f768-52d1-4153-973b-20c1dfaf42f3
+      value: 526f6f98-cddd-4181-b048-27f7e9d1e72a
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -217605,7 +217783,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7297689596997285609, guid: 80a2f909dc74a784e8a5d5ac5bf6d90c, type: 3}
       propertyPath: UniqOverworldItemID
-      value: 380f7c4d-4e80-474f-92f8-193047ae591e
+      value: 74aab2ec-0a64-4cf0-aa16-c304991f9cf0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -217745,7 +217923,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7297689596997285609, guid: 80a2f909dc74a784e8a5d5ac5bf6d90c, type: 3}
       propertyPath: UniqOverworldItemID
-      value: 49629688-5c66-4b5f-81ae-075d4ac31ca5
+      value: 6283efb5-b213-44cf-92e6-417522236b2f
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -219820,7 +219998,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7297689596997285609, guid: 80a2f909dc74a784e8a5d5ac5bf6d90c, type: 3}
       propertyPath: UniqOverworldItemID
-      value: bac39c2e-17c0-4b8f-b362-e4af80766519
+      value: d112ab6e-fc0f-4df6-aed6-8e2dae6b946e
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -225453,7 +225631,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7297689596997285609, guid: 80a2f909dc74a784e8a5d5ac5bf6d90c, type: 3}
       propertyPath: UniqOverworldItemID
-      value: f21e8977-b168-4501-b3a7-12724d8c0a54
+      value: 69a134df-8079-4824-a2e2-417bf7166888
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -225518,7 +225696,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7297689596997285609, guid: 80a2f909dc74a784e8a5d5ac5bf6d90c, type: 3}
       propertyPath: UniqOverworldItemID
-      value: 01c002d4-f95e-452c-9c2a-5dac6396781e
+      value: 7cbebdd6-bf4b-43b1-bb1b-39c432a96fe7
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -226054,7 +226232,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7297689596997285609, guid: 80a2f909dc74a784e8a5d5ac5bf6d90c, type: 3}
       propertyPath: UniqOverworldItemID
-      value: 22b30dd5-bd22-4d8f-8155-94e5296b95ab
+      value: 447c2c87-1b77-4692-8eaf-9cca1a7c4c7b
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -226297,7 +226475,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7297689596997285609, guid: 80a2f909dc74a784e8a5d5ac5bf6d90c, type: 3}
       propertyPath: UniqOverworldItemID
-      value: 510214f3-dfee-41ce-a26c-2bea8d64112e
+      value: 4cf3ffb1-b0b9-4cef-8358-98ddee692bca
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -226453,7 +226631,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7297689596997285609, guid: 80a2f909dc74a784e8a5d5ac5bf6d90c, type: 3}
       propertyPath: UniqOverworldItemID
-      value: 3c2e2260-9638-4520-ad28-96787976b2ea
+      value: 61acae17-d96a-46d8-85bb-f5052e03f0cd
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -227785,7 +227963,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7297689596997285609, guid: 80a2f909dc74a784e8a5d5ac5bf6d90c, type: 3}
       propertyPath: UniqOverworldItemID
-      value: 8373b144-a20b-41da-9fb8-ccfa8452fbc0
+      value: 79d5d97e-5907-4d1b-86e2-69c428d54705
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -232621,6 +232799,10 @@ PrefabInstance:
       propertyPath: m_SortingOrder
       value: -1
       objectReference: {fileID: 0}
+    - target: {fileID: 2328390164450282138, guid: 844eb5e1aab31c44389b1d2906f0bb12, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 2378147042435376624, guid: 844eb5e1aab31c44389b1d2906f0bb12, type: 3}
       propertyPath: woodItemData
       value: 
@@ -232833,6 +233015,10 @@ PrefabInstance:
       propertyPath: m_DefaultControlScheme
       value: Keyboard&Mouse
       objectReference: {fileID: 0}
+    - target: {fileID: 6464020614380587009, guid: 844eb5e1aab31c44389b1d2906f0bb12, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.137
+      objectReference: {fileID: 0}
     - target: {fileID: 7437932651018339989, guid: 844eb5e1aab31c44389b1d2906f0bb12, type: 3}
       propertyPath: fillImage
       value: 
@@ -232997,7 +233183,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7297689596997285609, guid: 80a2f909dc74a784e8a5d5ac5bf6d90c, type: 3}
       propertyPath: UniqOverworldItemID
-      value: 773d83dd-c534-4807-8786-c12719a21074
+      value: e9602437-f65a-48c2-b1cf-c3f4e3eadcfe
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -233220,7 +233406,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7297689596997285609, guid: 80a2f909dc74a784e8a5d5ac5bf6d90c, type: 3}
       propertyPath: UniqOverworldItemID
-      value: 9b4e817f-ebb8-45bb-a92e-5ba856d4ab27
+      value: 680c0eb7-31ad-421b-b80b-96a2d2d36084
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -233780,184 +233966,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1641436193}
   m_CullTransparentMesh: 1
---- !u!43 &1642926681
-Mesh:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: 
-  serializedVersion: 12
-  m_SubMeshes:
-  - serializedVersion: 2
-    firstByte: 0
-    indexCount: 0
-    topology: 0
-    baseVertex: 0
-    firstVertex: 0
-    vertexCount: 0
-    localAABB:
-      m_Center: {x: 0, y: 0, z: 0}
-      m_Extent: {x: 0, y: 0, z: 0}
-  m_Shapes:
-    vertices: []
-    shapes: []
-    channels: []
-    fullWeights: []
-  m_BindPose: []
-  m_BoneNameHashes: 
-  m_RootBoneNameHash: 0
-  m_BonesAABB: []
-  m_VariableBoneCountWeights:
-    m_Data: 
-  m_MeshCompression: 0
-  m_IsReadable: 1
-  m_KeepVertices: 1
-  m_KeepIndices: 1
-  m_IndexFormat: 0
-  m_IndexBuffer: 
-  m_VertexData:
-    serializedVersion: 3
-    m_VertexCount: 0
-    m_Channels:
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 3
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    m_DataSize: 0
-    _typelessdata: 
-  m_CompressedMesh:
-    m_Vertices:
-      m_NumItems: 0
-      m_Range: 0
-      m_Start: 0
-      m_Data: 
-      m_BitSize: 0
-    m_UV:
-      m_NumItems: 0
-      m_Range: 0
-      m_Start: 0
-      m_Data: 
-      m_BitSize: 0
-    m_Normals:
-      m_NumItems: 0
-      m_Range: 0
-      m_Start: 0
-      m_Data: 
-      m_BitSize: 0
-    m_Tangents:
-      m_NumItems: 0
-      m_Range: 0
-      m_Start: 0
-      m_Data: 
-      m_BitSize: 0
-    m_Weights:
-      m_NumItems: 0
-      m_Data: 
-      m_BitSize: 0
-    m_NormalSigns:
-      m_NumItems: 0
-      m_Data: 
-      m_BitSize: 0
-    m_TangentSigns:
-      m_NumItems: 0
-      m_Data: 
-      m_BitSize: 0
-    m_FloatColors:
-      m_NumItems: 0
-      m_Range: 0
-      m_Start: 0
-      m_Data: 
-      m_BitSize: 0
-    m_BoneIndices:
-      m_NumItems: 0
-      m_Data: 
-      m_BitSize: 0
-    m_Triangles:
-      m_NumItems: 0
-      m_Data: 
-      m_BitSize: 0
-    m_UVInfo: 0
-  m_LocalAABB:
-    m_Center: {x: 0, y: 0, z: 0}
-    m_Extent: {x: 0, y: 0, z: 0}
-  m_MeshUsageFlags: 0
-  m_CookingOptions: 30
-  m_BakedConvexCollisionMesh: 
-  m_BakedTriangleCollisionMesh: 
-  'm_MeshMetrics[0]': 1
-  'm_MeshMetrics[1]': 1
-  m_MeshOptimizationFlags: 1
-  m_StreamData:
-    serializedVersion: 2
-    offset: 0
-    size: 0
-    path: 
-  m_MeshLodInfo:
-    serializedVersion: 2
-    m_LodSelectionCurve:
-      serializedVersion: 1
-      m_LodSlope: 0
-      m_LodBias: 0
-    m_NumLevels: 1
-    m_SubMeshes:
-    - serializedVersion: 2
-      m_Levels:
-      - serializedVersion: 1
-        m_IndexStart: 0
-        m_IndexCount: 0
 --- !u!4 &1644261590 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 891863002307980108, guid: 80a2f909dc74a784e8a5d5ac5bf6d90c, type: 3}
@@ -234359,7 +234367,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7297689596997285609, guid: 80a2f909dc74a784e8a5d5ac5bf6d90c, type: 3}
       propertyPath: UniqOverworldItemID
-      value: f8c131a5-fff9-4bdb-9a4d-b68450bdd464
+      value: 9dd31caa-2c4c-4f35-897e-d3e2280e65d7
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -234636,7 +234644,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7297689596997285609, guid: 80a2f909dc74a784e8a5d5ac5bf6d90c, type: 3}
       propertyPath: UniqOverworldItemID
-      value: 317dc3c5-8b7b-4d59-b701-78a78cae1569
+      value: dc6016b7-b7b0-48bf-b806-c850d0b9f795
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -235087,7 +235095,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7297689596997285609, guid: 80a2f909dc74a784e8a5d5ac5bf6d90c, type: 3}
       propertyPath: UniqOverworldItemID
-      value: 8b576482-e75a-4a17-be8e-d63c336df04b
+      value: 43dd44f1-4231-45ea-9a6e-796383c6e5e4
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -235247,7 +235255,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7297689596997285609, guid: 80a2f909dc74a784e8a5d5ac5bf6d90c, type: 3}
       propertyPath: UniqOverworldItemID
-      value: 3bc3df6d-71c4-4f2a-9ad7-ac74c55ef967
+      value: 19da0718-455e-486c-822a-25021c00e641
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -235661,7 +235669,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7297689596997285609, guid: 80a2f909dc74a784e8a5d5ac5bf6d90c, type: 3}
       propertyPath: UniqOverworldItemID
-      value: 5b427bcc-43cb-45d2-979d-b1126cc28be6
+      value: 224db816-4442-4603-a14c-0b21a6787ec6
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -236651,7 +236659,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7297689596997285609, guid: 80a2f909dc74a784e8a5d5ac5bf6d90c, type: 3}
       propertyPath: UniqOverworldItemID
-      value: bac39c2e-17c0-4fwf-b362-e4af80766519
+      value: bdd04e82-12dc-4854-8d0c-01ea00a8c461
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -237610,7 +237618,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7297689596997285609, guid: 80a2f909dc74a784e8a5d5ac5bf6d90c, type: 3}
       propertyPath: UniqOverworldItemID
-      value: 1c46d255-2af4-4a23-b485-95771e636a5b
+      value: e21fb03a-a206-40c7-9f28-b6a70b4b6369
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -238305,7 +238313,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7297689596997285609, guid: 80a2f909dc74a784e8a5d5ac5bf6d90c, type: 3}
       propertyPath: UniqOverworldItemID
-      value: 406015ce-4719-45ca-bb57-b3e14bdbb469
+      value: 3acc8ad3-7f19-40cd-a46b-26e376416e35
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -238929,7 +238937,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7297689596997285609, guid: 80a2f909dc74a784e8a5d5ac5bf6d90c, type: 3}
       propertyPath: UniqOverworldItemID
-      value: 80f0ec49-e9f1-4410-94c9-ab92434f46a7
+      value: 7850101d-eb8f-4916-817f-e61f3bbb7a3f
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -239359,7 +239367,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7297689596997285609, guid: 80a2f909dc74a784e8a5d5ac5bf6d90c, type: 3}
       propertyPath: UniqOverworldItemID
-      value: d95cb2b7-930c-4fbc-8b58-29c34eaea2db
+      value: bb8ac10c-cc87-4cb1-b297-60fa96fb5c5e
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -239602,7 +239610,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7297689596997285609, guid: 80a2f909dc74a784e8a5d5ac5bf6d90c, type: 3}
       propertyPath: UniqOverworldItemID
-      value: ddf69e66-bbde-43df-9824-2ce6decd5b8f
+      value: 1084b3f1-b342-4285-af9b-a8d2d4f4b852
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -239752,7 +239760,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7297689596997285609, guid: 80a2f909dc74a784e8a5d5ac5bf6d90c, type: 3}
       propertyPath: UniqOverworldItemID
-      value: 51c51de9-13d0-4e6a-a47b-37d0d707908b
+      value: 9c5bc345-d2e9-4a3e-9e87-7bea34834c1c
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -241821,7 +241829,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7297689596997285609, guid: 80a2f909dc74a784e8a5d5ac5bf6d90c, type: 3}
       propertyPath: UniqOverworldItemID
-      value: 88e7a569-c8e7-4556-bc3d-334a2105216b
+      value: a310fd89-810c-4faf-b41f-49bff87ab256
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -242387,7 +242395,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7297689596997285609, guid: 80a2f909dc74a784e8a5d5ac5bf6d90c, type: 3}
       propertyPath: UniqOverworldItemID
-      value: 816390b4-5b67-4257-b305-c55a9db379b8
+      value: de71b072-c3d8-4a75-896e-112737697708
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -243080,11 +243088,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 921cb20c69a8c6b428529b2184f3ffb3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BuildingSaveManager
-  player: {fileID: 0}
+  player: {fileID: 1311235987}
   database: {fileID: 11400000, guid: 452ed6741386f5a4a89db171411f6916, type: 2}
   treePrefab: {fileID: 7005833747306306358, guid: 80a2f909dc74a784e8a5d5ac5bf6d90c, type: 3}
   stumpPrefab: {fileID: 4272399698899235473, guid: f46bc3955377181479d8e75aaf364860, type: 3}
   bushPrefab: {fileID: 2944379715857563863, guid: aebc4e521edfd384eb7d774f8b943a41, type: 3}
+  stonePrefab: {fileID: 0}
   tiltManager: {fileID: 1004712764}
 --- !u!114 &2036798121
 MonoBehaviour:
@@ -243494,7 +243503,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7297689596997285609, guid: 80a2f909dc74a784e8a5d5ac5bf6d90c, type: 3}
       propertyPath: UniqOverworldItemID
-      value: e5f7cd14-a64c-4e9a-b47c-0c8d72902aae
+      value: 6696818a-9d3f-4f93-ae08-8bba7da54300
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -244242,7 +244251,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7297689596997285609, guid: 80a2f909dc74a784e8a5d5ac5bf6d90c, type: 3}
       propertyPath: UniqOverworldItemID
-      value: 1f16ccc4-407f-44cb-a6bf-4c3ee02ec6b9
+      value: 12b7f805-a2b0-4ce1-9676-4aabc3e9df10
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -244795,7 +244804,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7297689596997285609, guid: 80a2f909dc74a784e8a5d5ac5bf6d90c, type: 3}
       propertyPath: UniqOverworldItemID
-      value: 35297d01-8769-43bc-9df0-13f59117afd8
+      value: f0280650-ee75-48b3-aa8b-4f7905f81ced
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -245084,7 +245093,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7297689596997285609, guid: 80a2f909dc74a784e8a5d5ac5bf6d90c, type: 3}
       propertyPath: UniqOverworldItemID
-      value: 7d2fec36-7309-4c14-a7b2-2411fa413cfe
+      value: 136e67cd-6330-4cb0-a390-40ce6a99999e
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -245626,7 +245635,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7297689596997285609, guid: 80a2f909dc74a784e8a5d5ac5bf6d90c, type: 3}
       propertyPath: UniqOverworldItemID
-      value: 845f0925-c36f-489f-bd0f-212dd10dc360
+      value: e606167d-9ce7-4287-9292-601e63fbc50f
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -245801,18 +245810,22 @@ MonoBehaviour:
   blockedTilemap: {fileID: 1004712766}
   resources:
   - tile: {fileID: 11400000, guid: 2bd2da8add985254787e2bf9b1a4469f, type: 2}
+    prefab: {fileID: 4094942449436181642, guid: 8d6fd0de000f8a14b8aca07a745d9d84, type: 3}
+    maxSpawnCount: 800
+    minDistance: 0.38
+  - tile: {fileID: 11400000, guid: 2bd2da8add985254787e2bf9b1a4469f, type: 2}
     prefab: {fileID: 2944379715857563863, guid: aebc4e521edfd384eb7d774f8b943a41, type: 3}
-    maxSpawnCount: 100
+    maxSpawnCount: 60
     minDistance: 3
   - tile: {fileID: 11400000, guid: 2bd2da8add985254787e2bf9b1a4469f, type: 2}
     prefab: {fileID: 7005833747306306358, guid: 80a2f909dc74a784e8a5d5ac5bf6d90c, type: 3}
-    maxSpawnCount: 500
+    maxSpawnCount: 800
     minDistance: 4
   - tile: {fileID: 11400000, guid: 2bd2da8add985254787e2bf9b1a4469f, type: 2}
-    prefab: {fileID: 4094942449436181642, guid: 8d6fd0de000f8a14b8aca07a745d9d84, type: 3}
-    maxSpawnCount: 500
+    prefab: {fileID: 5216174609153863728, guid: 5c6ef9b9b1d658446a036bb0a3d62793, type: 3}
+    maxSpawnCount: 60
     minDistance: 2
-  dayNightCycle: {fileID: 0}
+  dayNightCycle: {fileID: 1725093664}
 --- !u!43 &2122168146
 Mesh:
   m_ObjectHideFlags: 0
@@ -246129,7 +246142,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7297689596997285609, guid: 80a2f909dc74a784e8a5d5ac5bf6d90c, type: 3}
       propertyPath: UniqOverworldItemID
-      value: aa686726-076a-479f-99dc-74561867145c
+      value: 992bac96-fe45-4447-a726-0f7942bcbfab
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -246964,7 +246977,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4aab5be093298a948b815445d7eae465, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ResourceBehav
-  UniqOverworldItemID: 097631c1-343b-461c-aecc-8b9087cf7a4a
+  UniqOverworldItemID: fbcbfbbe-3360-47ee-aaa7-cef88c96e20b
   health: 50
   effectiveTool: 4
   durabilityPerHit: 1
@@ -247624,6 +247637,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6953118515647807662, guid: 8d6fd0de000f8a14b8aca07a745d9d84, type: 3}
+      propertyPath: UniqOverworldItemID
+      value: 48c178a4-e94b-4a48-bd06-489f5d87b976
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -248091,7 +248108,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4aab5be093298a948b815445d7eae465, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ResourceBehav
-  UniqOverworldItemID: 4c575a36-8ac9-4b92-8321-157e4f64a7e3
+  UniqOverworldItemID: ddc047e8-a996-4c71-8167-e5988d8739d1
   health: 10
   effectiveTool: 4
   durabilityPerHit: 1
