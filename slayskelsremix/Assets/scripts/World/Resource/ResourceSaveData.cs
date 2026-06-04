@@ -4,7 +4,13 @@ using UnityEngine;
 public class ResourceSaveData
 {
     public string id;
+
     public bool destroyed;
+
     public float health;
+
     public Vector3 position;
+
+    // which prefab to respawn
+    public string prefabName;
 }

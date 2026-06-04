@@ -265,6 +265,8 @@ public class BuildingSaveManager : MonoBehaviour
         // =========================
         // ✅ LOAD STONES
         // =========================
+        /*
+
         foreach (ResourceSaveData s in cachedData.stones)
         {
             if (s.destroyed)
@@ -278,6 +280,8 @@ public class BuildingSaveManager : MonoBehaviour
                 rb.health = s.health;
             }
         }
+
+        */
 
         if (tiltManager != null && cachedData.soilTiles != null)
             tiltManager.LoadSoilTiles(cachedData.soilTiles);
