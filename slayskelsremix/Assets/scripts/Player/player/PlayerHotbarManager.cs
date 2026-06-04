@@ -92,20 +92,28 @@ public class PlayerHotbarManager : MonoBehaviour
         return item != null && item.maxDurability > 0;
     }
 
-    // 🔥 HOTBAR IS NOW SOURCE OF TRUTH
     void ConsumeFromHotbar(int amount)
     {
         var slot = hotbarSlots[selectedIndex];
         ItemData item = slot.GetItem();
 
         if (item == null)
+        {
+            Debug.Log("[HOTBAR] Consume failed: item null");
             return;
+        }
 
         int current = slot.GetCount();
         int newCount = current - amount;
 
+        Debug.Log($"[HOTBAR] Consuming {amount}x {item.itemName}");
+        Debug.Log($"[HOTBAR] Before: {current}");
+        Debug.Log($"[HOTBAR] After: {newCount}");
+
         if (newCount <= 0)
         {
+            Debug.Log("[HOTBAR] Clearing slot");
+
             slot.ClearSlot();
         }
         else
@@ -154,10 +162,10 @@ public class PlayerHotbarManager : MonoBehaviour
 
         if (BuildState.IsBuildMode)
         {
-            if (Time.time - lastBuildModeMessageTime > buildModeMessageCooldown)
+            // only warn if item is not a build item
+            if (!(slot.GetItem() is buildSO))
             {
                 InteractionUI.Instance?.Show("Currently building");
-                lastBuildModeMessageTime = Time.time;
             }
             return;
         }

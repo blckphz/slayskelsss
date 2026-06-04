@@ -94,7 +94,6 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
       
         UniqOverworldItemID = Guid.NewGuid().ToString();
 
-        Debug.Log($"[UNIQUE ID GENERATED] {gameObject.name} -> {UniqOverworldItemID}");
     }
 
     protected virtual bool IsDamageIgnored()

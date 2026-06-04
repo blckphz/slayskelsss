@@ -181,7 +181,7 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
-  m_SpriteSortPoint: 1
+  m_SpriteSortPoint: 0
 --- !u!61 &8454415536334058884
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -216,17 +216,17 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: -0.022585869, y: -0.67872477}
+  m_Offset: {x: -0.022585869, y: 0.01029402}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.5100047, y: 1.3}
+    pivot: {x: 0.5, y: 0.5}
     oldSize: {x: 1.6363636, y: 0.6969697}
     newSize: {x: 0.90909094, y: 1.2121212}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 1.5691464, y: 0.3499632}
+  m_Size: {x: 1.5691464, y: 0.8191079}
   m_EdgeRadius: 0
 --- !u!114 &4509777418012007011
 MonoBehaviour:
@@ -257,6 +257,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: de912e1aea8edeb4fb61180ff9475330, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BuildIdentity
+  GetsDestroyedByPlayer: 0
   item: {fileID: 11400000, guid: dfd6fa04ef92e3e4bac14d8e63b25f5b, type: 2}
   recipeUsed: {fileID: 11400000, guid: 90e2b839f77a316479ffb76e1e416577, type: 2}
 --- !u!70 &537091256237480159
@@ -293,8 +294,8 @@ CapsuleCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: -0.026321774, y: -0.5230501}
-  m_Size: {x: 1.9880526, y: 0.8342257}
+  m_Offset: {x: -0.026321715, y: -0.009947018}
+  m_Size: {x: 1.988053, y: 0.9075308}
   m_Direction: 1
 --- !u!114 &1994848750316245873
 MonoBehaviour:

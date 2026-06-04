@@ -79,7 +79,6 @@ public class BuildManager : MonoBehaviour
         if (!isPlacing || previewObject == null)
             return;
 
-        // 🔥 NEW SAFETY CHECK (CRITICAL FIX)
         ItemData selectedItem = PlayerHotbarManager.Instance != null
             ? PlayerHotbarManager.Instance.GetSelectedItem()
             : null;
@@ -107,7 +106,6 @@ public class BuildManager : MonoBehaviour
 
     void HandleHotbarChanged(ItemData item)
     {
-        // Forced placement logic
         if (placementForcedByAbility && isPlacing)
         {
             if (item != originalToolItem)
@@ -116,14 +114,12 @@ public class BuildManager : MonoBehaviour
             return;
         }
 
-        // Not in build mode → no ghost
         if (!BuildState.IsBuildMode)
         {
             Cancel();
             return;
         }
 
-        // Selected item is constructable
         if (item is buildSO build)
         {
             if (currentItem == null || currentItem != build)
@@ -217,9 +213,17 @@ public class BuildManager : MonoBehaviour
             return;
 
         if (!CanPlace())
+        {
+            InteractionUI.Instance?.Show("Can't place there");
             return;
+        }
 
-        //ActionLock.LockThisFrame();
+        Debug.Log($"[BUILD] Trying to place: {currentItem.itemName}");
+
+        ItemData selected =
+            PlayerHotbarManager.Instance.GetSelectedItem();
+
+        Debug.Log($"[BUILD] Selected hotbar item: {(selected != null ? selected.itemName : "NULL")}");
 
         Vector3 pos = previewObject.transform.position;
 
@@ -228,6 +232,12 @@ public class BuildManager : MonoBehaviour
             pos,
             Quaternion.identity
         );
+
+        Debug.Log($"[BUILD] Spawned prefab: {obj.name}");
+
+        PlayerHotbarManager.Instance.UseSelectedStack(1);
+
+        Debug.Log("[BUILD] Removed 1 item from hotbar");
 
         if (shakeOnPlace && CameraShaker.Instance != null)
             CameraShaker.Instance.Shake(
@@ -249,22 +259,15 @@ public class BuildManager : MonoBehaviour
         if (astar != null)
         {
             float size =
-                Mathf.Max(
-                    currentItem.size.x,
-                    currentItem.size.y
-                );
+                Mathf.Max(currentItem.size.x, currentItem.size.y);
 
             Bounds b =
-                new Bounds(
-                    pos,
-                    Vector3.one * size
-                );
+                new Bounds(pos, Vector3.one * size);
 
             AstarPath.active.UpdateGraphs(b);
         }
 
-        BuildIdentity id =
-            obj.GetComponent<BuildIdentity>();
+        BuildIdentity id = obj.GetComponent<BuildIdentity>();
 
         if (id == null)
             id = obj.AddComponent<BuildIdentity>();
@@ -277,7 +280,7 @@ public class BuildManager : MonoBehaviour
             BuildingSaveManager.Instance.SaveAfterChange();
         }
 
-        //Cancel();
+        Debug.Log("[BUILD] Placement complete");
     }
 
     bool CanPlace()
@@ -285,8 +288,7 @@ public class BuildManager : MonoBehaviour
         if (ghost == null)
             return false;
 
-        List<Collider2D> obstacles =
-            ghost.GetObstacles();
+        List<Collider2D> obstacles = ghost.GetObstacles();
 
         foreach (var hit in obstacles)
         {

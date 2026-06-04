@@ -16,13 +16,13 @@ MonoBehaviour:
   itemName: Leaf Tent
   ItemDescription: 
   icon: {fileID: 21300000, guid: 90866fda680432e428eee3fd5290b5ed, type: 3}
-  DragStartSound: {fileID: 0}
-  DragEndSound: {fileID: 0}
+  DragStartSound: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
+  DragEndSound: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
   itemType: 1
   maxStackSize: 99
   isUsable: 1
   consumeAmount: 1
   maxDurability: 0
   placeablePrefab: {fileID: 3094430090921478129, guid: 3ae54223e49364b4691638303dacdcd2, type: 3}
-  size: {x: 0, y: 0}
-  placementSound: {fileID: 0}
+  size: {x: 3, y: 3}
+  placementSound: {fileID: 8300000, guid: 516a69b0c85ebbf48b7eba6994cbebd1, type: 3}
