@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b8a9a032426623847a24a1e07df607e7, type: 3}
   m_Name: RecepieLeaveKrautTent
   m_EditorClassIdentifier: Assembly-CSharp::CraftingSO
-  recipeType: 0
+  recipeType: 1
   resultItem: {fileID: 11400000, guid: 28b45e0163ae0e1488baaec45ddd9d69, type: 2}
   resultCount: 1
   ingredients:
   - item: {fileID: 11400000, guid: 7c3fa8ec260587f47a71327011bff67a, type: 2}
-    amount: 10
+    amount: 1
   craftTime: 0

@@ -101,8 +101,8 @@ GameObject:
   - component: {fileID: 5541861146871541494}
   - component: {fileID: 4962749781860470055}
   - component: {fileID: 665233179514854210}
-  - component: {fileID: 6953118515647807662}
   - component: {fileID: 6909334842622762674}
+  - component: {fileID: 34139576738484414}
   m_Layer: 8
   m_Name: Kraut
   m_TagString: Untagged
@@ -230,39 +230,6 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 0.5430997, y: 0.45306587}
   m_EdgeRadius: 0
---- !u!114 &6953118515647807662
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4094942449436181642}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4aab5be093298a948b815445d7eae465, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ResourceBehav
-  UniqOverworldItemID: 
-  health: 10
-  effectiveTool: 2
-  durabilityPerHit: 1
-  givesXP: 1
-  xpReward: 5
-  lootPrefab: {fileID: 2444731221117414529, guid: 550cc71ffb6b8204a9568a8866e36559, type: 3}
-  dropAmount: 3
-  correctToolUsageBonus: 0
-  hitDropChance: 0.2
-  hitDropAmount: 1
-  damageTextPrefab: {fileID: 9146332368269871989, guid: e2da221bf74f11340b439450cb25f81e, type: 3}
-  hitIntensityName: _Intensity
-  flashDuration: 0.15
-  shakeDuration: 0.1
-  shakeMagnitude: 0.1
-  cameraShakeIntensity: 1.5
-  cameraShakeDuration: 0.15
-  hitSound: {fileID: 8300000, guid: 3cc2ab0b18e2d0b44be175a9f5f18386, type: 3}
-  deathSFX: {fileID: 8300000, guid: 2b4a3927488a4284998b03989875b112, type: 3}
-  hitVolume: 1
 --- !u!114 &6909334842622762674
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -279,3 +246,37 @@ MonoBehaviour:
   swaySpeed: 6
   swayDecay: 3
   pixelsPerUnit: 32
+--- !u!114 &34139576738484414
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4094942449436181642}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 84b5eec0dfff8f34da7b029ed5c19c51, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::leafBehav
+  UniqOverworldItemID: 
+  itemName: Kraut
+  health: 10
+  effectiveTool: 4
+  durabilityPerHit: 1
+  givesXP: 1
+  xpReward: 15
+  lootPrefab: {fileID: 2444731221117414529, guid: 550cc71ffb6b8204a9568a8866e36559, type: 3}
+  dropAmount: 3
+  hitDropChance: 0.2
+  hitDropAmount: 1
+  damageTextPrefab: {fileID: 9146332368269871989, guid: e2da221bf74f11340b439450cb25f81e, type: 3}
+  hitIntensityName: _Intensity
+  flashDuration: 0.15
+  shakeDuration: 0.1
+  shakeMagnitude: 0.1
+  cameraShakeIntensity: 1.5
+  cameraShakeDuration: 0.15
+  hitSound: {fileID: 8300000, guid: 3cc2ab0b18e2d0b44be175a9f5f18386, type: 3}
+  deathSFX: {fileID: 8300000, guid: 2b4a3927488a4284998b03989875b112, type: 3}
+  hitVolume: 1
+  collected: 0

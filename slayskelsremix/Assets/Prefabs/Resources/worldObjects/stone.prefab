@@ -243,6 +243,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ResourceBehav
   UniqOverworldItemID: 
+  itemName: stone
   health: 50
   effectiveTool: 1
   durabilityPerHit: 1
@@ -263,6 +264,7 @@ MonoBehaviour:
   hitSound: {fileID: 8300000, guid: b143415fe2fc1564cae39958d86bf433, type: 3}
   deathSFX: {fileID: 8300000, guid: 7a8d24db71c4a0c46b11a8af7be499b5, type: 3}
   hitVolume: 1
+  prefabName: 
 --- !u!1 &6568064563501181661
 GameObject:
   m_ObjectHideFlags: 0

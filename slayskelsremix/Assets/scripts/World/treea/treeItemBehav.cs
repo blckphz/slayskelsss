@@ -12,17 +12,15 @@ public class treeItemBehav : ItemHealth
 
     public int lootAmount = 3;
 
-    [Header("Stick Spawn (on world spawn)")]
+    [Header("Stick Spawn")]
     public GameObject sticksPrefab;
     public Transform spawnPointA;
     public Transform spawnPointB;
 
-    [Header("Stick Spawn Chance (0 = 0%, 1 = 100%)")]
     [Range(0f, 1f)]
     public float stickSpawnChance = 0.2f;
 
     private bool isDead = false;
-
     private Collider2D treeCollider;
     private DayNightCycle timeSystem;
 
@@ -30,19 +28,21 @@ public class treeItemBehav : ItemHealth
     {
         base.Awake();
         treeCollider = GetComponent<Collider2D>();
-        TrySpawnSticksOnSpawn();
-
-    }
-
-    protected override void Start()
-    {
-        base.Start();
-
         timeSystem = FindFirstObjectByType<DayNightCycle>();
     }
 
     // =========================
-    // SAVE / LOAD
+    // SPAWN INITIALIZATION
+    // =========================
+
+    public void OnSpawnFromWorld(bool hasSaveData)
+    {
+        EnsureID(hasSaveData);
+        TrySpawnSticksOnSpawn();
+    }
+
+    // =========================
+    // SAVE
     // =========================
 
     public TreeSaveData GetSaveData()
@@ -53,57 +53,42 @@ public class treeItemBehav : ItemHealth
             isCut = isCut,
             cutTime = cutTime,
             position = transform.position
-
         };
     }
 
     public void LoadData(TreeSaveData data)
     {
-        if (data == null) return;
+        if (data == null)
+        {
+            EnsureID(false);
+            return;
+        }
+
+        UniqOverworldItemID = data.treeID;
 
         isCut = data.isCut;
         cutTime = data.cutTime;
         transform.position = data.position;
-
-
 
         if (isCut)
             gameObject.SetActive(false);
     }
 
     // =========================
-    // WORLD SPAWN HOOK
+    // STICKS
     // =========================
-
-    public void OnSpawnFromWorld()
-    {
-        Debug.Log("[Tree] Spawned from world -> rolling stick chance");
-        TrySpawnSticksOnSpawn();
-    }
 
     void TrySpawnSticksOnSpawn()
     {
         if (sticksPrefab == null || spawnPointA == null || spawnPointB == null)
-        {
-            Debug.LogWarning("[Tree] Missing sticksPrefab or spawn points");
             return;
-        }
 
-        float roll = Random.value;
-        Debug.Log($"[Tree] Stick roll: {roll} vs chance {stickSpawnChance}");
-
-        if (roll > stickSpawnChance)
-        {
-            Debug.Log("[Tree] No sticks spawned (failed chance roll)");
+        if (Random.value > stickSpawnChance)
             return;
-        }
 
-        Transform chosenPoint =
-            (Random.value < 0.5f) ? spawnPointA : spawnPointB;
+        Transform chosen = (Random.value < 0.5f) ? spawnPointA : spawnPointB;
 
-        Debug.Log($"[Tree] Spawning sticks at {chosenPoint.name}");
-
-        Instantiate(sticksPrefab, chosenPoint.position, Quaternion.identity);
+        Instantiate(sticksPrefab, chosen.position, Quaternion.identity);
     }
 
     // =========================
@@ -121,43 +106,29 @@ public class treeItemBehav : ItemHealth
             ? timeSystem.TotalTime
             : Time.time;
 
-        // stump
         if (bottomPrefab != null)
         {
-            GameObject stump = Instantiate(
-                bottomPrefab,
-                transform.position,
-                Quaternion.identity
-            );
+            GameObject stump = Instantiate(bottomPrefab, transform.position, Quaternion.identity);
 
             if (stump.TryGetComponent(out TreeStumpRegrow regrow))
                 regrow.Setup(UniqOverworldItemID, cutTime);
         }
 
-        // falling top
         if (fallingTopPrefab != null)
         {
-            GameObject top = Instantiate(
-                fallingTopPrefab,
-                transform.position,
-                transform.rotation
-            );
+            GameObject top = Instantiate(fallingTopPrefab, transform.position, transform.rotation);
 
             if (top.TryGetComponent(out treefallsequence fall))
-            {
                 fall.SetupLoot(lootPrefab, lootAmount);
-            }
         }
 
-        // disable tree
         if (spriteRenderer != null)
             spriteRenderer.enabled = false;
 
         if (treeCollider != null)
             treeCollider.enabled = false;
 
-        if (BuildingSaveManager.Instance != null)
-            BuildingSaveManager.Instance.SaveAfterChange();
+        BuildingSaveManager.Instance?.SaveAfterChange();
 
         Destroy(gameObject);
     }

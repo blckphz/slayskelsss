@@ -205,7 +205,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e9eafdc7a88b6224ab4ffa0e0c00a662, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::treeItemBehav
-  UniqOverworldItemID: a07a0a6f-373a-482f-a8ea-846e43f42eaa
+  UniqOverworldItemID: 
+  itemName: tree
   health: 50
   effectiveTool: 2
   durabilityPerHit: 1
@@ -367,7 +368,7 @@ BoxCollider2D:
   m_Offset: {x: -0.027425438, y: 0.42529684}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.5, y: 0.05}
+    pivot: {x: 0.5, y: 0.26}
     oldSize: {x: 2.878788, y: 3.5454545}
     newSize: {x: 2.878788, y: 3.5454545}
     adaptiveTilingThreshold: 0.5

@@ -256,9 +256,10 @@ public class BuildManager : MonoBehaviour
             Destroy(fx, 2f);
         }
 
+        /*
+
         if (astar != null)
         {
-            float size =
                 Mathf.Max(currentItem.size.x, currentItem.size.y);
 
             Bounds b =
@@ -266,6 +267,9 @@ public class BuildManager : MonoBehaviour
 
             AstarPath.active.UpdateGraphs(b);
         }
+
+        */
+
 
         BuildIdentity id = obj.GetComponent<BuildIdentity>();
 

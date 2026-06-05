@@ -152,7 +152,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 494f89c797af628458337866d8efffdf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BushBehav
-  UniqOverworldItemID: 36c8a6f6-0290-435b-ba17-afb631eede4b
+  UniqOverworldItemID: 
+  itemName: bush
   health: 30
   effectiveTool: 4
   durabilityPerHit: 10
@@ -171,13 +172,13 @@ MonoBehaviour:
   cameraShakeIntensity: 1.5
   cameraShakeDuration: 0.15
   hitSound: {fileID: 8300000, guid: 3560b8766555fa4448b1dee41f846e73, type: 3}
+  deathSFX: {fileID: 8300000, guid: 8ca0d8a959d33064b9a98d2b6921ed1c, type: 3}
   hitVolume: 1
   fullSprite: {fileID: 21300000, guid: 5d436b9947c2be34b8edb7bd158214e5, type: 3}
   harvestedSprite: {fileID: 21300000, guid: fbf184dcee9896f4abe809343b27fd6e, type: 3}
   berriesOnFirstHit: 3
   regrowDays: 1
   harvestSFX: {fileID: 0}
-  deathSFX: {fileID: 8300000, guid: 8ca0d8a959d33064b9a98d2b6921ed1c, type: 3}
   isHarvested: 0
 --- !u!114 &8817587889882413920
 MonoBehaviour:

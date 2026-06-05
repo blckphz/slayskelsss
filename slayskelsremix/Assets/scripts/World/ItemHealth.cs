@@ -6,6 +6,7 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
 {
     [Header("Persistent ID")]
     public string UniqOverworldItemID;
+    public string itemName;
 
     [Header("Health")]
     public float health = 50f;
@@ -24,7 +25,6 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
     [Header("Loot")]
     public GameObject lootPrefab;
     public int dropAmount = 3;
-    public int correctToolUsageBonus;
 
     [Header("Hit Loot")]
     [Range(0f, 1f)]
@@ -46,20 +46,24 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
     public float cameraShakeIntensity = 1.5f;
     public float cameraShakeDuration = 0.15f;
 
-    [Header("Hit Audio")]
+    [Header("Audio")]
     public AudioClip hitSound;
     public AudioClip deathSFX;
     [Range(0f, 1f)] public float hitVolume = 1f;
 
     protected SpriteRenderer spriteRenderer;
-    private MaterialPropertyBlock propertyBlock;
+    protected MaterialPropertyBlock propertyBlock;
 
-    private Coroutine flashCoroutine;
-    private Coroutine shakeCoroutine;
+    protected Coroutine flashCoroutine;
+    protected Coroutine shakeCoroutine;
 
-    private Vector3 originalLocalPosition;
+    protected Vector3 originalLocalPosition;
 
     private bool isSlowed = false;
+
+    // =========================
+    // INIT
+    // =========================
 
     protected virtual void Awake()
     {
@@ -68,28 +72,45 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
         originalLocalPosition = transform.localPosition;
 
         maxHealth = health;
+
+        // ❗ IMPORTANT: NO ID generation here anymore
     }
 
-    protected virtual void Start()
+    // =========================
+    // ID SYSTEM (HYBRID SAFE)
+    // =========================
+
+    public void EnsureID(bool hasSaveData)
     {
+        if (!string.IsNullOrEmpty(UniqOverworldItemID))
+            return;
+
+        if (hasSaveData)
+            return;
+
         GenerateUniqueIDIfNeeded();
     }
 
-    private void GenerateUniqueIDIfNeeded()
+    protected void GenerateUniqueIDIfNeeded()
     {
-        if (string.IsNullOrEmpty(UniqOverworldItemID))
-            UniqOverworldItemID = Guid.NewGuid().ToString();
+        Vector3 pos = transform.position;
+
+        int x = Mathf.RoundToInt(pos.x);
+        int y = Mathf.RoundToInt(pos.y);
+
+        UniqOverworldItemID = $"{itemName}_{x}_{y}";
+        Debug.Log(UniqOverworldItemID);
     }
 
-    protected virtual bool IsDamageIgnored()
-    {
-        return false;
-    }
+    // =========================
+    // DAMAGE
+    // =========================
+
+    protected virtual bool IsDamageIgnored() => false;
 
     public virtual void TakeDamage(int damage, ToolType toolType, ItemData toolItem)
     {
-        if (IsDamageIgnored())
-            return;
+        if (IsDamageIgnored()) return;
 
         ApplyToolDurability(toolItem);
         ProcessDamage(damage, toolType);
@@ -97,21 +118,19 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
 
     public virtual void TakeDamage(int damage, ToolType toolType)
     {
-        if (IsDamageIgnored())
-            return;
+        if (IsDamageIgnored()) return;
 
         ProcessDamage(damage, toolType);
     }
 
     public virtual void TakeDamage(int damage)
     {
-        if (IsDamageIgnored())
-            return;
+        if (IsDamageIgnored()) return;
 
         ProcessDamage(damage, ToolType.None);
     }
 
-    private void ProcessDamage(int damage, ToolType toolType)
+    protected void ProcessDamage(int damage, ToolType toolType)
     {
         health -= damage;
         health = Mathf.Clamp(health, 0, maxHealth);
@@ -124,14 +143,10 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
         TriggerShake();
 
         if (UnityEngine.Random.value <= hitDropChance)
-        {
             SpawnHitLoot();
-        }
 
         if (health <= 0)
-        {
             Die(toolType);
-        }
     }
 
     protected virtual void ApplyToolDurability(ItemData toolItem)
@@ -144,7 +159,7 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
             Mathf.CeilToInt(durabilityPerHit));
     }
 
-    protected virtual void SpawnHitLoot()
+    protected void SpawnHitLoot()
     {
         if (lootPrefab == null) return;
 
@@ -170,7 +185,7 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
         }
     }
 
-    protected virtual void ShowDamageText(int damage)
+    protected void ShowDamageText(int damage)
     {
         if (damageTextPrefab == null || damage <= 0) return;
 
@@ -179,6 +194,10 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
         if (obj.TryGetComponent(out DamageNumber dn))
             dn.Setup(damage);
     }
+
+    // =========================
+    // FLASH
+    // =========================
 
     protected void TriggerFlash()
     {
@@ -210,6 +229,10 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
         spriteRenderer.SetPropertyBlock(propertyBlock);
     }
 
+    // =========================
+    // SHAKE
+    // =========================
+
     protected void TriggerShake()
     {
         if (shakeCoroutine != null)
@@ -235,6 +258,10 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
         transform.localPosition = originalLocalPosition;
     }
 
+    // =========================
+    // XP + DEATH
+    // =========================
+
     protected virtual void GrantXP()
     {
         GameObject player = GameObject.FindGameObjectWithTag("Player");
@@ -255,10 +282,9 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
         Destroy(gameObject);
     }
 
-    protected virtual void Die()
-    {
-        Die(ToolType.None);
-    }
+    // =========================
+    // SLOW (INTERFACE FIX)
+    // =========================
 
     public virtual void ApplySlow(float slowPercent, float duration, int tickDmg, float tickInterval)
     {

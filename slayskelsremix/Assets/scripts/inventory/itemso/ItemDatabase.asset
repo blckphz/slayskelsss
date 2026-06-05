@@ -19,6 +19,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: ea843527bf51fb94490651e061a18a6b, type: 2}
   - {fileID: 11400000, guid: 4648e9a8a2aed0043803d5f112ee356f, type: 2}
   placeables:
+  - {fileID: 11400000, guid: 28b45e0163ae0e1488baaec45ddd9d69, type: 2}
   - {fileID: 11400000, guid: ddafe589b041bb545bf63332c438f856, type: 2}
   - {fileID: 11400000, guid: 4909735c119e37e44b4232da4ae18c1b, type: 2}
   - {fileID: 11400000, guid: dfd6fa04ef92e3e4bac14d8e63b25f5b, type: 2}
@@ -30,7 +31,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: b9f4f5c99d785e84e9eebefd904e5818, type: 2}
   - {fileID: 11400000, guid: 058c1c778993d494c8ff4b1f4dd93b48, type: 2}
   - {fileID: 11400000, guid: 074adb7c3eabb924a94db318f6fb8199, type: 2}
-  - {fileID: 11400000, guid: 28b45e0163ae0e1488baaec45ddd9d69, type: 2}
   - {fileID: 11400000, guid: 5eb50467446301b418243b620b6b9465, type: 2}
   resources:
   - {fileID: 11400000, guid: 49c4ddfd179fdab4c99e01539317fe5a, type: 2}

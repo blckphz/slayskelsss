@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2e0351e2672834f42bfde66072954537, type: 3}
   m_Name: LeaveTent
   m_EditorClassIdentifier: Assembly-CSharp::buildSO
-  itemID: 11203
+  itemID: 199
   itemName: Leaf Tent
-  ItemDescription: 
+  ItemDescription: a makeshift tent
   icon: {fileID: 21300000, guid: 90866fda680432e428eee3fd5290b5ed, type: 3}
   DragStartSound: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
   DragEndSound: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
@@ -23,6 +23,6 @@ MonoBehaviour:
   isUsable: 1
   consumeAmount: 1
   maxDurability: 0
-  placeablePrefab: {fileID: 3094430090921478129, guid: 3ae54223e49364b4691638303dacdcd2, type: 3}
+  placeablePrefab: {fileID: 6970895034270427883, guid: 5715eaef537411143b851ce4ab24a0a8, type: 3}
   size: {x: 3, y: 3}
   placementSound: {fileID: 8300000, guid: 516a69b0c85ebbf48b7eba6994cbebd1, type: 3}

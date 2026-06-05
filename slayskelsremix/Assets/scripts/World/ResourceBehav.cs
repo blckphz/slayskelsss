@@ -8,10 +8,6 @@ public class ResourceBehav : ItemHealth
     protected override void Awake()
     {
         base.Awake();
-
-        // auto assign prefab name if empty
-        if (string.IsNullOrEmpty(prefabName))
-            prefabName = gameObject.name.Replace("(Clone)", "");
     }
 
     // =========================
@@ -36,23 +32,35 @@ public class ResourceBehav : ItemHealth
 
     public void LoadData(ResourceSaveData data)
     {
-        if (data == null) return;
+        if (data == null)
+        {
+            // fresh spawn case
+            EnsureID(false);
+            return;
+        }
 
         UniqOverworldItemID = data.id;
+
         health = data.health;
         transform.position = data.position;
         prefabName = data.prefabName;
+
+        // if destroyed in save, optionally disable
+        if (data.destroyed)
+        {
+            gameObject.SetActive(false);
+        }
     }
 
     // =========================
     // DEATH
     // =========================
 
-    protected override void Die()
+    protected override void Die(ToolType tool)
     {
         if (BuildingSaveManager.Instance != null)
             BuildingSaveManager.Instance.SaveAfterChange();
 
-        base.Die();
+        base.Die(tool);
     }
 }

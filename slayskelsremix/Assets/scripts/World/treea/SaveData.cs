@@ -4,18 +4,28 @@ using UnityEngine;
 [System.Serializable]
 public class SaveData
 {
-    public Vector2 playerPosition;
+    public Vector3 playerPosition;
 
-    public List<BuildingSaveManager.BuildingData> buildings = new();
+    public List<BuildingSaveManager.BuildingData> buildings =
+        new List<BuildingSaveManager.BuildingData>();
 
-    public List<NpcInventorySaveData> npcInventories = new();
+    public List<NpcInventorySaveData> npcInventories =
+        new List<NpcInventorySaveData>();
 
-    public List<BushSaveData> bushes = new();
+    public List<BushSaveData> bushes =
+        new List<BushSaveData>();
 
-    public List<TreeSaveData> trees = new();
+    public List<TreeSaveData> trees =
+        new List<TreeSaveData>();
 
-    public List<SoilData> soilTiles = new();
+    public List<SoilData> soilTiles =
+        new List<SoilData>();
 
-    // ALL resources
-    public List<ResourceSaveData> stones = new();
+    public List<ResourceSaveData> resources =
+        new List<ResourceSaveData>();
+
+    public List<leafData> leaf =
+       new List<leafData>();
+
+
 }

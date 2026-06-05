@@ -146,7 +146,7 @@ public class BuildingSaveManager : MonoBehaviour
         // =========================
         foreach (ResourceBehav stone in FindObjectsByType<ResourceBehav>(FindObjectsSortMode.None))
         {
-            data.stones.Add(new ResourceSaveData
+            data.resources.Add(new ResourceSaveData
             {
                 id = stone.UniqOverworldItemID,
                 position = stone.transform.position,
@@ -257,7 +257,7 @@ public class BuildingSaveManager : MonoBehaviour
                 if (treeObj.TryGetComponent(out treeItemBehav tr))
                 {
                     tr.LoadData(t);
-                    tr.OnSpawnFromWorld();
+                    //tr.OnSpawnFromWorld();
                 }
             }
         }
