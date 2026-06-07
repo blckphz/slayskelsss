@@ -1990,184 +1990,6 @@ Mesh:
       - serializedVersion: 1
         m_IndexStart: 0
         m_IndexCount: 0
---- !u!43 &109467254
-Mesh:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: 
-  serializedVersion: 12
-  m_SubMeshes:
-  - serializedVersion: 2
-    firstByte: 0
-    indexCount: 0
-    topology: 0
-    baseVertex: 0
-    firstVertex: 0
-    vertexCount: 0
-    localAABB:
-      m_Center: {x: 0, y: 0, z: 0}
-      m_Extent: {x: 0, y: 0, z: 0}
-  m_Shapes:
-    vertices: []
-    shapes: []
-    channels: []
-    fullWeights: []
-  m_BindPose: []
-  m_BoneNameHashes: 
-  m_RootBoneNameHash: 0
-  m_BonesAABB: []
-  m_VariableBoneCountWeights:
-    m_Data: 
-  m_MeshCompression: 0
-  m_IsReadable: 1
-  m_KeepVertices: 1
-  m_KeepIndices: 1
-  m_IndexFormat: 0
-  m_IndexBuffer: 
-  m_VertexData:
-    serializedVersion: 3
-    m_VertexCount: 0
-    m_Channels:
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 3
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    m_DataSize: 0
-    _typelessdata: 
-  m_CompressedMesh:
-    m_Vertices:
-      m_NumItems: 0
-      m_Range: 0
-      m_Start: 0
-      m_Data: 
-      m_BitSize: 0
-    m_UV:
-      m_NumItems: 0
-      m_Range: 0
-      m_Start: 0
-      m_Data: 
-      m_BitSize: 0
-    m_Normals:
-      m_NumItems: 0
-      m_Range: 0
-      m_Start: 0
-      m_Data: 
-      m_BitSize: 0
-    m_Tangents:
-      m_NumItems: 0
-      m_Range: 0
-      m_Start: 0
-      m_Data: 
-      m_BitSize: 0
-    m_Weights:
-      m_NumItems: 0
-      m_Data: 
-      m_BitSize: 0
-    m_NormalSigns:
-      m_NumItems: 0
-      m_Data: 
-      m_BitSize: 0
-    m_TangentSigns:
-      m_NumItems: 0
-      m_Data: 
-      m_BitSize: 0
-    m_FloatColors:
-      m_NumItems: 0
-      m_Range: 0
-      m_Start: 0
-      m_Data: 
-      m_BitSize: 0
-    m_BoneIndices:
-      m_NumItems: 0
-      m_Data: 
-      m_BitSize: 0
-    m_Triangles:
-      m_NumItems: 0
-      m_Data: 
-      m_BitSize: 0
-    m_UVInfo: 0
-  m_LocalAABB:
-    m_Center: {x: 0, y: 0, z: 0}
-    m_Extent: {x: 0, y: 0, z: 0}
-  m_MeshUsageFlags: 0
-  m_CookingOptions: 30
-  m_BakedConvexCollisionMesh: 
-  m_BakedTriangleCollisionMesh: 
-  'm_MeshMetrics[0]': 1
-  'm_MeshMetrics[1]': 1
-  m_MeshOptimizationFlags: 1
-  m_StreamData:
-    serializedVersion: 2
-    offset: 0
-    size: 0
-    path: 
-  m_MeshLodInfo:
-    serializedVersion: 2
-    m_LodSelectionCurve:
-      serializedVersion: 1
-      m_LodSlope: 0
-      m_LodBias: 0
-    m_NumLevels: 1
-    m_SubMeshes:
-    - serializedVersion: 2
-      m_Levels:
-      - serializedVersion: 1
-        m_IndexStart: 0
-        m_IndexCount: 0
 --- !u!1 &109663730
 GameObject:
   m_ObjectHideFlags: 0
@@ -6783,7 +6605,7 @@ GameObject:
   - component: {fileID: 418820014}
   - component: {fileID: 418820016}
   m_Layer: 5
-  m_Name: GhostImage
+  m_Name: dragDropGhost
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -10021,7 +9843,7 @@ MonoBehaviour:
   dragPreviewIcon: {fileID: 418820014}
   Background: {fileID: 535747298}
   SlotItemPrevirew: {fileID: 0}
-  hoverAlpha: 1
+  hoverAlpha: 0.15
   normalAlpha: 0.35
   maxRotation: 4.16
   dragScale: 1.2
@@ -11428,7 +11250,7 @@ MonoBehaviour:
   dragPreviewIcon: {fileID: 418820014}
   Background: {fileID: 559355975}
   SlotItemPrevirew: {fileID: 0}
-  hoverAlpha: 1
+  hoverAlpha: 0.15
   normalAlpha: 0.35
   maxRotation: 4.16
   dragScale: 1.2
@@ -11503,7 +11325,7 @@ MonoBehaviour:
   dragPreviewIcon: {fileID: 418820014}
   Background: {fileID: 495877183}
   SlotItemPrevirew: {fileID: 0}
-  hoverAlpha: 1
+  hoverAlpha: 0.15
   normalAlpha: 0.35
   maxRotation: 4.16
   dragScale: 1.2
@@ -12911,8 +12733,8 @@ MonoBehaviour:
   strength: 3
   dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
   dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
-  dragHoverSlotClip: {fileID: 8300000, guid: 516a69b0c85ebbf48b7eba6994cbebd1, type: 3}
-  slotDropPreviewIcon: {fileID: 0}
+  dragHoverSlotClip: {fileID: 0}
+  slotDropPreviewIcon: {fileID: 1659104549}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
@@ -14795,8 +14617,8 @@ MonoBehaviour:
   strength: 3
   dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
   dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
-  dragHoverSlotClip: {fileID: 8300000, guid: 516a69b0c85ebbf48b7eba6994cbebd1, type: 3}
-  slotDropPreviewIcon: {fileID: 0}
+  dragHoverSlotClip: {fileID: 0}
+  slotDropPreviewIcon: {fileID: 1659104549}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
@@ -210894,6 +210716,184 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1025433221}
   m_CullTransparentMesh: 1
+--- !u!43 &1033266852
+Mesh:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  serializedVersion: 12
+  m_SubMeshes:
+  - serializedVersion: 2
+    firstByte: 0
+    indexCount: 0
+    topology: 0
+    baseVertex: 0
+    firstVertex: 0
+    vertexCount: 0
+    localAABB:
+      m_Center: {x: 0, y: 0, z: 0}
+      m_Extent: {x: 0, y: 0, z: 0}
+  m_Shapes:
+    vertices: []
+    shapes: []
+    channels: []
+    fullWeights: []
+  m_BindPose: []
+  m_BoneNameHashes: 
+  m_RootBoneNameHash: 0
+  m_BonesAABB: []
+  m_VariableBoneCountWeights:
+    m_Data: 
+  m_MeshCompression: 0
+  m_IsReadable: 1
+  m_KeepVertices: 1
+  m_KeepIndices: 1
+  m_IndexFormat: 0
+  m_IndexBuffer: 
+  m_VertexData:
+    serializedVersion: 3
+    m_VertexCount: 0
+    m_Channels:
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 3
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    m_DataSize: 0
+    _typelessdata: 
+  m_CompressedMesh:
+    m_Vertices:
+      m_NumItems: 0
+      m_Range: 0
+      m_Start: 0
+      m_Data: 
+      m_BitSize: 0
+    m_UV:
+      m_NumItems: 0
+      m_Range: 0
+      m_Start: 0
+      m_Data: 
+      m_BitSize: 0
+    m_Normals:
+      m_NumItems: 0
+      m_Range: 0
+      m_Start: 0
+      m_Data: 
+      m_BitSize: 0
+    m_Tangents:
+      m_NumItems: 0
+      m_Range: 0
+      m_Start: 0
+      m_Data: 
+      m_BitSize: 0
+    m_Weights:
+      m_NumItems: 0
+      m_Data: 
+      m_BitSize: 0
+    m_NormalSigns:
+      m_NumItems: 0
+      m_Data: 
+      m_BitSize: 0
+    m_TangentSigns:
+      m_NumItems: 0
+      m_Data: 
+      m_BitSize: 0
+    m_FloatColors:
+      m_NumItems: 0
+      m_Range: 0
+      m_Start: 0
+      m_Data: 
+      m_BitSize: 0
+    m_BoneIndices:
+      m_NumItems: 0
+      m_Data: 
+      m_BitSize: 0
+    m_Triangles:
+      m_NumItems: 0
+      m_Data: 
+      m_BitSize: 0
+    m_UVInfo: 0
+  m_LocalAABB:
+    m_Center: {x: 0, y: 0, z: 0}
+    m_Extent: {x: 0, y: 0, z: 0}
+  m_MeshUsageFlags: 0
+  m_CookingOptions: 30
+  m_BakedConvexCollisionMesh: 
+  m_BakedTriangleCollisionMesh: 
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 1
+  m_MeshOptimizationFlags: 1
+  m_StreamData:
+    serializedVersion: 2
+    offset: 0
+    size: 0
+    path: 
+  m_MeshLodInfo:
+    serializedVersion: 2
+    m_LodSelectionCurve:
+      serializedVersion: 1
+      m_LodSlope: 0
+      m_LodBias: 0
+    m_NumLevels: 1
+    m_SubMeshes:
+    - serializedVersion: 2
+      m_Levels:
+      - serializedVersion: 1
+        m_IndexStart: 0
+        m_IndexCount: 0
 --- !u!1 &1034459401
 GameObject:
   m_ObjectHideFlags: 0
@@ -211859,7 +211859,7 @@ MonoBehaviour:
   dragPreviewIcon: {fileID: 418820014}
   Background: {fileID: 972022690}
   SlotItemPrevirew: {fileID: 0}
-  hoverAlpha: 1
+  hoverAlpha: 0.15
   normalAlpha: 0.35
   maxRotation: 4.16
   dragScale: 1.2
@@ -211958,7 +211958,7 @@ MonoBehaviour:
   dragPreviewIcon: {fileID: 418820014}
   Background: {fileID: 459403237}
   SlotItemPrevirew: {fileID: 0}
-  hoverAlpha: 1
+  hoverAlpha: 0.15
   normalAlpha: 0.35
   maxRotation: 4.16
   dragScale: 1.2
@@ -218453,8 +218453,8 @@ MonoBehaviour:
   strength: 3
   dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
   dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
-  dragHoverSlotClip: {fileID: 8300000, guid: 516a69b0c85ebbf48b7eba6994cbebd1, type: 3}
-  slotDropPreviewIcon: {fileID: 0}
+  dragHoverSlotClip: {fileID: 0}
+  slotDropPreviewIcon: {fileID: 1659104549}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
@@ -219032,7 +219032,7 @@ MonoBehaviour:
   dragPreviewIcon: {fileID: 418820014}
   Background: {fileID: 340393504}
   SlotItemPrevirew: {fileID: 0}
-  hoverAlpha: 1
+  hoverAlpha: 0.15
   normalAlpha: 0.35
   maxRotation: 4.16
   dragScale: 1.2
@@ -219643,7 +219643,7 @@ MonoBehaviour:
   dragPreviewIcon: {fileID: 418820014}
   Background: {fileID: 1769637508}
   SlotItemPrevirew: {fileID: 0}
-  hoverAlpha: 1
+  hoverAlpha: 0.15
   normalAlpha: 0.35
   maxRotation: 4.16
   dragScale: 1.2
@@ -219730,7 +219730,7 @@ MonoBehaviour:
   dragPreviewIcon: {fileID: 418820014}
   Background: {fileID: 1406443321}
   SlotItemPrevirew: {fileID: 0}
-  hoverAlpha: 1
+  hoverAlpha: 0.15
   normalAlpha: 0.35
   maxRotation: 4.16
   dragScale: 1.2
@@ -220008,7 +220008,7 @@ MonoBehaviour:
   dragPreviewIcon: {fileID: 418820014}
   Background: {fileID: 782134115}
   SlotItemPrevirew: {fileID: 0}
-  hoverAlpha: 1
+  hoverAlpha: 0.15
   normalAlpha: 0.35
   maxRotation: 4.16
   dragScale: 1.2
@@ -222741,7 +222741,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 571495365541788744, guid: 844eb5e1aab31c44389b1d2906f0bb12, type: 3}
       propertyPath: m_SpriteSortPoint
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 1183774043806223230, guid: 844eb5e1aab31c44389b1d2906f0bb12, type: 3}
       propertyPath: m_text
@@ -222989,7 +222989,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6464020614380587009, guid: 844eb5e1aab31c44389b1d2906f0bb12, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.137
+      value: -0.014
       objectReference: {fileID: 0}
     - target: {fileID: 7437932651018339989, guid: 844eb5e1aab31c44389b1d2906f0bb12, type: 3}
       propertyPath: fillImage
@@ -223849,7 +223849,7 @@ MonoBehaviour:
   dragPreviewIcon: {fileID: 418820014}
   Background: {fileID: 1177081624}
   SlotItemPrevirew: {fileID: 0}
-  hoverAlpha: 1
+  hoverAlpha: 0.15
   normalAlpha: 0.35
   maxRotation: 4.16
   dragScale: 1.2
@@ -223877,6 +223877,94 @@ CanvasGroup:
   m_Interactable: 1
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0
+--- !u!1 &1659104548
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1659104552}
+  - component: {fileID: 1659104551}
+  - component: {fileID: 1659104549}
+  - component: {fileID: 1659104550}
+  m_Layer: 5
+  m_Name: previewGhost
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1659104549
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1659104548}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 0
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 0}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!114 &1659104550
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1659104548}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8fbf0393ee2bf440a5f77b7050396b3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: '::'
+--- !u!222 &1659104551
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1659104548}
+  m_CullTransparentMesh: 1
+--- !u!224 &1659104552
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1659104548}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6420165530761793435}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 1039, y: 475}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &1665950851
 GameObject:
   m_ObjectHideFlags: 0
@@ -224830,7 +224918,7 @@ MonoBehaviour:
   dragPreviewIcon: {fileID: 418820014}
   Background: {fileID: 1572512524}
   SlotItemPrevirew: {fileID: 0}
-  hoverAlpha: 1
+  hoverAlpha: 0.15
   normalAlpha: 0.35
   maxRotation: 4.16
   dragScale: 1.2
@@ -227731,7 +227819,7 @@ MonoBehaviour:
   dragPreviewIcon: {fileID: 418820014}
   Background: {fileID: 1842836818}
   SlotItemPrevirew: {fileID: 0}
-  hoverAlpha: 1
+  hoverAlpha: 0.15
   normalAlpha: 0.35
   maxRotation: 4.16
   dragScale: 1.2
@@ -229217,7 +229305,7 @@ MonoBehaviour:
   dragPreviewIcon: {fileID: 418820014}
   Background: {fileID: 312266059}
   SlotItemPrevirew: {fileID: 0}
-  hoverAlpha: 1
+  hoverAlpha: 0.15
   normalAlpha: 0.35
   maxRotation: 4.16
   dragScale: 1.2
@@ -230059,6 +230147,8 @@ MonoBehaviour:
   treePrefab: {fileID: 7005833747306306358, guid: 80a2f909dc74a784e8a5d5ac5bf6d90c, type: 3}
   stumpPrefab: {fileID: 4272399698899235473, guid: f46bc3955377181479d8e75aaf364860, type: 3}
   bushPrefab: {fileID: 2944379715857563863, guid: aebc4e521edfd384eb7d774f8b943a41, type: 3}
+  leafPrefab: {fileID: 4094942449436181642, guid: 8d6fd0de000f8a14b8aca07a745d9d84, type: 3}
+  stonePrefab: {fileID: 5216174609153863728, guid: 5c6ef9b9b1d658446a036bb0a3d62793, type: 3}
   tiltManager: {fileID: 1004712764}
 --- !u!114 &2036798121
 MonoBehaviour:
@@ -230382,7 +230472,7 @@ MonoBehaviour:
   dragPreviewIcon: {fileID: 418820014}
   Background: {fileID: 168181683}
   SlotItemPrevirew: {fileID: 0}
-  hoverAlpha: 1
+  hoverAlpha: 0.15
   normalAlpha: 0.35
   maxRotation: 4.16
   dragScale: 1.2
@@ -231582,8 +231672,8 @@ MonoBehaviour:
   strength: 3
   dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
   dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
-  dragHoverSlotClip: {fileID: 8300000, guid: 516a69b0c85ebbf48b7eba6994cbebd1, type: 3}
-  slotDropPreviewIcon: {fileID: 0}
+  dragHoverSlotClip: {fileID: 0}
+  slotDropPreviewIcon: {fileID: 1659104549}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
@@ -232034,7 +232124,7 @@ MonoBehaviour:
   dragPreviewIcon: {fileID: 418820014}
   Background: {fileID: 1641436195}
   SlotItemPrevirew: {fileID: 0}
-  hoverAlpha: 1
+  hoverAlpha: 0.15
   normalAlpha: 0.35
   maxRotation: 4.16
   dragScale: 1.2
@@ -232385,8 +232475,8 @@ MonoBehaviour:
     minDistance: 1
   - tile: {fileID: 11400000, guid: 2bd2da8add985254787e2bf9b1a4469f, type: 2}
     prefab: {fileID: 7005833747306306358, guid: 80a2f909dc74a784e8a5d5ac5bf6d90c, type: 3}
-    maxSpawnCount: 500
-    minDistance: 2
+    maxSpawnCount: 1000
+    minDistance: 1.5
   - tile: {fileID: 11400000, guid: 2bd2da8add985254787e2bf9b1a4469f, type: 2}
     prefab: {fileID: 4094942449436181642, guid: 8d6fd0de000f8a14b8aca07a745d9d84, type: 3}
     maxSpawnCount: 200
@@ -232394,7 +232484,7 @@ MonoBehaviour:
   - tile: {fileID: 11400000, guid: 2bd2da8add985254787e2bf9b1a4469f, type: 2}
     prefab: {fileID: 5216174609153863728, guid: 5c6ef9b9b1d658446a036bb0a3d62793, type: 3}
     maxSpawnCount: 55
-    minDistance: 3
+    minDistance: 2
   dayNightCycle: {fileID: 1725093664}
 --- !u!1 &2124161836
 GameObject:
@@ -232542,7 +232632,7 @@ MonoBehaviour:
   dragPreviewIcon: {fileID: 418820014}
   Background: {fileID: 1894540154}
   SlotItemPrevirew: {fileID: 0}
-  hoverAlpha: 1
+  hoverAlpha: 0.15
   normalAlpha: 0.35
   maxRotation: 4.16
   dragScale: 1.2
@@ -233952,6 +234042,7 @@ RectTransform:
   - {fileID: 366127171675158830}
   - {fileID: 662514394}
   - {fileID: 1453589603937675123}
+  - {fileID: 1659104552}
   - {fileID: 418820013}
   m_Father: {fileID: 80857689}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -234190,8 +234281,8 @@ MonoBehaviour:
   strength: 3
   dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
   dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
-  dragHoverSlotClip: {fileID: 8300000, guid: 516a69b0c85ebbf48b7eba6994cbebd1, type: 3}
-  slotDropPreviewIcon: {fileID: 0}
+  dragHoverSlotClip: {fileID: 0}
+  slotDropPreviewIcon: {fileID: 1659104549}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0

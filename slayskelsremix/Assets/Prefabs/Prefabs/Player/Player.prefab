@@ -1178,11 +1178,8 @@ MonoBehaviour:
   pressEPrompt: {fileID: 0}
   promptText: {fileID: 0}
   canvasGroup: {fileID: 833789101968955582}
-  fadeDuration: 0.25
-  visibleDuration: 1
-  shakeTarget: {fileID: 7348064687145423045}
-  shakeDuration: 0.15
-  shakeStrength: 8
+  fadeSpeed: 8
+  defaultDuration: 1.5
 --- !u!1 &8186050296107454288
 GameObject:
   m_ObjectHideFlags: 0

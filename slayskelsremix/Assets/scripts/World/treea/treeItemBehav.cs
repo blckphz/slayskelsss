@@ -10,9 +10,6 @@ public class treeItemBehav : ItemHealth
     public GameObject bottomPrefab;
     public GameObject fallingTopPrefab;
 
-    [Header("Loot")]
-    public GameObject lootPrefab;
-    public int lootAmount = 3;
 
     [Header("Stick Spawn (on world spawn)")]
     public GameObject sticksPrefab;
@@ -32,6 +29,7 @@ public class treeItemBehav : ItemHealth
     {
         base.Awake();
         treeCollider = GetComponent<Collider2D>();
+        TrySpawnSticksOnSpawn();
     }
 
     protected override void Start()
@@ -63,6 +61,7 @@ public class treeItemBehav : ItemHealth
         isCut = data.isCut;
         cutTime = data.cutTime;
         transform.position = data.position;
+        TrySpawnSticksOnSpawn();
 
         if (isCut)
             gameObject.SetActive(false);
@@ -74,7 +73,6 @@ public class treeItemBehav : ItemHealth
 
     public void OnSpawnFromWorld()
     {
-        Debug.Log("[Tree] Spawned from world -> rolling stick chance");
         TrySpawnSticksOnSpawn();
     }
 
@@ -82,23 +80,19 @@ public class treeItemBehav : ItemHealth
     {
         if (sticksPrefab == null || spawnPointA == null || spawnPointB == null)
         {
-            Debug.LogWarning("[Tree] Missing sticksPrefab or spawn points");
             return;
         }
 
         float roll = Random.value;
-        Debug.Log($"[Tree] Stick roll: {roll} vs chance {stickSpawnChance}");
 
         if (roll > stickSpawnChance)
         {
-            Debug.Log("[Tree] No sticks spawned (failed chance roll)");
             return;
         }
 
         Transform chosenPoint =
             (Random.value < 0.5f) ? spawnPointA : spawnPointB;
 
-        Debug.Log($"[Tree] Spawning sticks at {chosenPoint.name}");
 
         Instantiate(sticksPrefab, chosenPoint.position, Quaternion.identity);
     }
@@ -142,7 +136,7 @@ public class treeItemBehav : ItemHealth
 
             if (top.TryGetComponent(out treefallsequence fall))
             {
-                fall.SetupLoot(lootPrefab, lootAmount);
+                fall.SetupLoot(lootPrefab, dropAmount);
             }
         }
 

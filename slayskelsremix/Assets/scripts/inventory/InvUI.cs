@@ -32,6 +32,12 @@ public class InvUI : MonoBehaviour
             var slotUI = slotMappings[i].slotUI;
             if (slotUI == null) continue;
 
+            // NEW: Check if this UI slot is actually part of the hotbar
+            // If it is, we should be careful not to overwrite it with 
+            // stale data from inventoryManager.inventory
+            if (PlayerHotbarManager.Instance.hotbarSlots.Contains(slotUI))
+                continue;
+
             if (i < inv.Count && inv[i].item != null)
             {
                 slotUI.SetSlot(inv[i].item, null, inv[i].count, inv[i].currentDurability);
