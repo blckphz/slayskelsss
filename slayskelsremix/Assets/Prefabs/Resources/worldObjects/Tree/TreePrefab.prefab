@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 8628264727897816204}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: spawnpoints
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -40,7 +40,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3272184800073676047}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: spawnpoints
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -72,7 +72,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1437647878832784821}
   - component: {fileID: 7476379171111647413}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: GameObject
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -166,7 +166,7 @@ GameObject:
   - component: {fileID: 6896833497799181211}
   - component: {fileID: 696859030482221376}
   - component: {fileID: 3056067628925120947}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: TreePrefab
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -204,7 +204,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e9eafdc7a88b6224ab4ffa0e0c00a662, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::treeItemBehav
-  UniqOverworldItemID: 1d285cee-8dde-4cbd-8f22-1657985b915b
+  UniqOverworldItemID: 09460a46-e670-49ff-b53d-4be54a082169
   health: 50
   effectiveTool: 2
   durabilityPerHit: 1
@@ -223,13 +223,12 @@ MonoBehaviour:
   cameraShakeIntensity: 1.5
   cameraShakeDuration: 0.15
   hitSound: {fileID: 8300000, guid: c868435d4fc6ae240bab799a6c39d3e3, type: 3}
+  deathSFX: {fileID: 0}
   hitVolume: 1
   isCut: 0
   cutTime: 0
   bottomPrefab: {fileID: 4272399698899235473, guid: f46bc3955377181479d8e75aaf364860, type: 3}
   fallingTopPrefab: {fileID: 8542049761962043926, guid: 5468e57153e3fd44594a6633bb15fdc9, type: 3}
-  lootPrefab: {fileID: 8504423254273432661, guid: 22af6c420dc2b11488f396c164eab3b4, type: 3}
-  lootAmount: 3
   sticksPrefab: {fileID: 3959919176948862644, guid: 114fa677cdce30246a767e9a93c6d9c7, type: 3}
   spawnPointA: {fileID: 8628264727897816204}
   spawnPointB: {fileID: 3272184800073676047}
@@ -457,7 +456,7 @@ GameObject:
   - component: {fileID: 738280382946402957}
   - component: {fileID: 1129797798990788318}
   - component: {fileID: 4295429361957661377}
-  m_Layer: 0
+  m_Layer: 8
   m_Name: GameObject (1)
   m_TagString: Untagged
   m_Icon: {fileID: 0}

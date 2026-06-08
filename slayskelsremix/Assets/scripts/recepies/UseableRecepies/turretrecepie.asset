@@ -12,9 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b8a9a032426623847a24a1e07df607e7, type: 3}
   m_Name: turretrecepie
   m_EditorClassIdentifier: Assembly-CSharp::CraftingSO
+  recipeType: 0
   resultItem: {fileID: 11400000, guid: b9f4f5c99d785e84e9eebefd904e5818, type: 2}
   resultCount: 1
   ingredients:
   - item: {fileID: 11400000, guid: 49c4ddfd179fdab4c99e01539317fe5a, type: 2}
-    amount: 0
+    amount: 50
   craftTime: 0

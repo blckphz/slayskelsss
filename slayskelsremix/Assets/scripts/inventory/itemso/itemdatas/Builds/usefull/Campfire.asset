@@ -12,8 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2e0351e2672834f42bfde66072954537, type: 3}
   m_Name: Campfire
   m_EditorClassIdentifier: Assembly-CSharp::buildSO
-  itemID: 104
+  itemID: 23
   itemName: Campfire
+  ItemDescription: 'campfire lit! '
   icon: {fileID: 21300000, guid: 45f0f074f93e39a4f87057f409867c96, type: 3}
   DragStartSound: {fileID: 0}
   DragEndSound: {fileID: 0}

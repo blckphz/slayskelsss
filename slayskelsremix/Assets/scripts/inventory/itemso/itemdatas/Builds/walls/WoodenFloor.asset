@@ -25,4 +25,4 @@ MonoBehaviour:
   maxDurability: 0
   placeablePrefab: {fileID: 1984415571524434677, guid: e5080d0ee73a6704c8ccb7e2c2561efc, type: 3}
   size: {x: 0, y: 0}
-  placementSound: {fileID: 0}
+  placementSound: {fileID: 8300000, guid: 516a69b0c85ebbf48b7eba6994cbebd1, type: 3}

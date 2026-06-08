@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 8816045484652184289}
   - component: {fileID: 1781468449567393274}
   - component: {fileID: 9148836765709566437}
+  - component: {fileID: 8845357771312900961}
   m_Layer: 8
   m_Name: craftingTable
   m_TagString: Untagged
@@ -180,3 +181,22 @@ MonoBehaviour:
   xpReward: 20
   givesXP: 0
   interactionRange: 3
+--- !u!114 &8845357771312900961
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4500520245559892539}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 41a0d36993e28fe4fae8368af1eae459, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: '::'
+  craftingSO:
+  - {fileID: 11400000, guid: ba73be5ff07896e4b99764dc98f37366, type: 2}
+  - {fileID: 11400000, guid: fffc82e8a58ef8941905c83cb0d45090, type: 2}
+  - {fileID: 11400000, guid: b193844de7ccee8409cc282c7fc9f4c8, type: 2}
+  - {fileID: 11400000, guid: 4e02bca10d8fc834e82fd75ded938dc0, type: 2}
+  - {fileID: 11400000, guid: 72e82cc2d6626ec46bc06f269cce2a00, type: 2}
+  prompt: Open Crafting Table

@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2e0351e2672834f42bfde66072954537, type: 3}
   m_Name: CraftingTable
   m_EditorClassIdentifier: Assembly-CSharp::buildSO
-  itemID: 0
+  itemID: 25
   itemName: Crafting Table
-  ItemDescription: go on, create, for this is your world
+  ItemDescription: Lets get crafty
   icon: {fileID: 21300000, guid: 146ee5ecfab94b74bae025080b2e9bc5, type: 3}
   DragStartSound: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
   DragEndSound: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}

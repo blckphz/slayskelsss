@@ -12,9 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2e0351e2672834f42bfde66072954537, type: 3}
   m_Name: SmallFlower
   m_EditorClassIdentifier: Assembly-CSharp::buildSO
-  itemID: 107
-  itemName: blume
+  itemID: 33
+  itemName: Big Decorative Flower
+  ItemDescription: green pinkies required
   icon: {fileID: 21300000, guid: 3aed1969eebf8264d9df595271801ccc, type: 3}
+  DragStartSound: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
+  DragEndSound: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
   itemType: 1
   maxStackSize: 99
   isUsable: 1

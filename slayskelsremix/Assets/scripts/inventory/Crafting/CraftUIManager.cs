@@ -103,22 +103,20 @@ public class CraftUIManager : MonoBehaviour
     }
 
     // =====================================================
-    // GRID
+    // GRID (UPDATED FOR TABLE INJECTION)
     // =====================================================
     public void RefreshGrid()
     {
-        if (CraftingManager.Instance == null)
-        {
-            return;
-        }
+        if (CraftingManager.Instance == null) return;
 
-
-        // ✅ SAVE CURRENT SELECTION
         CraftingSO previousSelected = selectedRecipe;
+
+        List<CraftingSO> source =
+            CraftingManager.Instance.ActiveRecipes;
 
         List<CraftingSO> recipes = new List<CraftingSO>();
 
-        foreach (var r in CraftingManager.Instance.knownRecipes)
+        foreach (var r in source)
         {
             if (r == null) continue;
 
@@ -180,7 +178,6 @@ public class CraftUIManager : MonoBehaviour
             }
         }
 
-        // ✅ RESTORE SELECTION AFTER REFRESH
         if (previousSelected != null)
         {
             for (int i = 0; i < recipes.Count; i++)

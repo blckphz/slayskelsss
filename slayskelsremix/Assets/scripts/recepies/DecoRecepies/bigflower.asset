@@ -12,9 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b8a9a032426623847a24a1e07df607e7, type: 3}
   m_Name: bigflower
   m_EditorClassIdentifier: Assembly-CSharp::CraftingSO
+  recipeType: 0
   resultItem: {fileID: 11400000, guid: c5c66af13057b1843af3985f9ca6052f, type: 2}
   resultCount: 1
   ingredients:
   - item: {fileID: 11400000, guid: 49c4ddfd179fdab4c99e01539317fe5a, type: 2}
-    amount: 0
+    amount: 3
+  - item: {fileID: 11400000, guid: 49c4ddfd179fdab4c99e01539317fe5a, type: 2}
+    amount: 10
   craftTime: 0
