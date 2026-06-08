@@ -10,14 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b8a9a032426623847a24a1e07df607e7, type: 3}
-  m_Name: WoodenAxeRecepie
+  m_Name: CraftingTableRecepie
   m_EditorClassIdentifier: Assembly-CSharp::CraftingSO
-  recipeType: 2
-  resultItem: {fileID: 11400000, guid: 7c0fd3f8faa4e9442be6ed0573430dee, type: 2}
+  recipeType: 0
+  resultItem: {fileID: 11400000, guid: ae3fe171ccd50e1408ac62b4d46a986a, type: 2}
   resultCount: 1
   ingredients:
-  - item: {fileID: 11400000, guid: 68b493ef73a853a4e96f65bccff6f878, type: 2}
-    amount: 3
   - item: {fileID: 11400000, guid: 49c4ddfd179fdab4c99e01539317fe5a, type: 2}
     amount: 3
+  - item: {fileID: 11400000, guid: 68b493ef73a853a4e96f65bccff6f878, type: 2}
+    amount: 5
   craftTime: 0

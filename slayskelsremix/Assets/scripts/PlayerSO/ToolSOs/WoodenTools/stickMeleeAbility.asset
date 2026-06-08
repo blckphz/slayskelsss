@@ -9,22 +9,21 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 48a00889da9d15543b881315a8a5242f, type: 3}
-  m_Name: ShovelSO
-  m_EditorClassIdentifier: Assembly-CSharp::ShowelSO
-  abilityName: shovel
-  description: 
-  icon: {fileID: 21300000, guid: 1b228093e9e97e049b79a6bcd2536c75, type: 3}
+  m_Script: {fileID: 11500000, guid: 19fbd775e67f5da46b34110845dff521, type: 3}
+  m_Name: stickMeleeAbility
+  m_EditorClassIdentifier: Assembly-CSharp::ToolsSO
+  abilityName: Stick
+  description: the beginning, and thus, the end
+  icon: {fileID: 21300000, guid: ff122620c5a99664eaf888340d62aff2, type: 3}
   launchsound: {fileID: 8300000, guid: 85b15602d2a1c6547aef73da139bb575, type: 3}
-  fireRate: 1
-  isOnCooldown: 0
+  fireRate: 1.15
   prefab: {fileID: 233725004081931323, guid: 49947f31aaae6ec46b59d342ab70058a, type: 3}
-  staminaUsed: 0
-  damage: 10
+  staminaUsed: 1
+  damage: 5
   customAudioLogic: 0
-  maxSwings: 3
-  swingFreq: 0.4
-  spawnOffset: 1.5
+  maxSwings: 2
+  swingFreq: 0.17
+  spawnOffset: 0.85
   rotationOffset: 90
-  toolType: 0
-  holeBuild: {fileID: 11400000, guid: 058c1c778993d494c8ff4b1f4dd93b48, type: 2}
+  missCooldownMultiplier: 0.33
+  toolType: 4

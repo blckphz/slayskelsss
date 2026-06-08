@@ -141,7 +141,7 @@ public class BuildMode : MonoBehaviour
             if (buildMode)
             {
                 InteractionUI.Instance.Show(
-                    "IN BUILD MODE"
+                    "Enter BUILD MODE"
                 );
             }
             else

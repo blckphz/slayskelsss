@@ -13,12 +13,16 @@ MonoBehaviour:
   m_Name: SeedItem
   m_EditorClassIdentifier: Assembly-CSharp::SeedSO
   itemID: 421
-  itemName: seed
+  itemName: berry seed
+  ItemDescription: 
   icon: {fileID: 21300000, guid: dda72d51f2723864ba784d6364429127, type: 3}
+  DragStartSound: {fileID: 0}
+  DragEndSound: {fileID: 0}
   itemType: 0
   maxStackSize: 99
   isUsable: 1
   consumeAmount: 1
+  maxDurability: 0
   plantPrefab: {fileID: 8498060712212700713, guid: c622cc0b2f7c9984ba4152e47ef84793, type: 3}
   growthSprites:
   - {fileID: 21300000, guid: 0c9774f8b4d494741874261828e37761, type: 3}

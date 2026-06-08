@@ -242,7 +242,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f6811265f75c5b64c909a606f5a87655, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::stoneWORLDobjectbehav
-  UniqOverworldItemID: 31fdedf8-cd89-4607-a010-3ae472ea1d45
+  UniqOverworldItemID: 28842b70-ec59-4bb4-a39d-f36e52f7728d
   health: 50
   effectiveTool: 1
   durabilityPerHit: 3
@@ -253,7 +253,7 @@ MonoBehaviour:
   correctToolUsageBonus: 0
   hitDropChance: 0.2
   hitDropAmount: 1
-  damageTextPrefab: {fileID: 0}
+  damageTextPrefab: {fileID: 9146332368269871989, guid: e2da221bf74f11340b439450cb25f81e, type: 3}
   hitIntensityName: _Intensity
   flashDuration: 0.15
   shakeDuration: 0.1
