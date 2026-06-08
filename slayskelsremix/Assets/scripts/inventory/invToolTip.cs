@@ -47,11 +47,13 @@ public class invToolTip : MonoBehaviour
         titleText.text = $"<size=120%>{item.itemName}</size>";
         typeText.text = $"<size=90%>{item.itemType}</size>";
 
-        // Wrapped in both <i> (cursive) and <color=#C0C0C0> (silver)
-        descriptionText.text = $"<size=80%><color=#C0C0C0><i>{GenerateDescription(item, currentDurability)}</i></color></size>";
+        string desc = GenerateDescription(item, currentDurability);
+
+        descriptionText.text = $"<size=80%><i>{desc}</i></size>";
 
         iconImage.gameObject.SetActive(item.icon != null);
-        if (item.icon != null) iconImage.sprite = item.icon;
+        if (item.icon != null)
+            iconImage.sprite = item.icon;
 
         gameObject.SetActive(true);
         Canvas.ForceUpdateCanvases();
@@ -61,7 +63,8 @@ public class invToolTip : MonoBehaviour
 
         if (backgroundRect != null)
         {
-            backgroundRect.sizeDelta = new Vector2(backgroundRect.sizeDelta.x, calculatedHeight);
+            backgroundRect.sizeDelta =
+                new Vector2(backgroundRect.sizeDelta.x, calculatedHeight);
         }
     }
 
@@ -71,25 +74,22 @@ public class invToolTip : MonoBehaviour
         gameObject.SetActive(false);
     }
 
-    // GENERATE DESCRIPTION
+    // GENERATE DESCRIPTION (GREY + DASH WRAPPING)
     private string GenerateDescription(ItemData item, float currentDurability)
     {
-        string desc = "";
-
-        // Wrap the content in <i> tags so ONLY this text is cursive
         string content = "";
 
-        // =====================================================
-        // BASE ITEM DESCRIPTION
-        // =====================================================
+        // =========================
+        // ITEM DESCRIPTION (GREY + - WRAP)
+        // =========================
         if (!string.IsNullOrWhiteSpace(item.ItemDescription))
         {
-            content += item.ItemDescription;
+            content += $"<color=#808080>{item.ItemDescription}</color>";
         }
 
-        // =====================================================
-        // USEABLE ITEM / ABILITY INFO
-        // =====================================================
+        // =========================
+        // USEABLE ITEM INFO
+        // =========================
         if (item is UseableItem u && u.abilityToExecute != null)
         {
             if (!string.IsNullOrEmpty(content))
@@ -115,9 +115,9 @@ public class invToolTip : MonoBehaviour
             content += ip.GetDetailedDescription();
         }
 
-        // =====================================================
-        // DURABILITY
-        // =====================================================
+        // =========================
+        // DURABILITY (NORMAL COLOR)
+        // =========================
         if (!string.IsNullOrEmpty(content))
             content += "\n\n";
 
@@ -130,7 +130,6 @@ public class invToolTip : MonoBehaviour
             content += $"Durability: {currentDurability}/{item.maxDurability}";
         }
 
-        // Apply italics to the accumulated content block
-        return $"<i>{content.Trim()}</i>";
+        return content.Trim();
     }
 }

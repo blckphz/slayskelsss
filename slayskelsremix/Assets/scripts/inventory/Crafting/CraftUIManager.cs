@@ -29,6 +29,10 @@ public class CraftUIManager : MonoBehaviour
     [Header("Search")]
     public TMP_InputField searchField;
 
+    [Header("Audio")]
+    public AudioClip craftSfx;
+    public AudioClip selectSfx;
+
     private List<Transform> bgSlots = new List<Transform>();
     private List<RectTransform> bgRects = new List<RectTransform>();
     private List<Quaternion> targetRotations = new List<Quaternion>();
@@ -50,18 +54,36 @@ public class CraftUIManager : MonoBehaviour
             bgRects.Add(child.GetComponent<RectTransform>());
             targetRotations.Add(Quaternion.identity);
         }
-        foreach (Transform child in iconGridParent) iconSlots.Add(child);
+
+        foreach (Transform child in iconGridParent)
+        {
+            iconSlots.Add(child);
+        }
 
         if (craftButton != null)
         {
             craftButton.onClick.AddListener(() =>
             {
-                if (selectedRecipe != null) CraftingManager.Instance.CraftItem(selectedRecipe);
-                else Debug.LogWarning("[CraftUI] No recipe selected!");
+                if (selectedRecipe != null)
+                {
+                    CraftingManager.Instance.CraftItem(selectedRecipe);
+
+                    if (AudioManager.Instance != null)
+                    {
+                        AudioManager.Instance.PlayUISound(craftSfx);
+                    }
+                }
+                else
+                {
+                    Debug.LogWarning("[CraftUI] No recipe selected!");
+                }
             });
         }
 
-        if (searchField != null) searchField.onValueChanged.AddListener(OnSearchChanged);
+        if (searchField != null)
+        {
+            searchField.onValueChanged.AddListener(OnSearchChanged);
+        }
     }
 
     private void Update()
@@ -82,16 +104,23 @@ public class CraftUIManager : MonoBehaviour
     private void OnEnable()
     {
         if (InventoryManager.Instance != null)
+        {
             InventoryManager.Instance.OnInventoryChanged += RefreshInfoOnly;
+        }
     }
 
     private void OnDisable()
     {
         if (InventoryManager.Instance != null)
+        {
             InventoryManager.Instance.OnInventoryChanged -= RefreshInfoOnly;
+        }
     }
 
-    private void RefreshInfoOnly() => UpdateInfoText();
+    private void RefreshInfoOnly()
+    {
+        UpdateInfoText();
+    }
 
     private void OnSearchChanged(string value)
     {
@@ -108,7 +137,11 @@ public class CraftUIManager : MonoBehaviour
             _ => RecipeType.Tool
         };
 
-        currentFilter = (currentFilter != null && currentFilter == newFilter) ? null : newFilter;
+        currentFilter =
+            (currentFilter != null && currentFilter == newFilter)
+            ? null
+            : newFilter;
+
         RefreshGrid();
     }
 
@@ -117,18 +150,26 @@ public class CraftUIManager : MonoBehaviour
         if (CraftingManager.Instance == null) return;
 
         CraftingSO previousSelected = selectedRecipe;
+
         List<CraftingSO> source = CraftingManager.Instance.ActiveRecipes;
         List<CraftingSO> recipes = new List<CraftingSO>();
 
         foreach (var r in source)
         {
             if (r == null) continue;
-            if (currentFilter != null && r.recipeType != currentFilter) continue;
+
+            if (currentFilter != null && r.recipeType != currentFilter)
+                continue;
+
             if (!string.IsNullOrEmpty(currentSearch))
             {
-                if (!r.name.ToLower().Contains(currentSearch) && !r.resultItem.itemName.ToLower().Contains(currentSearch))
+                if (!r.name.ToLower().Contains(currentSearch) &&
+                    !r.resultItem.itemName.ToLower().Contains(currentSearch))
+                {
                     continue;
+                }
             }
+
             recipes.Add(r);
         }
 
@@ -140,6 +181,7 @@ public class CraftUIManager : MonoBehaviour
             if (i < recipes.Count)
             {
                 CraftingSO recipe = recipes[i];
+
                 bgSlots[i].gameObject.SetActive(true);
                 iconSlots[i].gameObject.SetActive(true);
 
@@ -147,14 +189,27 @@ public class CraftUIManager : MonoBehaviour
                 targetRotations[i] = Quaternion.identity;
 
                 Image icon = iconSlots[i].GetComponent<Image>();
-                if (icon != null) icon.sprite = recipe.resultItem.icon;
 
-                Button btn = bgSlots[i].GetComponent<Button>() ?? iconSlots[i].GetComponent<Button>();
+                if (icon != null)
+                {
+                    icon.sprite = recipe.resultItem.icon;
+                }
+
+                Button btn =
+                    bgSlots[i].GetComponent<Button>() ??
+                    iconSlots[i].GetComponent<Button>();
+
                 if (btn != null)
                 {
                     btn.onClick.RemoveAllListeners();
+
                     int index = i;
-                    btn.onClick.AddListener(() => SelectRecipe(recipe, index));
+
+                    btn.onClick.AddListener(() =>
+                    {
+                        SelectRecipe(recipe, index);
+                    });
+
                     AddHoverEvents(bgSlots[i].gameObject, i);
                 }
             }
@@ -180,14 +235,25 @@ public class CraftUIManager : MonoBehaviour
 
     private void AddHoverEvents(GameObject obj, int index)
     {
-        EventTrigger trigger = obj.GetComponent<EventTrigger>() ?? obj.AddComponent<EventTrigger>();
+        EventTrigger trigger =
+            obj.GetComponent<EventTrigger>() ??
+            obj.AddComponent<EventTrigger>();
+
         trigger.triggers.Clear();
 
-        EventTrigger.Entry enter = new EventTrigger.Entry { eventID = EventTriggerType.PointerEnter };
+        EventTrigger.Entry enter = new EventTrigger.Entry
+        {
+            eventID = EventTriggerType.PointerEnter
+        };
+
         enter.callback.AddListener((data) => OnHoverEnter(index));
         trigger.triggers.Add(enter);
 
-        EventTrigger.Entry exit = new EventTrigger.Entry { eventID = EventTriggerType.PointerExit };
+        EventTrigger.Entry exit = new EventTrigger.Entry
+        {
+            eventID = EventTriggerType.PointerExit
+        };
+
         exit.callback.AddListener((data) => OnHoverExit(index));
         trigger.triggers.Add(exit);
     }
@@ -197,7 +263,12 @@ public class CraftUIManager : MonoBehaviour
         if (index != currentSelectedIndex)
         {
             SetAlpha(bgSlots[index], hoverAlpha);
-            targetRotations[index] = Quaternion.Euler(0f, 0f, Random.Range(-maxRotation, maxRotation));
+
+            targetRotations[index] = Quaternion.Euler(
+                0f,
+                0f,
+                Random.Range(-maxRotation, maxRotation)
+            );
         }
     }
 
@@ -215,11 +286,23 @@ public class CraftUIManager : MonoBehaviour
         selectedRecipe = recipe;
         currentSelectedIndex = selectedIndex;
 
-        if (largePreviewIcon != null) largePreviewIcon.sprite = recipe.resultItem.icon;
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlayUISound(selectSfx);
+        }
+
+        if (largePreviewIcon != null)
+        {
+            largePreviewIcon.sprite = recipe.resultItem.icon;
+        }
 
         for (int i = 0; i < bgSlots.Count; i++)
         {
-            SetAlpha(bgSlots[i], (i == selectedIndex) ? selectedAlpha : normalAlpha);
+            SetAlpha(
+                bgSlots[i],
+                (i == selectedIndex) ? selectedAlpha : normalAlpha
+            );
+
             targetRotations[i] = Quaternion.identity;
         }
 
@@ -229,6 +312,7 @@ public class CraftUIManager : MonoBehaviour
     private void SetAlpha(Transform slot, float alpha)
     {
         Image img = slot.GetComponent<Image>();
+
         if (img != null)
         {
             Color c = img.color;
@@ -239,14 +323,24 @@ public class CraftUIManager : MonoBehaviour
 
     public void UpdateInfoText()
     {
-        if (infoText == null || selectedRecipe == null) return;
-        string txt = $"<b>{selectedRecipe.resultItem.itemName}</b>\n\n";
+        if (infoText == null || selectedRecipe == null)
+            return;
+
+        string txt =
+            $"<b>{selectedRecipe.resultItem.itemName}</b>\n\n";
+
         foreach (var ing in selectedRecipe.ingredients)
         {
-            int owned = InventoryManager.Instance.GetTotalCount(ing.item);
-            string color = owned >= ing.amount ? "white" : "red";
-            txt += $"<color={color}>{ing.item.itemName}: {owned}/{ing.amount}</color>\n";
+            int owned =
+                InventoryManager.Instance.GetTotalCount(ing.item);
+
+            string color =
+                owned >= ing.amount ? "white" : "red";
+
+            txt +=
+                $"<color={color}>{ing.item.itemName}: {owned}/{ing.amount}</color>\n";
         }
+
         infoText.text = txt;
     }
 }
