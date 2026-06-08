@@ -40,7 +40,7 @@ public class InvUI : MonoBehaviour
 
             if (i < inv.Count && inv[i].item != null)
             {
-                slotUI.SetSlot(inv[i].item, null, inv[i].count, inv[i].currentDurability);
+               slotUI.SetSlot(inv[i].item, null, inv[i].count, (int)inv[i].currentDurability);
             }
             else
             {

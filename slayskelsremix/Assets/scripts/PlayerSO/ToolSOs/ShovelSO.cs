@@ -1,50 +1,46 @@
 ﻿using UnityEngine;
 
 [CreateAssetMenu(fileName = "NewShovelAbility", menuName = "Abilities/Tools/Shovel")]
-public class ShowelSO : ToolsSO, IItemDescriptionProvider
+public class ShovelSO : ToolsSO, IItemDescriptionProvider
 {
     [Header("Digging")]
     public buildSO holeBuild;
 
-    // ✅ MODULAR INTERFACE WITH STATS & DESCRIPTION
-    public string GetDetailedDescription()
+    // ✅ Now valid because base is virtual
+    public override string GetDetailedDescription()
     {
-        string lines = "";
-
-        lines += $"<color=#A2E8DD>Use Rate:</color> {fireRate}s\n";
-        lines += "-----------------------------\n";
-
-        lines += "<color=#FFA500><b>[PRIMARY ACTION]</b></color>\n";
-        lines += "• <color=#FF6B6B>Swing:</color> Swing tool forward to clear debris or attack.\n\n";
-
-        lines += "<color=#FFA500><b>[SECONDARY ACTION]</b></color>\n";
-        lines += "• <color=#A2E8DD>Dig:</color> Places a layout target to dig a farming hole.\n\n";
-
-        return lines;
+        return $"<color=#FF6B6B>Damage:</color> {damage}\n" +
+               $"<color=#A2E8DD>Swing Rate:</color> {fireRate}s\n" +
+               "------------------\n" +
+               "<color=#FFA500><b>[TOOL TYPE]</b></color>\n" +
+               $"• {toolType}\n\n" +
+               "<color=#FFA500><b>[PRIMARY ACTION]</b></color>\n" +
+               "• Swing: Dig soil and harvest resources.\n\n" +
+               "<color=#FFA500><b>[SECONDARY ACTION]</b></color>\n" +
+               "• Dig Hole: Toggle placement mode to create a new planting spot.";
     }
 
     public override bool ExecuteSecondary(Transform caster)
     {
-        // ❌ BLOCK IF NOT IN BUILD MODE
+        Debug.Log("[Shovel] Secondary Triggered");
+
         if (!BuildState.IsBuildMode)
-        {
-            Debug.Log("[Shovel] Cannot dig: Build Mode is not active");
             return false;
+
+        if (holeBuild == null || BuildManager.Instance == null)
+            return false;
+
+        // Toggle Logic: Cancel if already placing this item
+        if (BuildManager.Instance.IsPlacing &&
+            BuildManager.Instance.GetCurrentItem() == holeBuild)
+        {
+            BuildManager.Instance.Cancel();
+        }
+        else
+        {
+            BuildManager.Instance.StartPlacing(holeBuild);
         }
 
-        if (holeBuild == null)
-        {
-            Debug.LogWarning("[Shovel Ability] Secondary execution aborted: 'holeBuild' is not assigned.");
-            return false;
-        }
-
-        if (BuildManager.Instance == null)
-        {
-            Debug.LogError("[Shovel Ability] Secondary execution aborted: BuildManager instance is missing.");
-            return false;
-        }
-
-        BuildManager.Instance.StartPlacing(holeBuild);
         return true;
     }
 }

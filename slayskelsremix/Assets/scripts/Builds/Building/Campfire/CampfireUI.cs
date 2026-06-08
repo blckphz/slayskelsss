@@ -35,44 +35,67 @@ public class CampfireUI : MonoBehaviour
 
     private void Update()
     {
-        if (currentCampfire != null && uiPanel.activeSelf) UpdateInfoText();
+        if (currentCampfire != null && uiPanel.activeSelf)
+            UpdateInfoText();
     }
 
     private void OnWaypointToggleChanged(bool isOn)
     {
         if (currentCampfire == null) return;
-        MapPointerManager.Instance.SetLandmark("Campfire", isOn ? currentCampfire.gameObject : null, MapPointerManager.Instance.campfireIcon);
+        MapPointerManager.Instance.SetLandmark(
+            "Campfire",
+            isOn ? currentCampfire.gameObject : null,
+            MapPointerManager.Instance.campfireIcon
+        );
     }
 
     public void OpenCampfire(CampfireBehav campfire)
     {
         if (!campfire) return;
-        if (currentCampfire == campfire && uiPanel.activeSelf) { CloseCampfire(); return; }
+
+        if (currentCampfire == campfire && uiPanel.activeSelf)
+        {
+            CloseCampfire();
+            return;
+        }
 
         currentCampfire = campfire;
+
         if (waypointToggle != null)
         {
-            bool isTracked = MapPointerManager.Instance.IsTrackingObject("Campfire", currentCampfire.transform);
+            bool isTracked = MapPointerManager.Instance.IsTrackingObject(
+                "Campfire",
+                currentCampfire.transform
+            );
             waypointToggle.SetIsOnWithoutNotify(isTracked);
         }
 
         SafeSetActive(uiPanel, true);
         SafeSetActive(uiBackground, true);
-        if (inventorySystem != null) inventorySystem.ForceOpenInventory();
-        if (slotScript) slotScript.campfire = campfire;
+
+        if (inventorySystem != null)
+            inventorySystem.ForceOpenInventory();
+
+        if (slotScript)
+            slotScript.campfire = campfire;
+
         RefreshUI();
     }
 
     public void RefreshUI()
     {
         if (uiPanel == null || !uiPanel.activeSelf) return;
-        if (slotScript != null) slotScript.UpdateUI();
+
+        if (slotScript != null)
+            slotScript.UpdateUI();
+
         UpdateInfoText();
     }
 
     private void UpdateInfoText()
     {
         if (infoText == null || currentCampfire == null) return;
+
         infoBuilder.Clear();
         infoBuilder.Append("<b>CAMPFIRE</b>\nStatus: ");
         infoBuilder.Append(currentCampfire.isBurning ? STATUS_BURNING : STATUS_OFF);
@@ -80,18 +103,32 @@ public class CampfireUI : MonoBehaviour
         infoBuilder.Append(currentCampfire.fuelAmount.ToString("F1"));
         infoBuilder.Append(" / ");
         infoBuilder.Append(currentCampfire.maxFuel);
+
         infoText.SetText(infoBuilder);
     }
 
     public void CloseCampfire()
     {
         if (uiPanel == null || !uiPanel.activeSelf) return;
+
         SafeSetActive(uiPanel, false);
         SafeSetActive(uiBackground, false);
-        if (inventorySystem != null) inventorySystem.ForceCloseInventory();
+
+        if (inventorySystem != null)
+            inventorySystem.ForceCloseInventory();
+
         currentCampfire = null;
-        if (slotScript) { slotScript.ResetSlot(); slotScript.campfire = null; }
+
+        if (slotScript)
+        {
+            slotScript.ResetSlot();
+            slotScript.campfire = null;
+        }
     }
 
-    private void SafeSetActive(GameObject obj, bool state) { if (obj != null && obj.activeSelf != state) obj.SetActive(state); }
+    private void SafeSetActive(GameObject obj, bool state)
+    {
+        if (obj != null && obj.activeSelf != state)
+            obj.SetActive(state);
+    }
 }

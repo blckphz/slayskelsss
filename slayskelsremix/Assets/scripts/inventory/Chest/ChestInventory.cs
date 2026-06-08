@@ -76,7 +76,7 @@ public class ChestInventory : MonoBehaviour, IInteractable
     public void OpenChest() => ChestUI.Instance?.Open(this);
     public void CloseChest() { SaveChest(); ChestUI.Instance?.Close(); }
 
-    public bool AddItem(ItemData item, int amount, float durability = -1f)
+    public bool AddItem(ItemData item, int amount, int durability = -1)
     {
         if (item == null) return false;
 

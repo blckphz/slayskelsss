@@ -1,22 +1,27 @@
 ﻿using UnityEngine;
 using UnityEngine.Rendering.Universal;
+using System.Collections.Generic;
 
 public class CampfireBehav : MonoBehaviour, IInteractable, IBuildPreview
 {
     public bool isBurning;
 
-    [Header("Fuel")]
-    public ItemData fuelItem;
-
-    // ✅ Assigned in prefab (e.g., Wood, Coal, etc.)
-    public ItemData defaultFuelItem;
+    [Header("Fuel System")]
+    public List<ItemData> validFuelItems = new List<ItemData>();
 
     public float fuelAmount;
     public int maxFuel = 10;
     public float burnRate = 0.5f;
 
+    [Header("Current Fuel Display")]
+    public ItemData currentFuelItem;
+
     [Header("Effects")]
     public Light2D fireLight;
+
+    public bool HasFuel => fuelAmount > 0f && currentFuelItem != null;
+
+    public System.Action<bool> OnPulseStateChanged;
 
     private Animator anim;
     private Highlightable highlight;
@@ -26,13 +31,6 @@ public class CampfireBehav : MonoBehaviour, IInteractable, IBuildPreview
     {
         anim = GetComponent<Animator>();
         highlight = GetComponent<Highlightable>();
-
-        // Ensure fuel type exists even after load/spawn
-        if (fuelItem == null && defaultFuelItem != null)
-        {
-            fuelItem = defaultFuelItem;
-            Debug.Log($"[Campfire] Assigned default fuel: {fuelItem.itemName}");
-        }
     }
 
     private void Start()
@@ -40,16 +38,7 @@ public class CampfireBehav : MonoBehaviour, IInteractable, IBuildPreview
         lastFuelInt = Mathf.CeilToInt(fuelAmount);
         UpdateVisuals();
 
-        Debug.Log(
-            $"[Campfire] Start() fuelItem={(fuelItem ? fuelItem.itemName : "NULL")} " +
-            $"fuelItemID={(fuelItem ? fuelItem.itemID : -1)}"
-        );
-
-        // Ensure the current fuel type matches the default requirement on start
-        if (defaultFuelItem != null)
-        {
-            fuelItem = defaultFuelItem;
-        }
+        NotifyPulseState();
     }
 
     private void Update()
@@ -58,20 +47,29 @@ public class CampfireBehav : MonoBehaviour, IInteractable, IBuildPreview
             ConsumeFuel();
     }
 
-    // ---------------- NPC INTERACTION ----------------
-    public void NPCInteract(NpcInvBrain npcInv)
+    private void NotifyPulseState()
     {
-        if (fuelItem == null)
+        OnPulseStateChanged?.Invoke(HasFuel);
+    }
+
+    public bool IsValidFuel(ItemData item)
+    {
+        if (item == null) return false;
+
+        for (int i = 0; i < validFuelItems.Count; i++)
         {
-            Debug.LogWarning("[Campfire] fuelItem is NULL, NPC cannot interact");
-            return;
+            if (validFuelItems[i] != null &&
+                validFuelItems[i].itemID == item.itemID)
+                return true;
         }
 
-        // Find the specific item this campfire needs in the NPC's inventory
-        var fuelSlot = npcInv.inventory.Find(
-            slot => slot.item != null &&
-                    slot.item.itemID == fuelItem.itemID
-        );
+        return false;
+    }
+
+    public void NPCInteract(NpcInvBrain npcInv)
+    {
+        var fuelSlot = npcInv.inventory.Find(slot =>
+            slot.item != null && IsValidFuel(slot.item));
 
         if (fuelSlot == null || fuelSlot.count <= 0)
             return;
@@ -95,7 +93,6 @@ public class CampfireBehav : MonoBehaviour, IInteractable, IBuildPreview
             Ignite();
     }
 
-    // ---------------- FUEL CONSUMPTION ----------------
     private void ConsumeFuel()
     {
         if (fuelAmount > 0)
@@ -113,22 +110,22 @@ public class CampfireBehav : MonoBehaviour, IInteractable, IBuildPreview
             if (fuelAmount <= 0)
             {
                 fuelAmount = 0;
+                currentFuelItem = null;
+
                 Extinguish();
+                NotifyPulseState();
             }
         }
         else
         {
             Extinguish();
+            NotifyPulseState();
         }
     }
 
-    // ---------------- ADD FUEL ----------------
     public int AddFuel(ItemData item, int amount)
     {
-        if (fuelItem == null)
-            fuelItem = item;
-
-        if (fuelItem.itemID != item.itemID)
+        if (!IsValidFuel(item))
             return 0;
 
         int amountToAdd = Mathf.Min(
@@ -136,17 +133,23 @@ public class CampfireBehav : MonoBehaviour, IInteractable, IBuildPreview
             amount
         );
 
+        if (amountToAdd <= 0)
+            return 0;
+
         fuelAmount += amountToAdd;
+        currentFuelItem = item;
+
         lastFuelInt = Mathf.CeilToInt(fuelAmount);
 
         UpdateVisuals();
         CampfireUI.Instance?.RefreshUI();
         BuildingSaveManager.Instance?.SaveAfterChange();
 
+        NotifyPulseState();
+
         return amountToAdd;
     }
 
-    // ---------------- REMOVE FUEL ----------------
     public int RemoveFuel(int amount)
     {
         if (fuelAmount < 1f)
@@ -160,6 +163,8 @@ public class CampfireBehav : MonoBehaviour, IInteractable, IBuildPreview
         if (fuelAmount <= 0)
         {
             fuelAmount = 0;
+            currentFuelItem = null;
+
             Extinguish();
         }
 
@@ -167,10 +172,11 @@ public class CampfireBehav : MonoBehaviour, IInteractable, IBuildPreview
         CampfireUI.Instance?.RefreshUI();
         BuildingSaveManager.Instance?.SaveAfterChange();
 
+        NotifyPulseState();
+
         return toRemove;
     }
 
-    // ---------------- IGNITE / EXTINGUISH ----------------
     public void Ignite()
     {
         if (fuelAmount > 0)
@@ -182,14 +188,10 @@ public class CampfireBehav : MonoBehaviour, IInteractable, IBuildPreview
 
     public void Extinguish()
     {
-        if (!isBurning)
-            return;
-
         isBurning = false;
         UpdateVisuals();
     }
 
-    // ---------------- VISUALS ----------------
     private void UpdateVisuals()
     {
         if (anim != null)
@@ -199,21 +201,14 @@ public class CampfireBehav : MonoBehaviour, IInteractable, IBuildPreview
             fireLight.enabled = isBurning;
     }
 
-    // ---------------- INTERACTION ----------------
     public void Interact(InventoryManager playerInventory)
     {
         CampfireUI.Instance?.OpenCampfire(this);
     }
 
-    public void OnFocus()
-    {
-        highlight?.SetHighlighted(true);
-    }
+    public void OnFocus() => highlight?.SetHighlighted(true);
 
-    public void OnLoseFocus()
-    {
-        highlight?.SetHighlighted(false);
-    }
+    public void OnLoseFocus() => highlight?.SetHighlighted(false);
 
     public string GetPrompt()
     {

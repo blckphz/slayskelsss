@@ -6,7 +6,7 @@ public class SaveSlot
 {
     public int itemId;
     public int count;
-    public float currentDurability; // 👈 Upgraded to float to preserve item instance dynamic wear
+    public int currentDurability; // 👈 Upgraded to float to preserve item instance dynamic wear
 }
 
 [System.Serializable]
@@ -15,7 +15,7 @@ public class HotbarSaveSlot
     public int itemId;
     public string abilityName;
     public int count;
-    public float currentDurability; // 👈 Upgraded to float to match real-time tool tracking precision
+    public int currentDurability; // 👈 Upgraded to float to match real-time tool tracking precision
 }
 
 [System.Serializable]

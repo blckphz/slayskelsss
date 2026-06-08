@@ -20,7 +20,8 @@ MonoBehaviour:
   DragEndSound: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
   itemType: 0
   maxStackSize: 99
+  usesDurability: 1
+  maxDurability: 0
   isUsable: 1
   consumeAmount: 1
-  maxDurability: 0
   abilityToExecute: {fileID: 0}

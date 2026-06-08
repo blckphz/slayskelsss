@@ -127,7 +127,7 @@ public class PlayerHotbarManager : MonoBehaviour
             // CLEAR INVENTORY SLOT
             invSlot.item = null;
             invSlot.count = 0;
-            invSlot.currentDurability = 0f;
+            invSlot.currentDurability = 0;
 
             SyncHotbarToData();
 
@@ -258,7 +258,7 @@ public class PlayerHotbarManager : MonoBehaviour
         return slot != null ? slot.GetDurability() : 0f;
     }
 
-    public void ReduceActiveToolDurability(float amount)
+    public void ReduceActiveToolDurability(int amount)
     {
         var slot = hotbarSlots[selectedIndex];
 
@@ -271,7 +271,7 @@ public class PlayerHotbarManager : MonoBehaviour
         if (item.maxDurability <= 0)
             return;
 
-        float currentDurability = slot.GetDurability();
+        int currentDurability = slot.GetDurability();
 
         currentDurability -= amount;
 

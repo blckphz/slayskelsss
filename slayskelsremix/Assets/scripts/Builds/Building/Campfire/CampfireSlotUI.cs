@@ -5,10 +5,6 @@ using TMPro;
 
 public class CampfireSlotUI : MonoBehaviour, IDropHandler, IPointerClickHandler
 {
-
-
-
-    [Header("References")]
     public CampfireBehav campfire;
 
     [Header("UI")]
@@ -16,46 +12,46 @@ public class CampfireSlotUI : MonoBehaviour, IDropHandler, IPointerClickHandler
     [SerializeField] private Sprite emptySprite;
     [SerializeField] private TextMeshProUGUI amountText;
 
+    [Header("Pulse")]
+    [SerializeField] private invUIBgPulse fuelPulse;
 
-    public void Start()
+    private void Start()
     {
         campfire = FindAnyObjectByType<CampfireBehav>();
     }
 
+    private void OnEnable()
+    {
+        if (campfire != null)
+            campfire.OnPulseStateChanged += HandlePulse;
 
+        HandlePulse(campfire != null && campfire.HasFuel);
+    }
 
-    // =========================
-    // LEFT CLICK REMOVE FUEL
-    // =========================
+    private void OnDisable()
+    {
+        if (campfire != null)
+            campfire.OnPulseStateChanged -= HandlePulse;
+    }
+
+    private void HandlePulse(bool shouldPulse)
+    {
+        if (fuelPulse != null)
+            fuelPulse.SetPulsing(shouldPulse);
+    }
+
     public void OnPointerClick(PointerEventData eventData)
     {
-        if (campfire == null)
-        {
-            Debug.LogError("[CampfireUI] Campfire is NULL on click!");
-            return;
-        }
-
-        if (campfire.fuelItem == null)
-        {
-            Debug.LogWarning("[CampfireUI] fuelItem is NULL on click!");
-            return;
-        }
-
-        if (campfire.fuelAmount < 1f)
-        {
-            Debug.Log("[CampfireUI] No fuel to remove.");
-            return;
-        }
+        if (campfire == null) return;
+        if (campfire.fuelAmount < 1f) return;
 
         if (eventData.button == PointerEventData.InputButton.Left)
         {
             int removed = campfire.RemoveFuel(1);
 
-            Debug.Log($"[CampfireUI] Removed {removed} fuel");
-
             if (removed > 0)
             {
-                InventoryManager.Instance.AddItem(campfire.fuelItem, removed);
+                InventoryManager.Instance.AddItem(campfire.currentFuelItem, removed);
 
                 PlayerHotbarManager.Instance?.SyncHotbarToData();
                 InventoryManager.Instance.SaveInventory();
@@ -67,40 +63,20 @@ public class CampfireSlotUI : MonoBehaviour, IDropHandler, IPointerClickHandler
         }
     }
 
-    // =========================
-    // DROP INTO CAMPFIRE
-    // =========================
     public void OnDrop(PointerEventData eventData)
     {
-        if (campfire == null)
-        {
-            Debug.LogError("[CampfireUI] Campfire is NULL on drop!");
-            return;
-        }
+        if (campfire == null) return;
 
         InventorySlotUI draggedSlot = eventData.pointerDrag?.GetComponent<InventorySlotUI>();
-        if (draggedSlot == null)
-        {
-            Debug.LogWarning("[CampfireUI] Dragged slot is NULL");
-            return;
-        }
+        if (draggedSlot == null) return;
 
         ItemData item = draggedSlot.GetItem();
-        if (item == null)
-        {
-            Debug.LogWarning("[CampfireUI] Dropped item is NULL");
-            return;
-        }
+        if (item == null) return;
 
-        if (item.itemID != campfire.fuelItem.itemID)
-        {
-            Debug.Log("[CampfireUI] Wrong item dropped into campfire");
+        if (!campfire.IsValidFuel(item))
             return;
-        }
 
         int added = campfire.AddFuel(item, draggedSlot.GetCount());
-
-        Debug.Log($"[CampfireUI] Added fuel: {added}");
 
         if (added > 0)
         {
@@ -118,75 +94,43 @@ public class CampfireSlotUI : MonoBehaviour, IDropHandler, IPointerClickHandler
         }
     }
 
-    // =========================
-    // UI UPDATE
-    // =========================
     public void UpdateUI()
     {
-        if (campfire == null)
-        {
-            Debug.LogError("[CampfireUI] UpdateUI aborted: campfire NULL");
-            ResetSlot();
-            return;
-        }
+        if (campfire == null) return;
 
-        Debug.Log($"[CampfireUI] UpdateUI → Fuel: {campfire.fuelAmount}, Item: {(campfire.fuelItem ? campfire.fuelItem.name : "NULL")}");
-
-        if (campfire.fuelAmount <= 0)
+        if (campfire.fuelAmount <= 0 || campfire.currentFuelItem == null)
         {
-            Debug.Log("[CampfireUI] Fuel is 0 → Reset UI");
-            ResetSlot();
-            return;
-        }
-
-        if (campfire.fuelItem == null)
-        {
-            Debug.LogError("[CampfireUI] fuelItem is NULL but fuel exists!");
             ResetSlot();
             return;
         }
 
         if (itemIconImage != null)
         {
-            itemIconImage.sprite = campfire.fuelItem.icon;
-            itemIconImage.color = Color.white;
+            itemIconImage.sprite = campfire.currentFuelItem.icon;
             itemIconImage.enabled = true;
+
+            Color c = itemIconImage.color;
+            c.a = 1f;
+            itemIconImage.color = c;
         }
 
         if (amountText != null)
         {
-            int displayFuel = Mathf.CeilToInt(campfire.fuelAmount);
             amountText.gameObject.SetActive(true);
-            amountText.text = displayFuel.ToString();
-
-            Debug.Log($"[CampfireUI] Display Fuel: {displayFuel}");
+            amountText.text = Mathf.CeilToInt(campfire.fuelAmount).ToString();
         }
     }
 
-    // =========================
-    // RESET SLOT
-    // =========================
     public void ResetSlot()
     {
-        Debug.Log("[CampfireUI] ResetSlot called");
-
         if (itemIconImage != null)
         {
             itemIconImage.sprite = emptySprite;
-            itemIconImage.color = emptySprite != null ? Color.white : new Color(1, 1, 1, 0);
+
+            Color c = itemIconImage.color;
+            c.a = 0f;
+            itemIconImage.color = c;
         }
-
-        if (amountText != null)
-            amountText.gameObject.SetActive(false);
-    }
-
-    // =========================
-    // HIDE
-    // =========================
-    public void HideOutsideRange()
-    {
-        if (itemIconImage != null)
-            itemIconImage.color = new Color(1, 1, 1, 0);
 
         if (amountText != null)
             amountText.gameObject.SetActive(false);

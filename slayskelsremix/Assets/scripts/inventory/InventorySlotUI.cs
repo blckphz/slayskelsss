@@ -47,19 +47,18 @@ public class InventorySlotUI : MonoBehaviour,
     [SerializeField] private ItemData currentItem;
     [SerializeField] private Ability currentAbility;
     [SerializeField] private int currentCount;
-    [SerializeField] private float currentDurability;
+    [SerializeField] private int currentDurability;
 
+    // ✅ FIXED EMPTY CHECK
     public bool IsEmpty => currentItem == null && currentAbility == null;
 
     private Coroutine shakeRoutine;
 
-    private bool isDragging = false;
-    private bool isHovered = false;
+    private bool isDragging;
+    private bool isHovered;
 
     private RectTransform bgRect;
     private Quaternion targetRotation = Quaternion.identity;
-
-    private Color originalBackgroundColor;
 
     private static InventorySlotUI lastHoveredDragSlot;
 
@@ -68,7 +67,6 @@ public class InventorySlotUI : MonoBehaviour,
         if (Background != null)
         {
             bgRect = Background.rectTransform;
-            originalBackgroundColor = Background.color;
 
             var c = Background.color;
             c.a = normalAlpha;
@@ -76,9 +74,7 @@ public class InventorySlotUI : MonoBehaviour,
         }
 
         if (slotDropPreviewIcon != null)
-        {
             slotDropPreviewIcon.enabled = false;
-        }
     }
 
     private void Update()
@@ -108,7 +104,6 @@ public class InventorySlotUI : MonoBehaviour,
     {
         isDragging = false;
         isHovered = false;
-
         lastHoveredDragSlot = null;
 
         if (dragPreviewIcon != null)
@@ -121,14 +116,13 @@ public class InventorySlotUI : MonoBehaviour,
             icon.color = Color.white;
 
         HideDropPreview();
-
         targetRotation = Quaternion.identity;
         ApplyBackgroundState();
 
         invToolTip.Instance?.HideToolTip();
     }
 
-    public void SetSlot(ItemData item, Ability ability, int count, float durability)
+    public void SetSlot(ItemData item, Ability ability, int count, int durability)
     {
         currentItem = item;
         currentAbility = ability;
@@ -157,7 +151,7 @@ public class InventorySlotUI : MonoBehaviour,
         currentItem = null;
         currentAbility = null;
         currentCount = 0;
-        currentDurability = 0f;
+        currentDurability = 0;
 
         if (icon != null)
         {
@@ -193,13 +187,12 @@ public class InventorySlotUI : MonoBehaviour,
 
             if (durabilityFill != null)
             {
-                float percentage =
+                float p =
                     currentItem.maxDurability > 0
                         ? currentDurability / currentItem.maxDurability
                         : 0f;
 
-                durabilityFill.color =
-                    Color.Lerp(Color.red, Color.green, percentage);
+                durabilityFill.color = Color.Lerp(Color.red, Color.green, p);
             }
         }
         else if (durabilitySlider != null)
@@ -241,9 +234,7 @@ public class InventorySlotUI : MonoBehaviour,
         if (isDragging) return;
 
         isHovered = false;
-
         HideDropPreview();
-
         ApplyBackgroundState();
         SetHoverVisual(false);
     }
@@ -252,19 +243,13 @@ public class InventorySlotUI : MonoBehaviour,
     {
         if (slotDropPreviewIcon == null || source == null) return;
 
-        var item = source.GetItem();
-        var ability = source.GetAbility();
-
         slotDropPreviewIcon.enabled = true;
         slotDropPreviewIcon.raycastTarget = false;
-        slotDropPreviewIcon.sprite = item != null ? item.icon : ability.icon;
+        slotDropPreviewIcon.sprite = source.GetItem()?.icon ?? source.GetAbility()?.icon;
         slotDropPreviewIcon.color = new Color(1f, 1f, 1f, 0.35f);
 
-        // ✅ FIX: move preview to slot position
-        RectTransform previewRect = slotDropPreviewIcon.rectTransform;
         RectTransform slotRect = GetComponent<RectTransform>();
-
-        previewRect.position = slotRect.position;
+        slotDropPreviewIcon.rectTransform.position = slotRect.position;
     }
 
     private void HideDropPreview()
@@ -334,18 +319,47 @@ public class InventorySlotUI : MonoBehaviour,
             eventData.pointerDrag.GetComponent<InventorySlotUI>()
             ?? eventData.pointerDrag.GetComponentInParent<InventorySlotUI>();
 
-        if (source != null && source != this)
+        if (source == null || source == this)
+            return;
+
+        ItemData sourceItem = source.GetItem();
+        ItemData targetItem = GetItem();
+
+        // 1. EMPTY SLOT → MOVE
+        if (targetItem == null)
         {
-            var tempItem = currentItem;
-            var tempAbility = currentAbility;
-            var tempCount = currentCount;
-            var tempDurability = currentDurability;
-
-            SetSlot(source.GetItem(), source.GetAbility(), source.GetCount(), source.GetDurability());
-            source.SetSlot(tempItem, tempAbility, tempCount, tempDurability);
-
-            FinalizeStackTransaction(source);
+            SetSlot(sourceItem, source.GetAbility(), source.GetCount(), source.GetDurability());
+            source.ClearSlot();
         }
+        // 2. SAME ITEM + SAME DURABILITY → STACK
+        else if (sourceItem != null && targetItem.itemID == sourceItem.itemID
+                 && GetDurability() == source.GetDurability())
+        {
+            int max = targetItem.maxStackSize;
+            int total = GetCount() + source.GetCount();
+            int clamped = Mathf.Min(total, max);
+            int leftover = total - max;
+
+            SetSlot(targetItem, GetAbility(), clamped, GetDurability());
+
+            if (leftover > 0)
+                source.SetSlot(sourceItem, source.GetAbility(), leftover, source.GetDurability());
+            else
+                source.ClearSlot();
+        }
+        // 3. DIFFERENT ITEM OR DIFFERENT DURABILITY → SWAP
+        else
+        {
+            ItemData tempItem = targetItem;
+            Ability tempAbility = GetAbility();
+            int tempCount = GetCount();
+            int tempDur = GetDurability();
+
+            SetSlot(sourceItem, source.GetAbility(), source.GetCount(), source.GetDurability());
+            source.SetSlot(tempItem, tempAbility, tempCount, tempDur);
+        }
+
+        FinalizeStackTransaction(source);
     }
 
     private void SetHoverVisual(bool state)
@@ -418,5 +432,5 @@ public class InventorySlotUI : MonoBehaviour,
     public ItemData GetItem() => currentItem;
     public Ability GetAbility() => currentAbility;
     public int GetCount() => currentCount;
-    public float GetDurability() => currentDurability;
+    public int GetDurability() => currentDurability;
 }

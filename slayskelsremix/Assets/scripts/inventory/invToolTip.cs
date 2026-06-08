@@ -46,16 +46,14 @@ public class invToolTip : MonoBehaviour
 
         titleText.text = $"<size=120%>{item.itemName}</size>";
         typeText.text = $"<size=90%>{item.itemType}</size>";
-        descriptionText.text = $"<size=80%>{GenerateDescription(item, currentDurability)}</size>";
+
+        // Wrapped in both <i> (cursive) and <color=#C0C0C0> (silver)
+        descriptionText.text = $"<size=80%><color=#C0C0C0><i>{GenerateDescription(item, currentDurability)}</i></color></size>";
 
         iconImage.gameObject.SetActive(item.icon != null);
-
-        if (item.icon != null)
-            iconImage.sprite = item.icon;
+        if (item.icon != null) iconImage.sprite = item.icon;
 
         gameObject.SetActive(true);
-
-        // Force TMP refresh before calculating line count
         Canvas.ForceUpdateCanvases();
 
         int totalLines = descriptionText.textInfo.lineCount;
@@ -63,10 +61,7 @@ public class invToolTip : MonoBehaviour
 
         if (backgroundRect != null)
         {
-            backgroundRect.sizeDelta = new Vector2(
-                backgroundRect.sizeDelta.x,
-                calculatedHeight
-            );
+            backgroundRect.sizeDelta = new Vector2(backgroundRect.sizeDelta.x, calculatedHeight);
         }
     }
 
@@ -81,12 +76,15 @@ public class invToolTip : MonoBehaviour
     {
         string desc = "";
 
+        // Wrap the content in <i> tags so ONLY this text is cursive
+        string content = "";
+
         // =====================================================
         // BASE ITEM DESCRIPTION
         // =====================================================
         if (!string.IsNullOrWhiteSpace(item.ItemDescription))
         {
-            desc += item.ItemDescription;
+            content += item.ItemDescription;
         }
 
         // =====================================================
@@ -94,47 +92,45 @@ public class invToolTip : MonoBehaviour
         // =====================================================
         if (item is UseableItem u && u.abilityToExecute != null)
         {
-            // Add spacing if description already exists
-            if (!string.IsNullOrEmpty(desc))
-                desc += "\n\n";
+            if (!string.IsNullOrEmpty(content))
+                content += "\n\n";
 
-            // Custom provider
             if (u.abilityToExecute is IItemDescriptionProvider p)
             {
-                desc += p.GetDetailedDescription();
+                content += p.GetDetailedDescription();
             }
             else
             {
-                // Example ranged weapon stats
                 if (u.abilityToExecute is offensiveRanged r)
-                    desc += $"Damage: {r.damage}\n";
+                    content += $"Damage: {r.damage}\n";
 
-                desc += $"Use Rate: {u.useRate}s";
+                content += $"Use Rate: {u.useRate}s";
             }
         }
         else if (item is IItemDescriptionProvider ip)
         {
-            if (!string.IsNullOrEmpty(desc))
-                desc += "\n\n";
+            if (!string.IsNullOrEmpty(content))
+                content += "\n\n";
 
-            desc += ip.GetDetailedDescription();
+            content += ip.GetDetailedDescription();
         }
 
         // =====================================================
         // DURABILITY
         // =====================================================
-        if (!string.IsNullOrEmpty(desc))
-            desc += "\n\n";
+        if (!string.IsNullOrEmpty(content))
+            content += "\n\n";
 
         if (item.IsUnbreakable)
         {
-            desc += "Unbreakable";
+            content += "Unbreakable";
         }
         else
         {
-            desc += $"Durability: {currentDurability}/{item.maxDurability}";
+            content += $"Durability: {currentDurability}/{item.maxDurability}";
         }
 
-        return desc.Trim();
+        // Apply italics to the accumulated content block
+        return $"<i>{content.Trim()}</i>";
     }
 }

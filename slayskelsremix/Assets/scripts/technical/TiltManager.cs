@@ -101,7 +101,6 @@ public class TiltManager : MonoBehaviour
             return;
         }
 
-        // 🔥 NEW: BLOCK UI INTERACTION (IMPORTANT FIX)
         if (IsPointerOverUI())
         {
             clickHeld = false;
@@ -152,10 +151,9 @@ public class TiltManager : MonoBehaviour
         ItemData item = hotbar.GetSelectedItem();
 
         return item is UseableItem usable &&
-               usable.abilityToExecute is ShowelSO;
+               usable.abilityToExecute is ShovelSO;
     }
 
-    // 🔥 IMPORTANT FIX: prevents inventory drag / UI interaction
     bool IsPointerOverUI()
     {
         return EventSystem.current != null &&

@@ -5,9 +5,9 @@ public class ChestSlot
 {
     public ItemData item;
     public int count;
-    public float durability;
+    public int durability;
 
-    public ChestSlot(ItemData item, int count, float durability = -1f)
+    public ChestSlot(ItemData item, int count, int durability = -1)
     {
         this.item = item;
         this.count = count;

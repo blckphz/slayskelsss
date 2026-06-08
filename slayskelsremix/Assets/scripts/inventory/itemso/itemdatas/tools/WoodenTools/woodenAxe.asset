@@ -14,12 +14,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::UseableItem
   itemID: 12345
   itemName: Wooden Axe
+  ItemDescription: 
   icon: {fileID: 21300000, guid: 53b9020bb5be29f4ca073d1b08b11fa8, type: 3}
   DragStartSound: {fileID: 8300000, guid: b6077688e31a75c4997ca56a89c46a0e, type: 3}
   DragEndSound: {fileID: 0}
   itemType: 0
   maxStackSize: 99
+  usesDurability: 1
+  maxDurability: 10
   isUsable: 1
   consumeAmount: 0
-  maxDurability: 10
   abilityToExecute: {fileID: 11400000, guid: 7e01b482a0ff8d94d8c4718317374df0, type: 2}

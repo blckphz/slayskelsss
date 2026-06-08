@@ -120,7 +120,7 @@ public class ChestSlotUI : MonoBehaviour, IPointerClickHandler, IBeginDragHandle
         {
             ItemData item = playerSlot.GetItem();
             int count = playerSlot.GetCount();
-            float itemDurability = playerSlot.GetDurability();
+            int itemDurability = playerSlot.GetDurability();
 
             ChestInventory chest = ChestUI.Instance.GetCurrentChest();
             if (chest != null)
