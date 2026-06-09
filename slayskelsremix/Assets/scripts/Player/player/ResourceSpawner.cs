@@ -20,10 +20,15 @@ public class ResourceSpawner : MonoBehaviour
 
     public List<ResourceEntry> resources = new List<ResourceEntry>();
 
+    [Header("Blocking")]
+    public LayerMask spawnBlockLayers;
+    public float blockCheckRadius = 0.2f;
+
     [Header("Time Reference")]
     public DayNightCycle dayNightCycle;
 
     private int lastDay = -1;
+    private bool hasLoadedSave = false;
 
     void Start()
     {
@@ -32,6 +37,10 @@ public class ResourceSpawner : MonoBehaviour
 
         if (dayNightCycle != null)
             lastDay = dayNightCycle.DaysPassed;
+
+        hasLoadedSave =
+            BuildingSaveManager.Instance != null &&
+            BuildingSaveManager.Instance.GetSaveData() != null;
 
         StartCoroutine(SpawnAfterLoad());
     }
@@ -46,15 +55,18 @@ public class ResourceSpawner : MonoBehaviour
         if (dayNightCycle == null)
             return;
 
-        // IMPORTANT: don't respawn if world is loaded from save
-        if (BuildingSaveManager.Instance != null &&
-            BuildingSaveManager.Instance.HasSaveFile())
-            return;
-
         if (dayNightCycle.DaysPassed != lastDay)
         {
             lastDay = dayNightCycle.DaysPassed;
-            SpawnResources();
+
+            if (hasLoadedSave)
+            {
+                SpawnSinglePerType();
+            }
+            else
+            {
+                SpawnResources(true);
+            }
         }
     }
 
@@ -62,17 +74,22 @@ public class ResourceSpawner : MonoBehaviour
     {
         yield return new WaitForSeconds(0.1f);
 
-        // ONLY spawn in new worlds
-        if (BuildingSaveManager.Instance != null &&
-            BuildingSaveManager.Instance.HasSaveFile())
+        if (hasLoadedSave)
         {
-            yield break;
+            SpawnSinglePerType();
         }
-
-        SpawnResources();
+        else
+        {
+            SpawnResources(true);
+        }
     }
 
-    void SpawnResources()
+    // =========================================================
+    // MAIN SPAWN FUNCTION
+    // bulkMode = true  -> initial world gen (full spawning)
+    // bulkMode = false -> spawn only 1 per resource type
+    // =========================================================
+    void SpawnResources(bool bulkMode)
     {
         if (BuildingSaveManager.Instance == null)
             return;
@@ -84,7 +101,6 @@ public class ResourceSpawner : MonoBehaviour
         {
             List<Vector3> validPositions = new List<Vector3>();
 
-            // COLLECT VALID POSITIONS
             foreach (Vector3Int pos in bounds.allPositionsWithin)
             {
                 if (!tilemap.HasTile(pos))
@@ -105,7 +121,10 @@ public class ResourceSpawner : MonoBehaviour
 
             foreach (Vector3 pos in validPositions)
             {
-                if (spawned >= entry.maxSpawnCount)
+                if (!bulkMode && spawned >= 1)
+                    break;
+
+                if (bulkMode && spawned >= entry.maxSpawnCount)
                     break;
 
                 if (IsTooClose(pos, entry.minDistance))
@@ -121,7 +140,8 @@ public class ResourceSpawner : MonoBehaviour
                 if (alreadyExists)
                     continue;
 
-                if (Physics2D.OverlapCircle(pos, 0.2f) != null)
+                // ✅ NEW LAYERMASK BLOCK CHECK
+                if (Physics2D.OverlapCircle(pos, blockCheckRadius, spawnBlockLayers) != null)
                     continue;
 
                 GameObject obj = Instantiate(entry.prefab, pos, Quaternion.identity);
@@ -136,6 +156,12 @@ public class ResourceSpawner : MonoBehaviour
         }
 
         BuildingSaveManager.Instance.SaveAfterChange();
+    }
+
+    // Convenience wrapper for clarity
+    void SpawnSinglePerType()
+    {
+        SpawnResources(false);
     }
 
     // ================= HELPERS =================

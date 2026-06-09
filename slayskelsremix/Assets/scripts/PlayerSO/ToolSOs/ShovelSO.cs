@@ -22,7 +22,6 @@ public class ShovelSO : ToolsSO, IItemDescriptionProvider
 
     public override bool ExecuteSecondary(Transform caster)
     {
-        Debug.Log("[Shovel] Secondary Triggered");
 
         if (!BuildState.IsBuildMode)
             return false;

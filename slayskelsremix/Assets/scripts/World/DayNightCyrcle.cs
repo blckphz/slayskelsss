@@ -6,7 +6,6 @@ public class DayNightCycle : MonoBehaviour
 {
     [Header("Time Settings")]
     public float dayDuration = 60f;
-    public float startTimePercent = 0.25f;
 
     [Header("References")]
     public Light2D globalLight;
@@ -17,13 +16,8 @@ public class DayNightCycle : MonoBehaviour
     public TextMeshProUGUI timeText;
 
     public float TotalTime { get; private set; }
-    private float _rawTime;
+    public float RawTime { get; private set; }
     public int DaysPassed { get; private set; }
-
-    void Start()
-    {
-        LoadGame();
-    }
 
     void Update()
     {
@@ -36,59 +30,50 @@ public class DayNightCycle : MonoBehaviour
     {
         float delta = Time.deltaTime / dayDuration;
 
-        _rawTime += delta;
+        RawTime += delta;
         TotalTime += delta;
 
-        if (_rawTime >= 1f)
+        if (RawTime >= 1f)
         {
-            _rawTime -= 1f;
+            RawTime -= 1f;
             DaysPassed++;
-
         }
     }
 
     private void ApplyLighting()
     {
-        if (globalLight != null)
-        {
-            globalLight.color = nightDayColor.Evaluate(_rawTime);
-            globalLight.intensity = intensityCurve.Evaluate(_rawTime);
-        }
-        else
-        {
-            Debug.LogWarning("[DayNightCycle] Global Light reference is missing!");
-        }
+        if (globalLight == null) return;
+
+        globalLight.color = nightDayColor.Evaluate(RawTime);
+        globalLight.intensity = intensityCurve.Evaluate(RawTime);
     }
 
     private void UpdateUI()
     {
-        if (timeText != null)
-        {
-            // Convert _rawTime (0–1) into 24-hour clock
-            int hours = Mathf.FloorToInt(_rawTime * 24f);
-            int minutes = Mathf.FloorToInt((_rawTime * 24f - hours) * 60f);
+        if (timeText == null) return;
 
-            timeText.text = $"Day {DaysPassed + 1}";
-        }
+        int totalHours = Mathf.FloorToInt(RawTime * 24f);
+
+        int hour12 = totalHours % 12;
+        if (hour12 == 0) hour12 = 12;
+
+        string period = totalHours >= 12 ? "PM" : "AM";
+
+        timeText.text = $"Day {DaysPassed + 1} {hour12:00} {period}";
     }
 
-    public void SaveGame()
+    // Called by your save system
+    public void LoadTime(float total, float raw, int days)
     {
-        PlayerPrefs.SetFloat("TotalTime", TotalTime);
-        PlayerPrefs.SetFloat("RawTime", _rawTime);
-        PlayerPrefs.SetInt("DaysPassed", DaysPassed);
-        PlayerPrefs.Save();
+        TotalTime = total;
+        RawTime = raw;
+        DaysPassed = days;
     }
 
-    public void LoadGame()
+    public void GetTime(out float total, out float raw, out int days)
     {
-        TotalTime = PlayerPrefs.GetFloat("TotalTime", startTimePercent);
-        _rawTime = PlayerPrefs.GetFloat("RawTime", startTimePercent);
-        DaysPassed = PlayerPrefs.GetInt("DaysPassed", 0);
-    }
-
-    private void OnApplicationQuit()
-    {
-        SaveGame();
+        total = TotalTime;
+        raw = RawTime;
+        days = DaysPassed;
     }
 }

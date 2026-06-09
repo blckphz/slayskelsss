@@ -20,11 +20,11 @@ MonoBehaviour:
   prefab: {fileID: 233725004081931323, guid: 49947f31aaae6ec46b59d342ab70058a, type: 3}
   staminaUsed: 0
   damage: 10
+  maxSwings: 2
+  swingFreq: 0.3
   customAudioLogic: 0
-  maxSwings: 1
-  swingFreq: 0.4
   spawnOffset: 1.5
   rotationOffset: 90
-  missCooldownMultiplier: 0.65
+  missCooldownMultiplier: 0.792
   toolType: 0
   holeBuild: {fileID: 11400000, guid: 058c1c778993d494c8ff4b1f4dd93b48, type: 2}

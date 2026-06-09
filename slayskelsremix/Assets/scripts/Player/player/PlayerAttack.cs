@@ -19,21 +19,18 @@ public class PlayerAttack : MonoBehaviour
     {
         movement = GetComponent<PlayerMovement>();
 
-        Debug.Log("[PlayerAttack] Awake");
     }
 
     void Start()
     {
         cooldownEndTime.Clear();
 
-        Debug.Log("[PlayerAttack] Start -> Cooldowns cleared");
     }
 
     void OnEnable()
     {
         cooldownEndTime.Clear();
 
-        Debug.Log("[PlayerAttack] Enabled -> Cooldowns cleared");
     }
 
     void Update()

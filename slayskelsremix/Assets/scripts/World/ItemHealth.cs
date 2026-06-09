@@ -74,16 +74,6 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
         maxHealth = health;
     }
 
-#if UNITY_EDITOR
-    protected virtual void OnValidate()
-    {
-        if (Application.isPlaying)
-            return;
-
-        GenerateUniqueIDIfNeeded();
-    }
-#endif
-
     protected virtual void Start()
     {
         GenerateUniqueIDIfNeeded();

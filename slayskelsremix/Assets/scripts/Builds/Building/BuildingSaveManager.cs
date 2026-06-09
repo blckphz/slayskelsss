@@ -41,13 +41,15 @@ public class BuildingSaveManager : MonoBehaviour
 
     private void Start()
     {
+        Debug.Log("[SAVE MANAGER] LoadEverything() called");
         LoadEverything();
     }
 
     public void RegisterBuilding(GameObject obj)
     {
         if (obj == null) return;
-        if (!placedObjects.Contains(obj)) placedObjects.Add(obj);
+        if (!placedObjects.Contains(obj))
+            placedObjects.Add(obj);
     }
 
     public void UnregisterBuilding(GameObject obj)
@@ -59,18 +61,24 @@ public class BuildingSaveManager : MonoBehaviour
     // =====================================================
     // SAVE
     // =====================================================
-
     public void SaveNow()
     {
+        Debug.Log("========== SAVE START ==========");
+
         SaveData data = new SaveData();
 
+        // =========================
+        // PLAYER
+        // =========================
         if (player != null)
             data.playerPosition = player.position;
 
         placedObjects.RemoveAll(x => x == null);
 
+        Debug.Log("[SAVE] placedObjects count: " + placedObjects.Count);
+
         // =========================
-        // BUILDINGS + PLANTS (UNIFIED SYSTEM)
+        // BUILDINGS
         // =========================
         foreach (GameObject obj in placedObjects)
         {
@@ -92,27 +100,33 @@ public class BuildingSaveManager : MonoBehaviour
             data.buildings.Add(b);
         }
 
+        Debug.Log("[SAVE] Buildings saved: " + data.buildings.Count);
+
         // =========================
-        // NPCs
+        // PLANTS
+        // =========================
+        var plants = FindObjectsByType<PlantBehav>(FindObjectsSortMode.None);
+
+        foreach (var plant in plants)
+        {
+            if (plant == null) continue;
+            data.plants.Add(plant.GetPlantSaveData());
+        }
+
+        Debug.Log("[SAVE] Plants saved: " + data.plants.Count);
+
+        // =========================
+        // OTHER SYSTEMS
         // =========================
         foreach (NpcInvBrain npc in FindObjectsByType<NpcInvBrain>(FindObjectsSortMode.None))
             data.npcInventories.Add(npc.GetSaveData());
 
-        // =========================
-        // BUSHES
-        // =========================
         foreach (BushBehav bush in FindObjectsByType<BushBehav>(FindObjectsSortMode.None))
             data.bushes.Add(bush.GetSaveData());
 
-        // =========================
-        // LEAVES
-        // =========================
         foreach (leafbehav leaf in FindObjectsByType<leafbehav>(FindObjectsSortMode.None))
             data.leafdata.Add(leaf.GetSaveData());
 
-        // =========================
-        // STONES
-        // =========================
         foreach (stoneWORLDobjectbehav stone in FindObjectsByType<stoneWORLDobjectbehav>(FindObjectsSortMode.None))
             data.stonedata.Add(stone.GetSaveData());
 
@@ -144,27 +158,40 @@ public class BuildingSaveManager : MonoBehaviour
         if (tiltManager != null)
             data.soilTiles = tiltManager.GetSaveData();
 
+        // =====================================================
+        // ✅ TIME SAVE (ADDED)
+        // =====================================================
+        var time = FindFirstObjectByType<DayNightCycle>();
+        if (time != null)
+        {
+            time.GetTime(out data.totalTime, out data.rawTime, out data.daysPassed);
+        }
+
         cachedData = data;
 
-        File.WriteAllText(savePath, JsonUtility.ToJson(data, true));
-
-        Debug.Log("WORLD SAVED");
+        string json = JsonUtility.ToJson(data, true);
+        File.WriteAllText(savePath, json);
     }
 
     // =====================================================
     // LOAD
     // =====================================================
-
     public void LoadEverything()
     {
+        Debug.Log("========== LOAD START ==========");
+
         if (!File.Exists(savePath))
         {
+            Debug.LogWarning("[LOAD] NO SAVE FILE FOUND");
             HasLoadedWorld = true;
             OnWorldLoaded?.Invoke();
             return;
         }
 
-        cachedData = JsonUtility.FromJson<SaveData>(File.ReadAllText(savePath));
+        string json = File.ReadAllText(savePath);
+        cachedData = JsonUtility.FromJson<SaveData>(json);
+
+        Debug.Log("[LOAD] Plants in save: " + cachedData.plants.Count);
 
         // =========================
         // PLAYER
@@ -180,7 +207,7 @@ public class BuildingSaveManager : MonoBehaviour
         }
 
         // =========================
-        // BUILDINGS + PLANTS
+        // BUILDINGS
         // =========================
         foreach (var b in cachedData.buildings)
         {
@@ -204,7 +231,29 @@ public class BuildingSaveManager : MonoBehaviour
         }
 
         // =========================
-        // NPCs
+        // PLANTS
+        // =========================
+        foreach (var p in cachedData.plants)
+        {
+            GameObject prefab = Resources.FindObjectsOfTypeAll<GameObject>()
+                .FirstOrDefault(x => x.name == p.plantPrefabName);
+
+            if (prefab == null)
+            {
+                Debug.LogError("[PLANT LOAD] Missing prefab: " + p.plantPrefabName);
+                continue;
+            }
+
+            GameObject plantObj = Instantiate(prefab, p.position, Quaternion.identity);
+
+            if (plantObj.TryGetComponent(out PlantBehav plant))
+            {
+                plant.LoadPlantSaveData(p);
+            }
+        }
+
+        // =========================
+        // OTHER SYSTEMS
         // =========================
         foreach (NpcInvBrain npc in FindObjectsByType<NpcInvBrain>(FindObjectsSortMode.None))
         {
@@ -215,14 +264,11 @@ public class BuildingSaveManager : MonoBehaviour
                 npc.LoadFromSave(save, database);
         }
 
-        // =========================
-        // BUSHES
-        // =========================
         foreach (BushSaveData s in cachedData.bushes)
         {
             BushBehav existing =
                 FindObjectsByType<BushBehav>(FindObjectsSortMode.None)
-                .FirstOrDefault(b => b.UniqOverworldItemID == s.uniqID);
+                .FirstOrDefault(bu => bu.UniqOverworldItemID == s.uniqID);
 
             if (existing != null) existing.LoadData(s);
             else if (bushPrefab != null)
@@ -232,9 +278,6 @@ public class BuildingSaveManager : MonoBehaviour
             }
         }
 
-        // =========================
-        // LEAVES
-        // =========================
         foreach (LeafData l in cachedData.leafdata)
         {
             if (l.destroyed) continue;
@@ -243,9 +286,6 @@ public class BuildingSaveManager : MonoBehaviour
             if (leafObj.TryGetComponent(out leafbehav leaf)) leaf.LoadData(l);
         }
 
-        // =========================
-        // STONES
-        // =========================
         foreach (stonedata s in cachedData.stonedata)
         {
             if (s.destroyed) continue;
@@ -284,26 +324,25 @@ public class BuildingSaveManager : MonoBehaviour
         if (tiltManager != null && cachedData.soilTiles != null)
             tiltManager.LoadSoilTiles(cachedData.soilTiles);
 
+        // =====================================================
+        // ✅ TIME LOAD (ADDED)
+        // =====================================================
+        var time = FindFirstObjectByType<DayNightCycle>();
+        if (time != null)
+        {
+            time.LoadTime(
+                cachedData.totalTime,
+                cachedData.rawTime,
+                cachedData.daysPassed
+            );
+        }
+
         HasLoadedWorld = true;
         OnWorldLoaded?.Invoke();
 
-        Debug.Log("WORLD LOADED");
+        Debug.Log("========== LOAD END ==========");
     }
 
     public void SaveAfterChange() => SaveNow();
-
-
-    public bool HasSaveFile()
-    {
-        return File.Exists(savePath);
-    }
-
-    public SaveData GetSaveData()
-    {
-        return cachedData;
-    }
-
-
+    public SaveData GetSaveData() => cachedData;
 }
-
-

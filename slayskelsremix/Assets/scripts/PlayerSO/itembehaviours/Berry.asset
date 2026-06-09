@@ -16,11 +16,11 @@ MonoBehaviour:
   description: 
   icon: {fileID: -9150622835112388582, guid: 95646f66d4cd07b4f95f682573973c86, type: 3}
   launchsound: {fileID: 0}
-  fireRate: 0.84
+  fireRate: 0.35
   prefab: {fileID: 1052125020934496716, guid: 06e7bc9639ba5344eafe10ce30ee7b69, type: 3}
   staminaUsed: 0.1
   damage: 2
   projectileSpeed: 15
   pierceCount: 0
   healAmount: 20
-  plantPrefab: {fileID: 8498060712212700713, guid: c622cc0b2f7c9984ba4152e47ef84793, type: 3}
+  plantPrefab: {fileID: 3736862791434242248, guid: cca32dd3f84ab8c458af5a8cfd1e7a02, type: 3}

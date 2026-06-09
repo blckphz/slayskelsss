@@ -35,16 +35,7 @@ public class InventoryManager : MonoBehaviour
 
     private string savePath;
 
-    // =========================================================
-    // DEBUG SYSTEM
-    // =========================================================
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-    void LogDrop(string msg) => Debug.Log($"[DROP DEBUG] {msg}");
 
-    void LogStack(string msg) => Debug.Log($"[STACK DEBUG] {msg}");
-
-    void LogWarn(string msg) => Debug.LogWarning($"[INV WARN] {msg}");
-#endif
 
     void Awake()
     {
@@ -86,27 +77,16 @@ public class InventoryManager : MonoBehaviour
 
         if (slot.item.itemID != data.itemID)
         {
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-            LogStack($"{data.itemName} blocked → different item ID");
-#endif
             return false;
         }
 
         if (data.maxDurability <= 0)
         {
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-            LogStack($"{data.itemName} stacks freely (no durability)");
-#endif
             return true;
         }
 
         bool match = Mathf.Approximately(slot.currentDurability, durability);
 
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-        LogStack(
-            $"{data.itemName} durability check | Incoming: {durability} | Slot: {slot.currentDurability} | RESULT: {match}"
-        );
-#endif
 
         return match;
     }
@@ -120,9 +100,6 @@ public class InventoryManager : MonoBehaviour
 
         int durability = (int)Mathf.Max(customDurability, data.maxDurability);
 
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-        LogDrop($"ADDING {amount}x {data.itemName} | Durability: {durability}");
-#endif
 
         StackItem(data, amount, durability);
 
@@ -150,9 +127,6 @@ public class InventoryManager : MonoBehaviour
                 {
                     int add = Mathf.Min(space, remaining);
 
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-                    LogDrop($"STACK → Slot {i} | +{add} {data.itemName}");
-#endif
 
                     slot.count += add;
                     remaining -= add;
@@ -169,9 +143,6 @@ public class InventoryManager : MonoBehaviour
             {
                 int add = Mathf.Min(remaining, data.maxStackSize);
 
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-                LogDrop($"NEW SLOT {i} → {add}x {data.itemName} | Dur: {durability}");
-#endif
 
                 slot.item = data;
                 slot.count = add;
@@ -183,9 +154,6 @@ public class InventoryManager : MonoBehaviour
 
         if (remaining > 0)
         {
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-            LogWarn($"Inventory FULL → lost {remaining}x {data.itemName}");
-#endif
         }
     }
 

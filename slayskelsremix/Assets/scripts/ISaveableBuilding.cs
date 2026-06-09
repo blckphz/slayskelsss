@@ -5,12 +5,12 @@
     void GetSaveData(
         out int ammo,
         out float progress,
-        out int durability // 👈 Added parameter to track structural wear
+        out int durability
     );
 
     void LoadSaveData(
         int ammo,
         float progress,
-        int durability // 👈 Added parameter to restore structural wear
+        int durability
     );
 }

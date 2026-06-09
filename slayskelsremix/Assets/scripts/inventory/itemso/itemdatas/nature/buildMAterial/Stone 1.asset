@@ -14,9 +14,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::UseableItem
   itemID: 201
   itemName: Stone
+  ItemDescription: Rock & Stone
   icon: {fileID: 21300000, guid: 26c91eaec167ced42a3b7e7dea241553, type: 3}
-  itemType: 2
+  DragStartSound: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
+  DragEndSound: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
+  itemType: 0
   maxStackSize: 99
+  usesDurability: 0
+  maxDurability: 0
   isUsable: 1
   consumeAmount: 1
   abilityToExecute: {fileID: 11400000, guid: 840e766df5259c34192448d901bff02a, type: 2}

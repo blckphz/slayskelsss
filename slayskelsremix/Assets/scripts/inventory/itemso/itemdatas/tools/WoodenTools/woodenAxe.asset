@@ -14,10 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::UseableItem
   itemID: 12345
   itemName: Wooden Axe
-  ItemDescription: 
+  ItemDescription: Cenarius
   icon: {fileID: 21300000, guid: 53b9020bb5be29f4ca073d1b08b11fa8, type: 3}
-  DragStartSound: {fileID: 8300000, guid: b6077688e31a75c4997ca56a89c46a0e, type: 3}
-  DragEndSound: {fileID: 0}
+  DragStartSound: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
+  DragEndSound: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
   itemType: 0
   maxStackSize: 99
   usesDurability: 1

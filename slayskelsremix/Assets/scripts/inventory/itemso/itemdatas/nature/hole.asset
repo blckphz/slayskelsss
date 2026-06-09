@@ -14,11 +14,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::buildSO
   itemID: 8989
   itemName: hole
+  ItemDescription: 
   icon: {fileID: 21300000, guid: 0c03bca100e88e148afa6b23653b2633, type: 3}
+  DragStartSound: {fileID: 0}
+  DragEndSound: {fileID: 0}
   itemType: 1
   maxStackSize: 99
+  usesDurability: 0
+  maxDurability: 0
   isUsable: 0
   consumeAmount: 0
   placeablePrefab: {fileID: 3237185649435942029, guid: 0cee618961c94bd4fbb0fe25ed7de709, type: 3}
   size: {x: 1, y: 1}
-  placementSound: {fileID: 0}
+  placementSound: {fileID: 8300000, guid: 5da4c08461c97e54a82a9db6bcc16051, type: 3}

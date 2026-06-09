@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::UseableItem
   itemID: 0
   itemName: Wooden Pickaxe
-  ItemDescription: the stones, the trees, it al lives
+  ItemDescription: dark as a dungeon
   icon: {fileID: 21300000, guid: c700d5420735d5d4ba47b364178862e8, type: 3}
   DragStartSound: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
   DragEndSound: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}

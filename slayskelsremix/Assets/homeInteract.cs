@@ -1,16 +1,41 @@
+﻿using System.Collections;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 public class homeInteract : MonoBehaviour
 {
+    [SerializeField] private float saveInterval = 5f;
+    [SerializeField] private float fadeSpeed = 2f;
+
     private bool playerInside;
+    private float nextSaveTime;
+
+    private CanvasGroup saveIconGroup;
+    private Coroutine fadeRoutine;
+
+    private void Start()
+    {
+        GameObject saveIcon = GameObject.Find("SaveIcon");
+
+        if (saveIcon != null)
+        {
+            saveIconGroup = saveIcon.GetComponent<CanvasGroup>();
+
+            if (saveIconGroup != null)
+            {
+                saveIconGroup.alpha = 0f;
+            }
+        }
+    }
 
     private void OnTriggerEnter2D(Collider2D other)
     {
         if (!other.CompareTag("Player")) return;
 
         playerInside = true;
-        InteractionUI.Instance.Show("Press E to save game");
+
+        TrySaveGame();
+
+        nextSaveTime = Time.time + saveInterval;
     }
 
     private void OnTriggerExit2D(Collider2D other)
@@ -18,6 +43,7 @@ public class homeInteract : MonoBehaviour
         if (!other.CompareTag("Player")) return;
 
         playerInside = false;
+
         InteractionUI.Instance.Hide();
     }
 
@@ -25,23 +51,57 @@ public class homeInteract : MonoBehaviour
     {
         if (!playerInside) return;
 
-        if (Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
+        if (Time.time >= nextSaveTime)
         {
-            if (BuildingSaveManager.Instance != null)
-            {
-                BuildingSaveManager.Instance.SaveNow();
-            }
-
-            InteractionUI.Instance.Show("Game Saved!");
-
-            // re-show prompt after short delay feel
-            Invoke(nameof(ShowPromptAgain), 1.2f);
+            TrySaveGame();
+            nextSaveTime = Time.time + saveInterval;
         }
     }
 
-    private void ShowPromptAgain()
+    private void TrySaveGame()
     {
-        if (playerInside)
-            InteractionUI.Instance.Show("Press E to save game");
+        if (BuildingSaveManager.Instance != null)
+        {
+            BuildingSaveManager.Instance.SaveNow();
+        }
+
+
+        ShowSaveIconFade();
+
     }
+
+    private void ShowSaveIconFade()
+    {
+        if (saveIconGroup == null) return;
+
+        if (fadeRoutine != null)
+            StopCoroutine(fadeRoutine);
+
+        fadeRoutine = StartCoroutine(FadeSaveIcon());
+    }
+
+    private IEnumerator FadeSaveIcon()
+    {
+        // Fade IN (0 → 1)
+        float t = 0f;
+        while (t < 1f)
+        {
+            t += Time.deltaTime * fadeSpeed;
+            saveIconGroup.alpha = Mathf.Lerp(0f, 1f, t);
+            yield return null;
+        }
+
+        // Hold briefly
+        yield return new WaitForSeconds(0.3f);
+
+        // Fade OUT (1 → 0)
+        t = 0f;
+        while (t < 1f)
+        {
+            t += Time.deltaTime * fadeSpeed;
+            saveIconGroup.alpha = Mathf.Lerp(1f, 0f, t);
+            yield return null;
+        }
+    }
+
 }
