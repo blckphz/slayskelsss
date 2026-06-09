@@ -30,12 +30,24 @@ public class BuildingData
     public int currentAmmo;
     public float plantProgress;
     public int structuralDurability;
+
+    // =========================
+    // CAMPFIRE SAVE DATA
+    // =========================
+    public float fuelAmount;
+    public bool isBurning;
+
+    // MULTI FUEL SUPPORT
+    public List<int> fuelItemIDs = new List<int>();
+
+    // OLD FORMAT BACKWARD COMPATIBILITY
+    public int fuelItemID = -1;
 }
 
 [System.Serializable]
 public class PlantSaveData
 {
-    public string plantPrefabName;   // identifies plant type
+    public string plantPrefabName;
 
     public string plantID;
     public Vector3 position;
