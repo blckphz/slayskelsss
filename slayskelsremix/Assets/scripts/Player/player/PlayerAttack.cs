@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.EventSystems;
 
 public class PlayerAttack : MonoBehaviour
 {
@@ -17,22 +18,31 @@ public class PlayerAttack : MonoBehaviour
     void Awake()
     {
         movement = GetComponent<PlayerMovement>();
+
+        Debug.Log("[PlayerAttack] Awake");
     }
 
     void Start()
     {
         cooldownEndTime.Clear();
+
+        Debug.Log("[PlayerAttack] Start -> Cooldowns cleared");
     }
 
     void OnEnable()
     {
         cooldownEndTime.Clear();
+
+        Debug.Log("[PlayerAttack] Enabled -> Cooldowns cleared");
     }
 
     void Update()
     {
         if (AbilityLoadout.Instance == null)
+        {
+            Debug.LogWarning("[PlayerAttack] AbilityLoadout.Instance is NULL");
             return;
+        }
 
         for (int i = 0; i < fireActions.Length; i++)
         {
@@ -42,35 +52,81 @@ public class PlayerAttack : MonoBehaviour
             Ability ability = AbilityLoadout.Instance.GetAbility(i);
 
             if (ability != null)
+            {
                 HandleInput(fireActions[i], ability);
+            }
         }
     }
 
     private void HandleInput(InputActionReference actionRef, Ability ability)
     {
-        if (actionRef == null || actionRef.action == null)
+        if (actionRef == null)
+        {
+            Debug.LogWarning("[PlayerAttack] Action Reference is NULL");
             return;
+        }
+
+        if (actionRef.action == null)
+        {
+            Debug.LogWarning("[PlayerAttack] Input Action is NULL");
+            return;
+        }
+
+        // BLOCK INPUT WHEN MOUSE OVER UI
+        if (IsPointerOverUI())
+        {
+            if (actionRef.action.IsPressed())
+            {
+                Debug.Log("[PlayerAttack] Attack blocked because pointer is over UI");
+            }
+
+            return;
+        }
 
         if (BuildState.IsBuildMode)
+        {
+            if (actionRef.action.IsPressed())
+            {
+                Debug.Log("[PlayerAttack] Attack blocked because build mode is active");
+            }
+
             return;
+        }
 
         if (!actionRef.action.IsPressed())
             return;
 
         float remaining = GetCooldownRemaining(ability);
+
         if (remaining > 0f)
+        {
+            Debug.Log($"[PlayerAttack] Ability {ability.name} on cooldown: {remaining:F2}s");
             return;
+        }
 
         if (movement != null && !movement.HasEnoughStamina(ability.staminaUsed))
+        {
+            Debug.Log($"[PlayerAttack] Not enough stamina for ability: {ability.name}");
             return;
+        }
+
+        Debug.Log($"[PlayerAttack] Executing ability: {ability.name}");
 
         bool comboFinished = ability.Execute(transform, aimScript.anchor, true);
 
+        Debug.Log($"[PlayerAttack] Ability execute result: {comboFinished}");
+
         if (comboFinished && movement != null)
+        {
             movement.TryUseStamina(ability.staminaUsed);
+
+            Debug.Log($"[PlayerAttack] Used stamina: {ability.staminaUsed}");
+        }
 
         cooldownEndTime[ability] =
             Time.time + ability.fireRate;
+
+        Debug.Log($"[PlayerAttack] Cooldown applied: {ability.fireRate}s");
 
         TriggerCosmetics(ability);
     }
@@ -85,10 +141,33 @@ public class PlayerAttack : MonoBehaviour
 
     private void TriggerCosmetics(Ability ability)
     {
+        Debug.Log($"[PlayerAttack] Triggering cosmetics for: {ability.name}");
+
         if (CameraShaker.Instance != null)
-            CameraShaker.Instance.Shake(screenshakeIntensity, screenshakeDuration);
+        {
+            CameraShaker.Instance.Shake(
+                screenshakeIntensity,
+                screenshakeDuration
+            );
+
+            Debug.Log("[PlayerAttack] Camera shake triggered");
+        }
 
         if (charsetter.Instance != null)
+        {
             charsetter.Instance.TriggerAbilityUsed(ability);
+
+            Debug.Log("[PlayerAttack] Charsetter animation triggered");
+        }
+    }
+
+    private bool IsPointerOverUI()
+    {
+        bool overUI =
+            EventSystem.current != null &&
+            EventSystem.current.IsPointerOverGameObject();
+
+
+        return overUI;
     }
 }

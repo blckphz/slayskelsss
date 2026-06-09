@@ -331,8 +331,17 @@ public class CraftUIManager : MonoBehaviour
 
         foreach (var ing in selectedRecipe.ingredients)
         {
-            int owned =
-                InventoryManager.Instance.GetTotalCount(ing.item);
+            int owned = 0;
+
+            var items = InventoryManager.Instance.GetItems(ing.item);
+
+            foreach (var instance in items)
+            {
+                if (instance.CurrentDurability >= instance.MaxDurability)
+                {
+                    owned += instance.StackCount;
+                }
+            }
 
             string color =
                 owned >= ing.amount ? "white" : "red";

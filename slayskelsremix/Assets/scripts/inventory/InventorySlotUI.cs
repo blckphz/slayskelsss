@@ -16,6 +16,7 @@ public class InventorySlotUI : MonoBehaviour,
     public Image dragPreviewIcon;
     public Image Background;
     public Image SlotItemPrevirew;
+    public Image slotDropPreviewIcon;
 
     [Header("Hover Settings")]
     public float hoverAlpha = 0.8f;
@@ -40,19 +41,13 @@ public class InventorySlotUI : MonoBehaviour,
     public AudioClip dragEndClip;
     public AudioClip dragHoverSlotClip;
 
-    [Header("Drop Preview")]
-    public Image slotDropPreviewIcon;
-
     [Header("Runtime State")]
     [SerializeField] private ItemData currentItem;
     [SerializeField] private Ability currentAbility;
     [SerializeField] private int currentCount;
     [SerializeField] private int currentDurability;
 
-    // ✅ FIXED EMPTY CHECK
     public bool IsEmpty => currentItem == null && currentAbility == null;
-
-    private Coroutine shakeRoutine;
 
     private bool isDragging;
     private bool isHovered;
@@ -60,6 +55,7 @@ public class InventorySlotUI : MonoBehaviour,
     private RectTransform bgRect;
     private Quaternion targetRotation = Quaternion.identity;
 
+    private Coroutine shakeRoutine;
     private static InventorySlotUI lastHoveredDragSlot;
 
     private void Awake()
@@ -187,10 +183,9 @@ public class InventorySlotUI : MonoBehaviour,
 
             if (durabilityFill != null)
             {
-                float p =
-                    currentItem.maxDurability > 0
-                        ? currentDurability / currentItem.maxDurability
-                        : 0f;
+                float p = currentItem.maxDurability > 0
+                    ? (float)currentDurability / currentItem.maxDurability
+                    : 0f;
 
                 durabilityFill.color = Color.Lerp(Color.red, Color.green, p);
             }
@@ -203,6 +198,12 @@ public class InventorySlotUI : MonoBehaviour,
 
     public void OnPointerEnter(PointerEventData eventData)
     {
+        if (isDragging) return;
+
+        isHovered = true;
+        ApplyBackgroundState();
+        SetHoverVisual(true);
+
         if (eventData.pointerDrag != null)
         {
             InventorySlotUI draggingSlot =
@@ -221,12 +222,6 @@ public class InventorySlotUI : MonoBehaviour,
                 }
             }
         }
-
-        if (isDragging) return;
-
-        isHovered = true;
-        ApplyBackgroundState();
-        SetHoverVisual(true);
     }
 
     public void OnPointerExit(PointerEventData eventData)
@@ -248,8 +243,7 @@ public class InventorySlotUI : MonoBehaviour,
         slotDropPreviewIcon.sprite = source.GetItem()?.icon ?? source.GetAbility()?.icon;
         slotDropPreviewIcon.color = new Color(1f, 1f, 1f, 0.35f);
 
-        RectTransform slotRect = GetComponent<RectTransform>();
-        slotDropPreviewIcon.rectTransform.position = slotRect.position;
+        slotDropPreviewIcon.rectTransform.position = GetComponent<RectTransform>().position;
     }
 
     private void HideDropPreview()
@@ -266,7 +260,6 @@ public class InventorySlotUI : MonoBehaviour,
         isHovered = false;
 
         HideDropPreview();
-
         AudioManager.Instance?.PlayUISound(dragStartClip);
 
         if (dragPreviewIcon != null)
@@ -276,7 +269,6 @@ public class InventorySlotUI : MonoBehaviour,
             dragPreviewIcon.raycastTarget = false;
             dragPreviewIcon.transform.position = eventData.position;
             dragPreviewIcon.transform.localScale = Vector3.one;
-            ShakeIcon(dragPreviewIcon);
         }
 
         if (icon != null)
@@ -303,7 +295,6 @@ public class InventorySlotUI : MonoBehaviour,
             icon.color = Color.white;
 
         HideDropPreview();
-
         targetRotation = Quaternion.identity;
         ApplyBackgroundState();
     }
@@ -312,28 +303,25 @@ public class InventorySlotUI : MonoBehaviour,
     {
         HideDropPreview();
 
-        if (eventData.pointerDrag == null)
-            return;
+        if (eventData.pointerDrag == null) return;
 
         InventorySlotUI source =
             eventData.pointerDrag.GetComponent<InventorySlotUI>()
             ?? eventData.pointerDrag.GetComponentInParent<InventorySlotUI>();
 
-        if (source == null || source == this)
-            return;
+        if (source == null || source == this) return;
 
         ItemData sourceItem = source.GetItem();
         ItemData targetItem = GetItem();
 
-        // 1. EMPTY SLOT → MOVE
         if (targetItem == null)
         {
             SetSlot(sourceItem, source.GetAbility(), source.GetCount(), source.GetDurability());
             source.ClearSlot();
         }
-        // 2. SAME ITEM + SAME DURABILITY → STACK
-        else if (sourceItem != null && targetItem.itemID == sourceItem.itemID
-                 && GetDurability() == source.GetDurability())
+        else if (sourceItem != null &&
+                 targetItem.itemID == sourceItem.itemID &&
+                 GetDurability() == source.GetDurability())
         {
             int max = targetItem.maxStackSize;
             int total = GetCount() + source.GetCount();
@@ -347,7 +335,6 @@ public class InventorySlotUI : MonoBehaviour,
             else
                 source.ClearSlot();
         }
-        // 3. DIFFERENT ITEM OR DIFFERENT DURABILITY → SWAP
         else
         {
             ItemData tempItem = targetItem;
@@ -388,36 +375,6 @@ public class InventorySlotUI : MonoBehaviour,
         var c = Background.color;
         c.a = isDragging ? 1f : (isHovered ? hoverAlpha : normalAlpha);
         Background.color = c;
-    }
-
-    private void ShakeIcon(Image target)
-    {
-        if (shakeRoutine != null)
-            StopCoroutine(shakeRoutine);
-
-        shakeRoutine = StartCoroutine(ShakeCoroutine(target.rectTransform));
-    }
-
-    private IEnumerator ShakeCoroutine(RectTransform rect)
-    {
-        Vector3 original = rect.anchoredPosition;
-        float t = 0f;
-
-        while (t < duration)
-        {
-            t += Time.unscaledDeltaTime;
-
-            rect.anchoredPosition =
-                original + new Vector3(
-                    Random.Range(-strength, strength),
-                    Random.Range(-strength, strength),
-                    0
-                );
-
-            yield return null;
-        }
-
-        rect.anchoredPosition = original;
     }
 
     private void FinalizeStackTransaction(InventorySlotUI source)

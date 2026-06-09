@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 212dbb8eb3ab53341acf927840a04f93, type: 3}
+  m_Name: BerrySeeds
+  m_EditorClassIdentifier: Assembly-CSharp::SeedSO
+  itemID: 2250
+  itemName: 
+  ItemDescription: 
+  icon: {fileID: 0}
+  DragStartSound: {fileID: 0}
+  DragEndSound: {fileID: 0}
+  itemType: 0
+  maxStackSize: 99
+  usesDurability: 0
+  maxDurability: 0
+  isUsable: 1
+  consumeAmount: 1
+  plantPrefab: {fileID: 0}
+  growthSprites: []

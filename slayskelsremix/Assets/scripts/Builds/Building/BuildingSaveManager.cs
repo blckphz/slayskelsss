@@ -12,25 +12,6 @@ public class BuildingSaveManager : MonoBehaviour
     [Header("Player Reference")]
     public Transform player;
 
-    [System.Serializable]
-    public class BuildingData
-    {
-        public int itemID;
-        public string uniqueID;
-        public Vector3 position;
-        public int currentAmmo;
-        public float plantProgress;
-        public int structuralDurability;
-        public float fuelAmount;
-        public bool isBurning;
-
-        // ✅ MULTI-FUEL SUPPORT (NEW)
-        public List<int> fuelItemIDs = new List<int>();
-
-        // ❌ OLD FORMAT (kept for backward compatibility)
-        public int fuelItemID;
-    }
-
     [Header("Databases & Prefabs")]
     public ItemDatabase database;
 
@@ -43,7 +24,7 @@ public class BuildingSaveManager : MonoBehaviour
     [Header("Tilemap Saving")]
     public TiltManager tiltManager;
 
-    private List<GameObject> placedBuildings = new List<GameObject>();
+    private readonly List<GameObject> placedObjects = new();
 
     private string savePath;
     private SaveData cachedData;
@@ -52,13 +33,8 @@ public class BuildingSaveManager : MonoBehaviour
 
     private void Awake()
     {
-        if (Instance == null)
-            Instance = this;
-        else
-        {
-            Destroy(gameObject);
-            return;
-        }
+        if (Instance == null) Instance = this;
+        else { Destroy(gameObject); return; }
 
         savePath = Application.persistentDataPath + "/buildings.json";
     }
@@ -68,26 +44,22 @@ public class BuildingSaveManager : MonoBehaviour
         LoadEverything();
     }
 
-    public bool HasSaveFile()
-    {
-        return File.Exists(savePath);
-    }
-
     public void RegisterBuilding(GameObject obj)
     {
-        if (obj != null && !placedBuildings.Contains(obj))
-            placedBuildings.Add(obj);
+        if (obj == null) return;
+        if (!placedObjects.Contains(obj)) placedObjects.Add(obj);
     }
 
     public void UnregisterBuilding(GameObject obj)
     {
-        if (obj != null)
-            placedBuildings.Remove(obj);
+        if (obj == null) return;
+        placedObjects.Remove(obj);
     }
 
-    // =========================================================
+    // =====================================================
     // SAVE
-    // =========================================================
+    // =====================================================
+
     public void SaveNow()
     {
         SaveData data = new SaveData();
@@ -95,81 +67,70 @@ public class BuildingSaveManager : MonoBehaviour
         if (player != null)
             data.playerPosition = player.position;
 
-        placedBuildings.RemoveAll(x => x == null);
+        placedObjects.RemoveAll(x => x == null);
 
-        foreach (GameObject obj in placedBuildings)
+        // =========================
+        // BUILDINGS + PLANTS (UNIFIED SYSTEM)
+        // =========================
+        foreach (GameObject obj in placedObjects)
         {
-            if (obj == null) continue;
+            if (!obj.TryGetComponent(out ISaveableBuilding saveable))
+                continue;
 
             BuildingData b = new BuildingData
             {
-                position = obj.transform.position
+                position = obj.transform.position,
+                itemID = saveable.GetItemID()
             };
 
-            if (obj.TryGetComponent(out ISaveableBuilding saveable))
-            {
-                b.itemID = saveable.GetItemID();
-
-                saveable.GetSaveData(
-                    out b.currentAmmo,
-                    out b.plantProgress,
-                    out b.structuralDurability
-                );
-            }
-
-            // ---------------- CAMPFIRE SAVE ----------------
-            if (obj.TryGetComponent(out CampfireBehav campfire))
-            {
-                b.fuelAmount = campfire.fuelAmount;
-                b.isBurning = campfire.isBurning;
-
-                // NEW: save ALL valid fuel types
-                b.fuelItemIDs = new List<int>();
-                foreach (var fuel in campfire.validFuelItems)
-                {
-                    if (fuel != null)
-                        b.fuelItemIDs.Add(fuel.itemID);
-                }
-
-                // OLD fallback (first fuel type)
-                b.fuelItemID =
-                    (campfire.validFuelItems != null &&
-                     campfire.validFuelItems.Count > 0 &&
-                     campfire.validFuelItems[0] != null)
-                    ? campfire.validFuelItems[0].itemID
-                    : -1;
-            }
+            saveable.GetSaveData(
+                out b.currentAmmo,
+                out b.plantProgress,
+                out b.structuralDurability
+            );
 
             data.buildings.Add(b);
         }
 
+        // =========================
+        // NPCs
+        // =========================
         foreach (NpcInvBrain npc in FindObjectsByType<NpcInvBrain>(FindObjectsSortMode.None))
             data.npcInventories.Add(npc.GetSaveData());
 
+        // =========================
+        // BUSHES
+        // =========================
         foreach (BushBehav bush in FindObjectsByType<BushBehav>(FindObjectsSortMode.None))
             data.bushes.Add(bush.GetSaveData());
 
+        // =========================
+        // LEAVES
+        // =========================
         foreach (leafbehav leaf in FindObjectsByType<leafbehav>(FindObjectsSortMode.None))
             data.leafdata.Add(leaf.GetSaveData());
 
+        // =========================
+        // STONES
+        // =========================
         foreach (stoneWORLDobjectbehav stone in FindObjectsByType<stoneWORLDobjectbehav>(FindObjectsSortMode.None))
             data.stonedata.Add(stone.GetSaveData());
 
-        HashSet<string> seenTreeIDs = new HashSet<string>();
+        // =========================
+        // TREES
+        // =========================
+        HashSet<string> seenTreeIDs = new();
 
         foreach (treeItemBehav tree in FindObjectsByType<treeItemBehav>(FindObjectsSortMode.None))
         {
             var t = tree.GetSaveData();
-            if (!seenTreeIDs.Add(t.treeID.ToString()))
-                continue;
-
+            if (!seenTreeIDs.Add(t.treeID.ToString())) continue;
             data.trees.Add(t);
         }
 
         foreach (TreeStumpRegrow stump in FindObjectsByType<TreeStumpRegrow>(FindObjectsSortMode.None))
         {
-            if (!seenTreeIDs.Add(stump.treeID.ToString()))
-                continue;
+            if (!seenTreeIDs.Add(stump.treeID.ToString())) continue;
 
             data.trees.Add(new TreeSaveData
             {
@@ -186,11 +147,14 @@ public class BuildingSaveManager : MonoBehaviour
         cachedData = data;
 
         File.WriteAllText(savePath, JsonUtility.ToJson(data, true));
+
+        Debug.Log("WORLD SAVED");
     }
 
-    // =========================================================
+    // =====================================================
     // LOAD
-    // =========================================================
+    // =====================================================
+
     public void LoadEverything()
     {
         if (!File.Exists(savePath))
@@ -200,12 +164,14 @@ public class BuildingSaveManager : MonoBehaviour
             return;
         }
 
-        string json = File.ReadAllText(savePath);
-        cachedData = JsonUtility.FromJson<SaveData>(json);
+        cachedData = JsonUtility.FromJson<SaveData>(File.ReadAllText(savePath));
 
+        // =========================
+        // PLAYER
+        // =========================
         if (player != null)
         {
-            CharacterController cc = player.GetComponent<CharacterController>();
+            var cc = player.GetComponent<CharacterController>();
             if (cc != null) cc.enabled = false;
 
             player.position = cachedData.playerPosition;
@@ -213,117 +179,100 @@ public class BuildingSaveManager : MonoBehaviour
             if (cc != null) cc.enabled = true;
         }
 
-        foreach (BuildingData b in cachedData.buildings)
+        // =========================
+        // BUILDINGS + PLANTS
+        // =========================
+        foreach (var b in cachedData.buildings)
         {
             ItemData item = database.GetItemByID(b.itemID);
             if (item == null) continue;
 
-            GameObject prefab =
-                (item is buildSO build)
-                    ? build.placeablePrefab
-                    : (item is SeedSO seed)
-                        ? seed.plantPrefab
-                        : null;
+            if (item is not buildSO build) continue;
 
-            if (prefab == null) continue;
+            GameObject obj = Instantiate(build.placeablePrefab, b.position, Quaternion.identity);
 
-            GameObject obj = Instantiate(prefab, b.position, Quaternion.identity);
-
-            if (obj.TryGetComponent(out ISaveableBuilding s))
-                s.LoadSaveData(b.currentAmmo, b.plantProgress, b.structuralDurability);
-
-            // ---------------- CAMPFIRE LOAD ----------------
-            if (obj.TryGetComponent(out CampfireBehav campfire))
+            if (obj.TryGetComponent(out ISaveableBuilding saveable))
             {
-                campfire.fuelAmount = b.fuelAmount;
-                campfire.isBurning = b.isBurning;
-
-                campfire.validFuelItems = new List<ItemData>();
-
-                // NEW FORMAT
-                if (b.fuelItemIDs != null && b.fuelItemIDs.Count > 0)
-                {
-                    foreach (int id in b.fuelItemIDs)
-                    {
-                        ItemData fuel = database.GetItemByID(id);
-                        if (fuel != null)
-                            campfire.validFuelItems.Add(fuel);
-                    }
-                }
-                // OLD FORMAT fallback
-                else if (b.fuelItemID != -1)
-                {
-                    ItemData fuel = database.GetItemByID(b.fuelItemID);
-                    if (fuel != null)
-                        campfire.validFuelItems.Add(fuel);
-                }
+                saveable.LoadSaveData(
+                    b.currentAmmo,
+                    b.plantProgress,
+                    b.structuralDurability
+                );
             }
 
             RegisterBuilding(obj);
         }
 
+        // =========================
+        // NPCs
+        // =========================
         foreach (NpcInvBrain npc in FindObjectsByType<NpcInvBrain>(FindObjectsSortMode.None))
         {
-            var s = cachedData.npcInventories.Find(x => x.npcId == npc.npcId);
-            if (s != null)
-                npc.LoadFromSave(s, database);
+            var save = cachedData.npcInventories
+                .Find(x => x.npcId == npc.npcId);
+
+            if (save != null)
+                npc.LoadFromSave(save, database);
         }
 
+        // =========================
+        // BUSHES
+        // =========================
         foreach (BushSaveData s in cachedData.bushes)
         {
-            var existing =
+            BushBehav existing =
                 FindObjectsByType<BushBehav>(FindObjectsSortMode.None)
                 .FirstOrDefault(b => b.UniqOverworldItemID == s.uniqID);
 
-            if (existing != null)
-                existing.LoadData(s);
+            if (existing != null) existing.LoadData(s);
             else if (bushPrefab != null)
             {
-                GameObject newBush = Instantiate(bushPrefab, s.position, Quaternion.identity);
-
-                if (newBush.TryGetComponent(out BushBehav b))
-                    b.LoadData(s);
+                var newBush = Instantiate(bushPrefab, s.position, Quaternion.identity);
+                if (newBush.TryGetComponent(out BushBehav b)) b.LoadData(s);
             }
         }
 
+        // =========================
+        // LEAVES
+        // =========================
         foreach (LeafData l in cachedData.leafdata)
         {
             if (l.destroyed) continue;
 
-            GameObject leafObj = Instantiate(leafPrefab, l.position, Quaternion.identity);
-
-            if (leafObj.TryGetComponent(out leafbehav leaf))
-                leaf.LoadData(l);
+            var leafObj = Instantiate(leafPrefab, l.position, Quaternion.identity);
+            if (leafObj.TryGetComponent(out leafbehav leaf)) leaf.LoadData(l);
         }
 
+        // =========================
+        // STONES
+        // =========================
         foreach (stonedata s in cachedData.stonedata)
         {
             if (s.destroyed) continue;
 
-            GameObject stoneObj = Instantiate(stonePrefab, s.position, Quaternion.identity);
-
+            var stoneObj = Instantiate(stonePrefab, s.position, Quaternion.identity);
             if (stoneObj.TryGetComponent(out stoneWORLDobjectbehav stone))
                 stone.LoadData(s);
         }
 
-        HashSet<string> spawnedTreeIDs = new HashSet<string>();
+        // =========================
+        // TREES
+        // =========================
+        HashSet<string> spawnedTreeIDs = new();
 
         foreach (TreeSaveData t in cachedData.trees)
         {
-            if (!spawnedTreeIDs.Add(t.treeID.ToString()))
-                continue;
+            if (!spawnedTreeIDs.Add(t.treeID.ToString())) continue;
 
             if (t.isCut)
             {
-                GameObject stump = Instantiate(stumpPrefab, t.position, Quaternion.identity);
-
+                var stump = Instantiate(stumpPrefab, t.position, Quaternion.identity);
                 if (stump.TryGetComponent(out TreeStumpRegrow r))
                     r.Setup(t.treeID, t.cutTime);
             }
             else
             {
-                GameObject treeObj = Instantiate(treePrefab, t.position, Quaternion.identity);
-
+                var treeObj = Instantiate(treePrefab, t.position, Quaternion.identity);
                 if (treeObj.TryGetComponent(out treeItemBehav tr))
                 {
                     tr.LoadData(t);
@@ -337,15 +286,24 @@ public class BuildingSaveManager : MonoBehaviour
 
         HasLoadedWorld = true;
         OnWorldLoaded?.Invoke();
+
+        Debug.Log("WORLD LOADED");
     }
 
-    public void SaveAfterChange()
+    public void SaveAfterChange() => SaveNow();
+
+
+    public bool HasSaveFile()
     {
-        SaveNow();
+        return File.Exists(savePath);
     }
 
     public SaveData GetSaveData()
     {
         return cachedData;
     }
+
+
 }
+
+

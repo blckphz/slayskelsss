@@ -146,7 +146,6 @@ public class InteractionManager : MonoBehaviour
             Destroy(target);
             deconstructCooldown = deconstructInterval;
 
-            Debug.Log("[InteractionManager] Building destroyed");
             return;
         }
 

@@ -111,6 +111,7 @@ MonoBehaviour:
   maxGrowthStage: 3
   growthStage: 0
   growthProgress: 0
+  currentDurability: 100
 --- !u!61 &3378626167994416983
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -148,7 +149,7 @@ BoxCollider2D:
   m_Offset: {x: 0, y: 0}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.5, y: 0.2}
+    pivot: {x: 0.5, y: 0.5}
     oldSize: {x: 0.42424244, y: 0.33333334}
     newSize: {x: 0.42424244, y: 0.33333334}
     adaptiveTilingThreshold: 0.5
@@ -187,4 +188,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::objectHealth
   maxHealth: 100
   currentHealth: 0
+  xpReward: 20
+  givesXP: 1
   interactionRange: 3

@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 4198258989202666316}
   - component: {fileID: 2901409886776794625}
   - component: {fileID: 84919557825324026}
+  - component: {fileID: 6076663610374840983}
   m_Layer: 8
   m_Name: Chest
   m_TagString: Untagged
@@ -180,3 +181,18 @@ MonoBehaviour:
   xpReward: 20
   givesXP: 1
   interactionRange: 3
+--- !u!114 &6076663610374840983
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7104144609536821087}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7bdcc4d0b3444f543b0e887335adb64f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ChestInventory
+  chestID: 
+  chestItems: []
+  maxSlots: 20
