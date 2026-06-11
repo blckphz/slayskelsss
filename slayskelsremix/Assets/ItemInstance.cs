@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 [System.Serializable]
 public class ItemInstance : IItemInstance
@@ -7,37 +7,55 @@ public class ItemInstance : IItemInstance
     [SerializeField] private float currentDurability;
     [SerializeField] private int stackCount;
 
-    // Interface Properties
+    // generic per-item runtime value (water, fuel, charges, etc.)
+    [SerializeField] private float customValue;
+
     public ItemData Blueprint => blueprint;
+
     public float CurrentDurability
     {
         get => currentDurability;
         set => currentDurability = Mathf.Clamp(value, 0f, MaxDurability);
     }
-    public float MaxDurability => blueprint != null ? blueprint.maxDurability : 0f;
+
+    public float MaxDurability =>
+        blueprint != null ? blueprint.maxDurability : 0f;
+
     public int StackCount
     {
         get => stackCount;
-        set => stackCount = value;
+        set => stackCount = Mathf.Max(0, value);
     }
 
-    public bool IsBroken => MaxDurability > 0f && CurrentDurability <= 0f;
+    public float CustomValue
+    {
+        get => customValue;
+        set => customValue = value;
+    }
 
-    // Constructor to generate a fresh instance from an asset blueprint
-    public ItemInstance(ItemData itemAsset, int count = 1)
+    public bool IsBroken =>
+        MaxDurability > 0f && CurrentDurability <= 0.01f;
+
+    // MAIN constructor (safe for gameplay + loading)
+    public ItemInstance(ItemData itemAsset, int count = 1, float durability = -1f)
     {
         blueprint = itemAsset;
-        stackCount = count;
+        stackCount = Mathf.Max(1, count);
 
         if (itemAsset != null)
         {
-            currentDurability = itemAsset.maxDurability; // Set fresh out of the box
+            currentDurability = durability >= 0f
+                ? durability
+                : itemAsset.maxDurability;
         }
     }
 
     public void UseDurability(float amount)
     {
-        if (MaxDurability <= 0f) return; // Non-durable item
+        if (MaxDurability <= 0f) return;
+
         CurrentDurability -= amount;
+
+        Debug.Log($"[ItemInstance] {Blueprint?.itemName} durability → {CurrentDurability}");
     }
 }

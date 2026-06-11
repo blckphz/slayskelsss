@@ -476,6 +476,7 @@ MonoBehaviour:
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
+  currentWater: 0
 --- !u!1 &40142402
 GameObject:
   m_ObjectHideFlags: 0
@@ -1119,6 +1120,7 @@ MonoBehaviour:
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
+  currentWater: 0
 --- !u!1 &49376306
 GameObject:
   m_ObjectHideFlags: 0
@@ -3873,7 +3875,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8167bcdb5c8b59f4d9a23c26a77600c1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ItemGiver
-  itemToGive: {fileID: 11400000, guid: 4648e9a8a2aed0043803d5f112ee356f, type: 2}
+  itemToGive: {fileID: 11400000, guid: b3327cf14a7ed7946ae5f1931bc46cde, type: 2}
   amount: 1
   destroyOnPickup: 0
   bobbingEffect: 1
@@ -6254,184 +6256,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 344062996}
   m_CullTransparentMesh: 1
---- !u!43 &346651696
-Mesh:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: 
-  serializedVersion: 12
-  m_SubMeshes:
-  - serializedVersion: 2
-    firstByte: 0
-    indexCount: 0
-    topology: 0
-    baseVertex: 0
-    firstVertex: 0
-    vertexCount: 0
-    localAABB:
-      m_Center: {x: 0, y: 0, z: 0}
-      m_Extent: {x: 0, y: 0, z: 0}
-  m_Shapes:
-    vertices: []
-    shapes: []
-    channels: []
-    fullWeights: []
-  m_BindPose: []
-  m_BoneNameHashes: 
-  m_RootBoneNameHash: 0
-  m_BonesAABB: []
-  m_VariableBoneCountWeights:
-    m_Data: 
-  m_MeshCompression: 0
-  m_IsReadable: 1
-  m_KeepVertices: 1
-  m_KeepIndices: 1
-  m_IndexFormat: 0
-  m_IndexBuffer: 
-  m_VertexData:
-    serializedVersion: 3
-    m_VertexCount: 0
-    m_Channels:
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 3
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    m_DataSize: 0
-    _typelessdata: 
-  m_CompressedMesh:
-    m_Vertices:
-      m_NumItems: 0
-      m_Range: 0
-      m_Start: 0
-      m_Data: 
-      m_BitSize: 0
-    m_UV:
-      m_NumItems: 0
-      m_Range: 0
-      m_Start: 0
-      m_Data: 
-      m_BitSize: 0
-    m_Normals:
-      m_NumItems: 0
-      m_Range: 0
-      m_Start: 0
-      m_Data: 
-      m_BitSize: 0
-    m_Tangents:
-      m_NumItems: 0
-      m_Range: 0
-      m_Start: 0
-      m_Data: 
-      m_BitSize: 0
-    m_Weights:
-      m_NumItems: 0
-      m_Data: 
-      m_BitSize: 0
-    m_NormalSigns:
-      m_NumItems: 0
-      m_Data: 
-      m_BitSize: 0
-    m_TangentSigns:
-      m_NumItems: 0
-      m_Data: 
-      m_BitSize: 0
-    m_FloatColors:
-      m_NumItems: 0
-      m_Range: 0
-      m_Start: 0
-      m_Data: 
-      m_BitSize: 0
-    m_BoneIndices:
-      m_NumItems: 0
-      m_Data: 
-      m_BitSize: 0
-    m_Triangles:
-      m_NumItems: 0
-      m_Data: 
-      m_BitSize: 0
-    m_UVInfo: 0
-  m_LocalAABB:
-    m_Center: {x: 0, y: 0, z: 0}
-    m_Extent: {x: 0, y: 0, z: 0}
-  m_MeshUsageFlags: 0
-  m_CookingOptions: 30
-  m_BakedConvexCollisionMesh: 
-  m_BakedTriangleCollisionMesh: 
-  'm_MeshMetrics[0]': 1
-  'm_MeshMetrics[1]': 1
-  m_MeshOptimizationFlags: 1
-  m_StreamData:
-    serializedVersion: 2
-    offset: 0
-    size: 0
-    path: 
-  m_MeshLodInfo:
-    serializedVersion: 2
-    m_LodSelectionCurve:
-      serializedVersion: 1
-      m_LodSlope: 0
-      m_LodBias: 0
-    m_NumLevels: 1
-    m_SubMeshes:
-    - serializedVersion: 2
-      m_Levels:
-      - serializedVersion: 1
-        m_IndexStart: 0
-        m_IndexCount: 0
 --- !u!1 &348052534
 GameObject:
   m_ObjectHideFlags: 0
@@ -7095,6 +6919,7 @@ MonoBehaviour:
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
+  currentWater: 0
 --- !u!1 &363157312
 GameObject:
   m_ObjectHideFlags: 0
@@ -8824,6 +8649,7 @@ MonoBehaviour:
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
+  currentWater: 0
 --- !u!1 &495877181
 GameObject:
   m_ObjectHideFlags: 0
@@ -8986,6 +8812,7 @@ MonoBehaviour:
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
+  currentWater: 0
 --- !u!1 &496018880
 GameObject:
   m_ObjectHideFlags: 0
@@ -10171,6 +9998,7 @@ MonoBehaviour:
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
+  currentWater: 0
 --- !u!1 &540516057
 GameObject:
   m_ObjectHideFlags: 0
@@ -11849,6 +11677,7 @@ MonoBehaviour:
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
+  currentWater: 0
 --- !u!225 &629904599
 CanvasGroup:
   m_ObjectHideFlags: 0
@@ -13256,6 +13085,7 @@ MonoBehaviour:
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
+  currentWater: 0
 --- !u!1 &734664954
 GameObject:
   m_ObjectHideFlags: 0
@@ -13331,6 +13161,7 @@ MonoBehaviour:
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
+  currentWater: 0
 --- !u!225 &734664957
 CanvasGroup:
   m_ObjectHideFlags: 0
@@ -13868,6 +13699,184 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionReference
   m_Asset: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
   m_ActionId: 24908448-c609-4bc3-a128-ea258674378a
+--- !u!43 &752314103
+Mesh:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  serializedVersion: 12
+  m_SubMeshes:
+  - serializedVersion: 2
+    firstByte: 0
+    indexCount: 0
+    topology: 0
+    baseVertex: 0
+    firstVertex: 0
+    vertexCount: 0
+    localAABB:
+      m_Center: {x: 0, y: 0, z: 0}
+      m_Extent: {x: 0, y: 0, z: 0}
+  m_Shapes:
+    vertices: []
+    shapes: []
+    channels: []
+    fullWeights: []
+  m_BindPose: []
+  m_BoneNameHashes: 
+  m_RootBoneNameHash: 0
+  m_BonesAABB: []
+  m_VariableBoneCountWeights:
+    m_Data: 
+  m_MeshCompression: 0
+  m_IsReadable: 1
+  m_KeepVertices: 1
+  m_KeepIndices: 1
+  m_IndexFormat: 0
+  m_IndexBuffer: 
+  m_VertexData:
+    serializedVersion: 3
+    m_VertexCount: 0
+    m_Channels:
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 3
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    m_DataSize: 0
+    _typelessdata: 
+  m_CompressedMesh:
+    m_Vertices:
+      m_NumItems: 0
+      m_Range: 0
+      m_Start: 0
+      m_Data: 
+      m_BitSize: 0
+    m_UV:
+      m_NumItems: 0
+      m_Range: 0
+      m_Start: 0
+      m_Data: 
+      m_BitSize: 0
+    m_Normals:
+      m_NumItems: 0
+      m_Range: 0
+      m_Start: 0
+      m_Data: 
+      m_BitSize: 0
+    m_Tangents:
+      m_NumItems: 0
+      m_Range: 0
+      m_Start: 0
+      m_Data: 
+      m_BitSize: 0
+    m_Weights:
+      m_NumItems: 0
+      m_Data: 
+      m_BitSize: 0
+    m_NormalSigns:
+      m_NumItems: 0
+      m_Data: 
+      m_BitSize: 0
+    m_TangentSigns:
+      m_NumItems: 0
+      m_Data: 
+      m_BitSize: 0
+    m_FloatColors:
+      m_NumItems: 0
+      m_Range: 0
+      m_Start: 0
+      m_Data: 
+      m_BitSize: 0
+    m_BoneIndices:
+      m_NumItems: 0
+      m_Data: 
+      m_BitSize: 0
+    m_Triangles:
+      m_NumItems: 0
+      m_Data: 
+      m_BitSize: 0
+    m_UVInfo: 0
+  m_LocalAABB:
+    m_Center: {x: 0, y: 0, z: 0}
+    m_Extent: {x: 0, y: 0, z: 0}
+  m_MeshUsageFlags: 0
+  m_CookingOptions: 30
+  m_BakedConvexCollisionMesh: 
+  m_BakedTriangleCollisionMesh: 
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 1
+  m_MeshOptimizationFlags: 1
+  m_StreamData:
+    serializedVersion: 2
+    offset: 0
+    size: 0
+    path: 
+  m_MeshLodInfo:
+    serializedVersion: 2
+    m_LodSelectionCurve:
+      serializedVersion: 1
+      m_LodSlope: 0
+      m_LodBias: 0
+    m_NumLevels: 1
+    m_SubMeshes:
+    - serializedVersion: 2
+      m_Levels:
+      - serializedVersion: 1
+        m_IndexStart: 0
+        m_IndexCount: 0
 --- !u!1 &769167373
 GameObject:
   m_ObjectHideFlags: 0
@@ -14313,6 +14322,7 @@ MonoBehaviour:
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
+  currentWater: 0
 --- !u!1 &798000562
 GameObject:
   m_ObjectHideFlags: 0
@@ -14891,6 +14901,7 @@ MonoBehaviour:
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
+  currentWater: 0
 --- !u!114 &807999491
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -16837,6 +16848,7 @@ MonoBehaviour:
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
+  currentWater: 0
 --- !u!1 &963370530
 GameObject:
   m_ObjectHideFlags: 0
@@ -17098,6 +17110,7 @@ MonoBehaviour:
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
+  currentWater: 0
 --- !u!1 &974253231
 GameObject:
   m_ObjectHideFlags: 0
@@ -17175,6 +17188,7 @@ MonoBehaviour:
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
+  currentWater: 0
 --- !u!114 &974253234
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -212765,6 +212779,7 @@ MonoBehaviour:
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
+  currentWater: 0
 --- !u!114 &998401308
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -214461,6 +214476,7 @@ MonoBehaviour:
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
+  currentWater: 0
 --- !u!225 &1077669248
 CanvasGroup:
   m_ObjectHideFlags: 0
@@ -214560,6 +214576,7 @@ MonoBehaviour:
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
+  currentWater: 0
 --- !u!1 &1080067460
 GameObject:
   m_ObjectHideFlags: 0
@@ -221739,6 +221756,7 @@ MonoBehaviour:
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
+  currentWater: 0
 --- !u!224 &1282107809
 RectTransform:
   m_ObjectHideFlags: 0
@@ -222430,6 +222448,7 @@ MonoBehaviour:
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
+  currentWater: 0
 --- !u!1 &1310551961
 GameObject:
   m_ObjectHideFlags: 0
@@ -223177,6 +223196,7 @@ MonoBehaviour:
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
+  currentWater: 0
 --- !u!1 &1342397995
 GameObject:
   m_ObjectHideFlags: 0
@@ -223339,6 +223359,7 @@ MonoBehaviour:
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
+  currentWater: 0
 --- !u!1 &1347127543
 GameObject:
   m_ObjectHideFlags: 0
@@ -223617,6 +223638,7 @@ MonoBehaviour:
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
+  currentWater: 0
 --- !u!225 &1351436894
 CanvasGroup:
   m_ObjectHideFlags: 0
@@ -225927,6 +225949,7 @@ MonoBehaviour:
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
+  currentWater: 0
 --- !u!114 &1494256841
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -228180,6 +228203,7 @@ MonoBehaviour:
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
+  currentWater: 0
 --- !u!225 &1657868525
 CanvasGroup:
   m_ObjectHideFlags: 0
@@ -228599,6 +228623,7 @@ MonoBehaviour:
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
+  currentWater: 0
 --- !u!1 &1682475842
 GameObject:
   m_ObjectHideFlags: 0
@@ -229356,6 +229381,7 @@ MonoBehaviour:
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
+  currentWater: 0
 --- !u!1 &1725093662
 GameObject:
   m_ObjectHideFlags: 0
@@ -231700,6 +231726,7 @@ MonoBehaviour:
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
+  currentWater: 0
 --- !u!1 &1894540152
 GameObject:
   m_ObjectHideFlags: 0
@@ -232554,6 +232581,7 @@ MonoBehaviour:
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
+  currentWater: 0
 --- !u!1 &1977871234
 GameObject:
   m_ObjectHideFlags: 0
@@ -233504,6 +233532,7 @@ MonoBehaviour:
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
+  currentWater: 0
 --- !u!1 &2009737588
 GameObject:
   m_ObjectHideFlags: 0
@@ -234202,6 +234231,7 @@ MonoBehaviour:
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
+  currentWater: 0
 --- !u!225 &2023807411
 CanvasGroup:
   m_ObjectHideFlags: 0
@@ -234842,6 +234872,7 @@ MonoBehaviour:
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
+  currentWater: 0
 --- !u!1 &2033319687
 GameObject:
   m_ObjectHideFlags: 0
@@ -235470,6 +235501,7 @@ MonoBehaviour:
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
+  currentWater: 0
 --- !u!225 &2041088164
 CanvasGroup:
   m_ObjectHideFlags: 0
@@ -236946,6 +236978,7 @@ MonoBehaviour:
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
+  currentWater: 0
 --- !u!114 &2101199046
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -237481,6 +237514,7 @@ MonoBehaviour:
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
+  currentWater: 0
 --- !u!114 &2115071798
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -237570,6 +237604,7 @@ MonoBehaviour:
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
+  currentWater: 0
 --- !u!225 &2115571046
 CanvasGroup:
   m_ObjectHideFlags: 0
@@ -238082,6 +238117,7 @@ MonoBehaviour:
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
+  currentWater: 0
 --- !u!1 &2141584924
 GameObject:
   m_ObjectHideFlags: 0
@@ -239788,6 +239824,7 @@ MonoBehaviour:
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
+  currentWater: 0
 --- !u!225 &8324033235924972867
 CanvasGroup:
   m_ObjectHideFlags: 0

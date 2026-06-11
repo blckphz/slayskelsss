@@ -46,6 +46,7 @@ public class InventorySlotUI : MonoBehaviour,
     [SerializeField] private Ability currentAbility;
     [SerializeField] private int currentCount;
     [SerializeField] private int currentDurability;
+    [SerializeField] private int currentWater;
 
     public bool IsEmpty => currentItem == null && currentAbility == null;
 

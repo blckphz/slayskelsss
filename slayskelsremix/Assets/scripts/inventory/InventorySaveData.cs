@@ -6,7 +6,12 @@ public class SaveSlot
 {
     public int itemId;
     public int count;
-    public int currentDurability; // 👈 Upgraded to float to preserve item instance dynamic wear
+    public int currentDurability;
+
+    // Generic extra data container (still inside SAME script)
+    public int waterAmount;   // bucket support
+    public int ammo;
+    public float progress;
 }
 
 [System.Serializable]
@@ -15,8 +20,14 @@ public class HotbarSaveSlot
     public int itemId;
     public string abilityName;
     public int count;
-    public int currentDurability; // 👈 Upgraded to float to match real-time tool tracking precision
+    public int currentDurability;
+
+    // Extra runtime item states
+    public int waterAmount;
+    public int ammo;
 }
+
+
 
 [System.Serializable]
 public class BuildingSaveSlot
@@ -29,6 +40,7 @@ public class BuildingSaveSlot
     public int ammo;
     public float progress;
     public int currentDurability; // Tracks physical structure health (Kept as int unless structures use floats too)
+
 }
 
 [System.Serializable]
