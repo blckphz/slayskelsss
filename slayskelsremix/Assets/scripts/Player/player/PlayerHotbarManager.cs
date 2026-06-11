@@ -16,7 +16,7 @@ public class PlayerHotbarManager : MonoBehaviour
     public Transform caster;
     public Transform targetAnchor;
 
-    private int selectedIndex = 0;
+    public int selectedIndex = 0;
     private PlayerControls controls;
 
     public event Action<ItemData> OnSelectedItemChanged;

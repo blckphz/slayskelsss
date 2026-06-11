@@ -461,7 +461,7 @@ MonoBehaviour:
   Background: {fileID: 1971205613}
   SlotItemPrevirew: {fileID: 0}
   slotDropPreviewIcon: {fileID: 0}
-  hoverAlpha: 0.15
+  hoverAlpha: 0.8
   normalAlpha: 0.35
   maxRotation: 8
   dragScale: 1.2
@@ -469,9 +469,9 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
-  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
-  dragHoverSlotClip: {fileID: 8300000, guid: 906cdeb1e815fc24baae82e4208910b7, type: 3}
+  dragStartClip: {fileID: 0}
+  dragEndClip: {fileID: 0}
+  dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
@@ -1105,7 +1105,7 @@ MonoBehaviour:
   Background: {fileID: 2054072047}
   SlotItemPrevirew: {fileID: 0}
   slotDropPreviewIcon: {fileID: 0}
-  hoverAlpha: 0.15
+  hoverAlpha: 0.8
   normalAlpha: 0.35
   maxRotation: 8
   dragScale: 1.2
@@ -1113,9 +1113,9 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
-  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
-  dragHoverSlotClip: {fileID: 8300000, guid: 906cdeb1e815fc24baae82e4208910b7, type: 3}
+  dragStartClip: {fileID: 0}
+  dragEndClip: {fileID: 0}
+  dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
@@ -1976,8 +1976,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 94.38, y: -141.47835}
-  m_SizeDelta: {x: 168.76, y: 45.73}
+  m_AnchoredPosition: {x: 298.0775, y: -198.786}
+  m_SizeDelta: {x: 576.155, y: 194.652}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &85785826
 MonoBehaviour:
@@ -3888,7 +3888,7 @@ Transform:
   m_GameObject: {fileID: 181702948}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.05, y: -1.52, z: 0}
+  m_LocalPosition: {x: -3.14239, y: -15.826599, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -4724,8 +4724,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 94.38, y: -87.17167}
-  m_SizeDelta: {x: 168.76, y: 45.73}
+  m_AnchoredPosition: {x: 253.57, y: -78.595}
+  m_SizeDelta: {x: 487.14, y: 45.73}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &268462226
 MonoBehaviour:
@@ -6346,7 +6346,7 @@ Transform:
   m_GameObject: {fileID: 348052534}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.99, y: 0.85, z: 0}
+  m_LocalPosition: {x: -2.20239, y: -13.456599, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -6904,7 +6904,7 @@ MonoBehaviour:
   Background: {fileID: 78413783}
   SlotItemPrevirew: {fileID: 0}
   slotDropPreviewIcon: {fileID: 0}
-  hoverAlpha: 0.15
+  hoverAlpha: 0.8
   normalAlpha: 0.35
   maxRotation: 8
   dragScale: 1.2
@@ -6912,9 +6912,9 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
-  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
-  dragHoverSlotClip: {fileID: 8300000, guid: 906cdeb1e815fc24baae82e4208910b7, type: 3}
+  dragStartClip: {fileID: 0}
+  dragEndClip: {fileID: 0}
+  dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
@@ -8634,7 +8634,7 @@ MonoBehaviour:
   Background: {fileID: 2017969802}
   SlotItemPrevirew: {fileID: 0}
   slotDropPreviewIcon: {fileID: 0}
-  hoverAlpha: 0.15
+  hoverAlpha: 0.8
   normalAlpha: 0.35
   maxRotation: 8
   dragScale: 1.2
@@ -8642,9 +8642,9 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
-  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
-  dragHoverSlotClip: {fileID: 8300000, guid: 906cdeb1e815fc24baae82e4208910b7, type: 3}
+  dragStartClip: {fileID: 0}
+  dragEndClip: {fileID: 0}
+  dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
@@ -8797,7 +8797,7 @@ MonoBehaviour:
   Background: {fileID: 412104378}
   SlotItemPrevirew: {fileID: 0}
   slotDropPreviewIcon: {fileID: 0}
-  hoverAlpha: 0.15
+  hoverAlpha: 0.8
   normalAlpha: 0.35
   maxRotation: 8
   dragScale: 1.2
@@ -8805,9 +8805,9 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
-  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
-  dragHoverSlotClip: {fileID: 8300000, guid: 906cdeb1e815fc24baae82e4208910b7, type: 3}
+  dragStartClip: {fileID: 0}
+  dragEndClip: {fileID: 0}
+  dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
@@ -9503,7 +9503,7 @@ Transform:
   m_GameObject: {fileID: 519420028}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -1.6576099, y: -3.0134, z: 0}
+  m_LocalPosition: {x: -4.85, y: -17.32, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -9983,7 +9983,7 @@ MonoBehaviour:
   Background: {fileID: 1506309673}
   SlotItemPrevirew: {fileID: 0}
   slotDropPreviewIcon: {fileID: 0}
-  hoverAlpha: 0.15
+  hoverAlpha: 0.8
   normalAlpha: 0.35
   maxRotation: 8
   dragScale: 1.2
@@ -9991,9 +9991,9 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
-  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
-  dragHoverSlotClip: {fileID: 8300000, guid: 906cdeb1e815fc24baae82e4208910b7, type: 3}
+  dragStartClip: {fileID: 0}
+  dragEndClip: {fileID: 0}
+  dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
@@ -11195,7 +11195,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &595711165
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -11662,7 +11662,7 @@ MonoBehaviour:
   Background: {fileID: 535747298}
   SlotItemPrevirew: {fileID: 0}
   slotDropPreviewIcon: {fileID: 0}
-  hoverAlpha: 0.15
+  hoverAlpha: 0.8
   normalAlpha: 0.35
   maxRotation: 8
   dragScale: 1.2
@@ -11670,9 +11670,9 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
-  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
-  dragHoverSlotClip: {fileID: 8300000, guid: 906cdeb1e815fc24baae82e4208910b7, type: 3}
+  dragStartClip: {fileID: 0}
+  dragEndClip: {fileID: 0}
+  dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
@@ -13070,7 +13070,7 @@ MonoBehaviour:
   Background: {fileID: 559355975}
   SlotItemPrevirew: {fileID: 0}
   slotDropPreviewIcon: {fileID: 0}
-  hoverAlpha: 0.15
+  hoverAlpha: 0.8
   normalAlpha: 0.35
   maxRotation: 8
   dragScale: 1.2
@@ -13078,9 +13078,9 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
-  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
-  dragHoverSlotClip: {fileID: 8300000, guid: 906cdeb1e815fc24baae82e4208910b7, type: 3}
+  dragStartClip: {fileID: 0}
+  dragEndClip: {fileID: 0}
+  dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
@@ -13146,7 +13146,7 @@ MonoBehaviour:
   Background: {fileID: 495877183}
   SlotItemPrevirew: {fileID: 0}
   slotDropPreviewIcon: {fileID: 0}
-  hoverAlpha: 0.15
+  hoverAlpha: 0.8
   normalAlpha: 0.35
   maxRotation: 8
   dragScale: 1.2
@@ -13154,9 +13154,9 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
-  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
-  dragHoverSlotClip: {fileID: 8300000, guid: 906cdeb1e815fc24baae82e4208910b7, type: 3}
+  dragStartClip: {fileID: 0}
+  dragEndClip: {fileID: 0}
+  dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
@@ -13699,184 +13699,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.InputSystem::UnityEngine.InputSystem.InputActionReference
   m_Asset: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
   m_ActionId: 24908448-c609-4bc3-a128-ea258674378a
---- !u!43 &752314103
-Mesh:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: 
-  serializedVersion: 12
-  m_SubMeshes:
-  - serializedVersion: 2
-    firstByte: 0
-    indexCount: 0
-    topology: 0
-    baseVertex: 0
-    firstVertex: 0
-    vertexCount: 0
-    localAABB:
-      m_Center: {x: 0, y: 0, z: 0}
-      m_Extent: {x: 0, y: 0, z: 0}
-  m_Shapes:
-    vertices: []
-    shapes: []
-    channels: []
-    fullWeights: []
-  m_BindPose: []
-  m_BoneNameHashes: 
-  m_RootBoneNameHash: 0
-  m_BonesAABB: []
-  m_VariableBoneCountWeights:
-    m_Data: 
-  m_MeshCompression: 0
-  m_IsReadable: 1
-  m_KeepVertices: 1
-  m_KeepIndices: 1
-  m_IndexFormat: 0
-  m_IndexBuffer: 
-  m_VertexData:
-    serializedVersion: 3
-    m_VertexCount: 0
-    m_Channels:
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 3
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    m_DataSize: 0
-    _typelessdata: 
-  m_CompressedMesh:
-    m_Vertices:
-      m_NumItems: 0
-      m_Range: 0
-      m_Start: 0
-      m_Data: 
-      m_BitSize: 0
-    m_UV:
-      m_NumItems: 0
-      m_Range: 0
-      m_Start: 0
-      m_Data: 
-      m_BitSize: 0
-    m_Normals:
-      m_NumItems: 0
-      m_Range: 0
-      m_Start: 0
-      m_Data: 
-      m_BitSize: 0
-    m_Tangents:
-      m_NumItems: 0
-      m_Range: 0
-      m_Start: 0
-      m_Data: 
-      m_BitSize: 0
-    m_Weights:
-      m_NumItems: 0
-      m_Data: 
-      m_BitSize: 0
-    m_NormalSigns:
-      m_NumItems: 0
-      m_Data: 
-      m_BitSize: 0
-    m_TangentSigns:
-      m_NumItems: 0
-      m_Data: 
-      m_BitSize: 0
-    m_FloatColors:
-      m_NumItems: 0
-      m_Range: 0
-      m_Start: 0
-      m_Data: 
-      m_BitSize: 0
-    m_BoneIndices:
-      m_NumItems: 0
-      m_Data: 
-      m_BitSize: 0
-    m_Triangles:
-      m_NumItems: 0
-      m_Data: 
-      m_BitSize: 0
-    m_UVInfo: 0
-  m_LocalAABB:
-    m_Center: {x: 0, y: 0, z: 0}
-    m_Extent: {x: 0, y: 0, z: 0}
-  m_MeshUsageFlags: 0
-  m_CookingOptions: 30
-  m_BakedConvexCollisionMesh: 
-  m_BakedTriangleCollisionMesh: 
-  'm_MeshMetrics[0]': 1
-  'm_MeshMetrics[1]': 1
-  m_MeshOptimizationFlags: 1
-  m_StreamData:
-    serializedVersion: 2
-    offset: 0
-    size: 0
-    path: 
-  m_MeshLodInfo:
-    serializedVersion: 2
-    m_LodSelectionCurve:
-      serializedVersion: 1
-      m_LodSlope: 0
-      m_LodBias: 0
-    m_NumLevels: 1
-    m_SubMeshes:
-    - serializedVersion: 2
-      m_Levels:
-      - serializedVersion: 1
-        m_IndexStart: 0
-        m_IndexCount: 0
 --- !u!1 &769167373
 GameObject:
   m_ObjectHideFlags: 0
@@ -14307,7 +14129,7 @@ MonoBehaviour:
   Background: {fileID: 1446724911}
   SlotItemPrevirew: {fileID: 0}
   slotDropPreviewIcon: {fileID: 0}
-  hoverAlpha: 0.15
+  hoverAlpha: 0.8
   normalAlpha: 0.35
   maxRotation: 8
   dragScale: 1.2
@@ -14315,9 +14137,9 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
-  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
-  dragHoverSlotClip: {fileID: 8300000, guid: 906cdeb1e815fc24baae82e4208910b7, type: 3}
+  dragStartClip: {fileID: 0}
+  dragEndClip: {fileID: 0}
+  dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
@@ -14886,7 +14708,7 @@ MonoBehaviour:
   Background: {fileID: 0}
   SlotItemPrevirew: {fileID: 0}
   slotDropPreviewIcon: {fileID: 0}
-  hoverAlpha: 1
+  hoverAlpha: 0.8
   normalAlpha: 0.35
   maxRotation: 8
   dragScale: 1.2
@@ -14894,9 +14716,9 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
-  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
-  dragHoverSlotClip: {fileID: 8300000, guid: 906cdeb1e815fc24baae82e4208910b7, type: 3}
+  dragStartClip: {fileID: 0}
+  dragEndClip: {fileID: 0}
+  dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
@@ -15105,7 +14927,7 @@ Transform:
   m_GameObject: {fileID: 829454104}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -1.6576099, y: -3.0134, z: 0}
+  m_LocalPosition: {x: -4.85, y: -17.32, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -16833,7 +16655,7 @@ MonoBehaviour:
   Background: {fileID: 1049399974}
   SlotItemPrevirew: {fileID: 0}
   slotDropPreviewIcon: {fileID: 0}
-  hoverAlpha: 0.15
+  hoverAlpha: 0.8
   normalAlpha: 0.35
   maxRotation: 8
   dragScale: 1.2
@@ -16841,9 +16663,9 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
-  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
-  dragHoverSlotClip: {fileID: 8300000, guid: 906cdeb1e815fc24baae82e4208910b7, type: 3}
+  dragStartClip: {fileID: 0}
+  dragEndClip: {fileID: 0}
+  dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
@@ -17095,7 +16917,7 @@ MonoBehaviour:
   Background: {fileID: 2105651389}
   SlotItemPrevirew: {fileID: 0}
   slotDropPreviewIcon: {fileID: 0}
-  hoverAlpha: 0.15
+  hoverAlpha: 0.8
   normalAlpha: 0.35
   maxRotation: 8
   dragScale: 1.2
@@ -17103,9 +16925,9 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
-  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
-  dragHoverSlotClip: {fileID: 8300000, guid: 906cdeb1e815fc24baae82e4208910b7, type: 3}
+  dragStartClip: {fileID: 0}
+  dragEndClip: {fileID: 0}
+  dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
@@ -17173,7 +16995,7 @@ MonoBehaviour:
   Background: {fileID: 0}
   SlotItemPrevirew: {fileID: 0}
   slotDropPreviewIcon: {fileID: 0}
-  hoverAlpha: 1
+  hoverAlpha: 0.8
   normalAlpha: 0.35
   maxRotation: 8
   dragScale: 1.2
@@ -17181,9 +17003,9 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
-  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
-  dragHoverSlotClip: {fileID: 8300000, guid: 906cdeb1e815fc24baae82e4208910b7, type: 3}
+  dragStartClip: {fileID: 0}
+  dragEndClip: {fileID: 0}
+  dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
@@ -212764,7 +212586,7 @@ MonoBehaviour:
   Background: {fileID: 0}
   SlotItemPrevirew: {fileID: 0}
   slotDropPreviewIcon: {fileID: 0}
-  hoverAlpha: 1
+  hoverAlpha: 0.8
   normalAlpha: 0.35
   maxRotation: 8
   dragScale: 1.2
@@ -214461,7 +214283,7 @@ MonoBehaviour:
   Background: {fileID: 972022690}
   SlotItemPrevirew: {fileID: 0}
   slotDropPreviewIcon: {fileID: 0}
-  hoverAlpha: 0.15
+  hoverAlpha: 0.8
   normalAlpha: 0.35
   maxRotation: 8
   dragScale: 1.2
@@ -214469,9 +214291,9 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
-  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
-  dragHoverSlotClip: {fileID: 8300000, guid: 906cdeb1e815fc24baae82e4208910b7, type: 3}
+  dragStartClip: {fileID: 0}
+  dragEndClip: {fileID: 0}
+  dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
@@ -214561,7 +214383,7 @@ MonoBehaviour:
   Background: {fileID: 459403237}
   SlotItemPrevirew: {fileID: 0}
   slotDropPreviewIcon: {fileID: 0}
-  hoverAlpha: 0.15
+  hoverAlpha: 0.8
   normalAlpha: 0.35
   maxRotation: 8
   dragScale: 1.2
@@ -214569,9 +214391,9 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
-  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
-  dragHoverSlotClip: {fileID: 8300000, guid: 906cdeb1e815fc24baae82e4208910b7, type: 3}
+  dragStartClip: {fileID: 0}
+  dragEndClip: {fileID: 0}
+  dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
@@ -215147,6 +214969,7 @@ GameObject:
   - component: {fileID: 1157381475}
   - component: {fileID: 1157381474}
   - component: {fileID: 1157381477}
+  - component: {fileID: 1157381478}
   m_Layer: 7
   m_Name: Water
   m_TagString: Untagged
@@ -219985,7 +219808,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1157381472}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 87d4ebcf53d0429458cbf351cabf094f, type: 3}
   m_Name: 
@@ -219994,6 +219817,19 @@ MonoBehaviour:
   fishingGameObject: {fileID: 297782920}
   pressEPrompt: {fileID: 1957402290}
   fadeDuration: 0.25
+--- !u!114 &1157381478
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1157381472}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9b911f8ca2ccc8418d7db4ad3226769, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: '::'
+  fillRate: 10
 --- !u!1 &1158696775
 GameObject:
   m_ObjectHideFlags: 0
@@ -220079,6 +219915,7 @@ MonoBehaviour:
   selector: {fileID: 40142403}
   caster: {fileID: 1311235987}
   targetAnchor: {fileID: 1297659771}
+  selectedIndex: 0
 --- !u!1 &1165442123
 GameObject:
   m_ObjectHideFlags: 0
@@ -221400,6 +221237,184 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1235001223}
   m_CullTransparentMesh: 1
+--- !u!43 &1241145366
+Mesh:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  serializedVersion: 12
+  m_SubMeshes:
+  - serializedVersion: 2
+    firstByte: 0
+    indexCount: 0
+    topology: 0
+    baseVertex: 0
+    firstVertex: 0
+    vertexCount: 0
+    localAABB:
+      m_Center: {x: 0, y: 0, z: 0}
+      m_Extent: {x: 0, y: 0, z: 0}
+  m_Shapes:
+    vertices: []
+    shapes: []
+    channels: []
+    fullWeights: []
+  m_BindPose: []
+  m_BoneNameHashes: 
+  m_RootBoneNameHash: 0
+  m_BonesAABB: []
+  m_VariableBoneCountWeights:
+    m_Data: 
+  m_MeshCompression: 0
+  m_IsReadable: 1
+  m_KeepVertices: 1
+  m_KeepIndices: 1
+  m_IndexFormat: 0
+  m_IndexBuffer: 
+  m_VertexData:
+    serializedVersion: 3
+    m_VertexCount: 0
+    m_Channels:
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 3
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    m_DataSize: 0
+    _typelessdata: 
+  m_CompressedMesh:
+    m_Vertices:
+      m_NumItems: 0
+      m_Range: 0
+      m_Start: 0
+      m_Data: 
+      m_BitSize: 0
+    m_UV:
+      m_NumItems: 0
+      m_Range: 0
+      m_Start: 0
+      m_Data: 
+      m_BitSize: 0
+    m_Normals:
+      m_NumItems: 0
+      m_Range: 0
+      m_Start: 0
+      m_Data: 
+      m_BitSize: 0
+    m_Tangents:
+      m_NumItems: 0
+      m_Range: 0
+      m_Start: 0
+      m_Data: 
+      m_BitSize: 0
+    m_Weights:
+      m_NumItems: 0
+      m_Data: 
+      m_BitSize: 0
+    m_NormalSigns:
+      m_NumItems: 0
+      m_Data: 
+      m_BitSize: 0
+    m_TangentSigns:
+      m_NumItems: 0
+      m_Data: 
+      m_BitSize: 0
+    m_FloatColors:
+      m_NumItems: 0
+      m_Range: 0
+      m_Start: 0
+      m_Data: 
+      m_BitSize: 0
+    m_BoneIndices:
+      m_NumItems: 0
+      m_Data: 
+      m_BitSize: 0
+    m_Triangles:
+      m_NumItems: 0
+      m_Data: 
+      m_BitSize: 0
+    m_UVInfo: 0
+  m_LocalAABB:
+    m_Center: {x: 0, y: 0, z: 0}
+    m_Extent: {x: 0, y: 0, z: 0}
+  m_MeshUsageFlags: 0
+  m_CookingOptions: 30
+  m_BakedConvexCollisionMesh: 
+  m_BakedTriangleCollisionMesh: 
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 1
+  m_MeshOptimizationFlags: 1
+  m_StreamData:
+    serializedVersion: 2
+    offset: 0
+    size: 0
+    path: 
+  m_MeshLodInfo:
+    serializedVersion: 2
+    m_LodSelectionCurve:
+      serializedVersion: 1
+      m_LodSlope: 0
+      m_LodBias: 0
+    m_NumLevels: 1
+    m_SubMeshes:
+    - serializedVersion: 2
+      m_Levels:
+      - serializedVersion: 1
+        m_IndexStart: 0
+        m_IndexCount: 0
 --- !u!1 &1246929473
 GameObject:
   m_ObjectHideFlags: 0
@@ -221741,7 +221756,7 @@ MonoBehaviour:
   Background: {fileID: 0}
   SlotItemPrevirew: {fileID: 0}
   slotDropPreviewIcon: {fileID: 0}
-  hoverAlpha: 1
+  hoverAlpha: 0.8
   normalAlpha: 0.35
   maxRotation: 8
   dragScale: 1.2
@@ -221749,9 +221764,9 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
-  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
-  dragHoverSlotClip: {fileID: 8300000, guid: 906cdeb1e815fc24baae82e4208910b7, type: 3}
+  dragStartClip: {fileID: 0}
+  dragEndClip: {fileID: 0}
+  dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
@@ -222089,7 +222104,7 @@ Transform:
   m_GameObject: {fileID: 1297659769}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -1.6576099, y: -3.0134, z: 10}
+  m_LocalPosition: {x: -4.85, y: -17.32, z: 10}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -222433,7 +222448,7 @@ MonoBehaviour:
   Background: {fileID: 340393504}
   SlotItemPrevirew: {fileID: 0}
   slotDropPreviewIcon: {fileID: 0}
-  hoverAlpha: 0.15
+  hoverAlpha: 0.8
   normalAlpha: 0.35
   maxRotation: 8
   dragScale: 1.2
@@ -222441,9 +222456,9 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
-  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
-  dragHoverSlotClip: {fileID: 8300000, guid: 906cdeb1e815fc24baae82e4208910b7, type: 3}
+  dragStartClip: {fileID: 0}
+  dragEndClip: {fileID: 0}
+  dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
@@ -223181,7 +223196,7 @@ MonoBehaviour:
   Background: {fileID: 1769637508}
   SlotItemPrevirew: {fileID: 0}
   slotDropPreviewIcon: {fileID: 0}
-  hoverAlpha: 0.15
+  hoverAlpha: 0.8
   normalAlpha: 0.35
   maxRotation: 8
   dragScale: 1.2
@@ -223189,9 +223204,9 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
-  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
-  dragHoverSlotClip: {fileID: 8300000, guid: 906cdeb1e815fc24baae82e4208910b7, type: 3}
+  dragStartClip: {fileID: 0}
+  dragEndClip: {fileID: 0}
+  dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
@@ -223344,7 +223359,7 @@ MonoBehaviour:
   Background: {fileID: 1406443321}
   SlotItemPrevirew: {fileID: 0}
   slotDropPreviewIcon: {fileID: 0}
-  hoverAlpha: 0.15
+  hoverAlpha: 0.8
   normalAlpha: 0.35
   maxRotation: 8
   dragScale: 1.2
@@ -223352,9 +223367,9 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
-  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
-  dragHoverSlotClip: {fileID: 8300000, guid: 906cdeb1e815fc24baae82e4208910b7, type: 3}
+  dragStartClip: {fileID: 0}
+  dragEndClip: {fileID: 0}
+  dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
@@ -223623,7 +223638,7 @@ MonoBehaviour:
   Background: {fileID: 782134115}
   SlotItemPrevirew: {fileID: 0}
   slotDropPreviewIcon: {fileID: 0}
-  hoverAlpha: 0.15
+  hoverAlpha: 0.8
   normalAlpha: 0.35
   maxRotation: 8
   dragScale: 1.2
@@ -223631,9 +223646,9 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
-  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
-  dragHoverSlotClip: {fileID: 8300000, guid: 906cdeb1e815fc24baae82e4208910b7, type: 3}
+  dragStartClip: {fileID: 0}
+  dragEndClip: {fileID: 0}
+  dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
@@ -225054,8 +225069,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 94.38, y: -32.864998}
-  m_SizeDelta: {x: 168.76, y: 45.73}
+  m_AnchoredPosition: {x: 253.572, y: -32.864998}
+  m_SizeDelta: {x: 487.144, y: 45.73}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1446286606
 MonoBehaviour:
@@ -225934,7 +225949,7 @@ MonoBehaviour:
   Background: {fileID: 0}
   SlotItemPrevirew: {fileID: 0}
   slotDropPreviewIcon: {fileID: 0}
-  hoverAlpha: 1
+  hoverAlpha: 0.8
   normalAlpha: 0.35
   maxRotation: 8
   dragScale: 1.2
@@ -228188,7 +228203,7 @@ MonoBehaviour:
   Background: {fileID: 1177081624}
   SlotItemPrevirew: {fileID: 0}
   slotDropPreviewIcon: {fileID: 0}
-  hoverAlpha: 0.15
+  hoverAlpha: 0.8
   normalAlpha: 0.35
   maxRotation: 8
   dragScale: 1.2
@@ -228196,9 +228211,9 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
-  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
-  dragHoverSlotClip: {fileID: 8300000, guid: 906cdeb1e815fc24baae82e4208910b7, type: 3}
+  dragStartClip: {fileID: 0}
+  dragEndClip: {fileID: 0}
+  dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
@@ -228608,7 +228623,7 @@ MonoBehaviour:
   Background: {fileID: 450359803}
   SlotItemPrevirew: {fileID: 0}
   slotDropPreviewIcon: {fileID: 0}
-  hoverAlpha: 0.15
+  hoverAlpha: 0.8
   normalAlpha: 0.35
   maxRotation: 8
   dragScale: 1.2
@@ -228616,9 +228631,9 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
-  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
-  dragHoverSlotClip: {fileID: 8300000, guid: 906cdeb1e815fc24baae82e4208910b7, type: 3}
+  dragStartClip: {fileID: 0}
+  dragEndClip: {fileID: 0}
+  dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
@@ -229366,7 +229381,7 @@ MonoBehaviour:
   Background: {fileID: 1572512524}
   SlotItemPrevirew: {fileID: 0}
   slotDropPreviewIcon: {fileID: 0}
-  hoverAlpha: 0.15
+  hoverAlpha: 0.8
   normalAlpha: 0.35
   maxRotation: 8
   dragScale: 1.2
@@ -229374,9 +229389,9 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
-  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
-  dragHoverSlotClip: {fileID: 8300000, guid: 906cdeb1e815fc24baae82e4208910b7, type: 3}
+  dragStartClip: {fileID: 0}
+  dragEndClip: {fileID: 0}
+  dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
@@ -231711,7 +231726,7 @@ MonoBehaviour:
   Background: {fileID: 746692172}
   SlotItemPrevirew: {fileID: 0}
   slotDropPreviewIcon: {fileID: 0}
-  hoverAlpha: 0.15
+  hoverAlpha: 0.8
   normalAlpha: 0.35
   maxRotation: 8
   dragScale: 1.2
@@ -231719,9 +231734,9 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
-  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
-  dragHoverSlotClip: {fileID: 8300000, guid: 906cdeb1e815fc24baae82e4208910b7, type: 3}
+  dragStartClip: {fileID: 0}
+  dragEndClip: {fileID: 0}
+  dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
@@ -232566,7 +232581,7 @@ MonoBehaviour:
   Background: {fileID: 1842836818}
   SlotItemPrevirew: {fileID: 0}
   slotDropPreviewIcon: {fileID: 0}
-  hoverAlpha: 0.15
+  hoverAlpha: 0.8
   normalAlpha: 0.35
   maxRotation: 8
   dragScale: 1.2
@@ -232574,9 +232589,9 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
-  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
-  dragHoverSlotClip: {fileID: 8300000, guid: 906cdeb1e815fc24baae82e4208910b7, type: 3}
+  dragStartClip: {fileID: 0}
+  dragEndClip: {fileID: 0}
+  dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
@@ -233517,7 +233532,7 @@ MonoBehaviour:
   Background: {fileID: 472823194}
   SlotItemPrevirew: {fileID: 0}
   slotDropPreviewIcon: {fileID: 0}
-  hoverAlpha: 0.15
+  hoverAlpha: 0.8
   normalAlpha: 0.35
   maxRotation: 8
   dragScale: 1.2
@@ -233525,9 +233540,9 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
-  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
-  dragHoverSlotClip: {fileID: 8300000, guid: 906cdeb1e815fc24baae82e4208910b7, type: 3}
+  dragStartClip: {fileID: 0}
+  dragEndClip: {fileID: 0}
+  dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
@@ -234216,7 +234231,7 @@ MonoBehaviour:
   Background: {fileID: 312266059}
   SlotItemPrevirew: {fileID: 0}
   slotDropPreviewIcon: {fileID: 0}
-  hoverAlpha: 0.15
+  hoverAlpha: 0.8
   normalAlpha: 0.35
   maxRotation: 8
   dragScale: 1.2
@@ -234224,9 +234239,9 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
-  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
-  dragHoverSlotClip: {fileID: 8300000, guid: 906cdeb1e815fc24baae82e4208910b7, type: 3}
+  dragStartClip: {fileID: 0}
+  dragEndClip: {fileID: 0}
+  dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
@@ -234857,7 +234872,7 @@ MonoBehaviour:
   Background: {fileID: 58333633}
   SlotItemPrevirew: {fileID: 0}
   slotDropPreviewIcon: {fileID: 0}
-  hoverAlpha: 0.15
+  hoverAlpha: 0.8
   normalAlpha: 0.35
   maxRotation: 8
   dragScale: 1.2
@@ -234865,9 +234880,9 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
-  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
-  dragHoverSlotClip: {fileID: 8300000, guid: 906cdeb1e815fc24baae82e4208910b7, type: 3}
+  dragStartClip: {fileID: 0}
+  dragEndClip: {fileID: 0}
+  dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
@@ -235486,7 +235501,7 @@ MonoBehaviour:
   Background: {fileID: 168181683}
   SlotItemPrevirew: {fileID: 0}
   slotDropPreviewIcon: {fileID: 0}
-  hoverAlpha: 0.15
+  hoverAlpha: 0.8
   normalAlpha: 0.35
   maxRotation: 8
   dragScale: 1.2
@@ -235494,9 +235509,9 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
-  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
-  dragHoverSlotClip: {fileID: 8300000, guid: 906cdeb1e815fc24baae82e4208910b7, type: 3}
+  dragStartClip: {fileID: 0}
+  dragEndClip: {fileID: 0}
+  dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
@@ -236963,7 +236978,7 @@ MonoBehaviour:
   Background: {fileID: 0}
   SlotItemPrevirew: {fileID: 0}
   slotDropPreviewIcon: {fileID: 0}
-  hoverAlpha: 1
+  hoverAlpha: 0.8
   normalAlpha: 0.35
   maxRotation: 8
   dragScale: 1.2
@@ -236971,9 +236986,9 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
-  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
-  dragHoverSlotClip: {fileID: 8300000, guid: 906cdeb1e815fc24baae82e4208910b7, type: 3}
+  dragStartClip: {fileID: 0}
+  dragEndClip: {fileID: 0}
+  dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
@@ -237499,7 +237514,7 @@ MonoBehaviour:
   Background: {fileID: 1094590253}
   SlotItemPrevirew: {fileID: 0}
   slotDropPreviewIcon: {fileID: 0}
-  hoverAlpha: 0.15
+  hoverAlpha: 0.8
   normalAlpha: 0.35
   maxRotation: 8
   dragScale: 1.2
@@ -237507,9 +237522,9 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
-  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
-  dragHoverSlotClip: {fileID: 8300000, guid: 906cdeb1e815fc24baae82e4208910b7, type: 3}
+  dragStartClip: {fileID: 0}
+  dragEndClip: {fileID: 0}
+  dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
@@ -237589,7 +237604,7 @@ MonoBehaviour:
   Background: {fileID: 1641436195}
   SlotItemPrevirew: {fileID: 0}
   slotDropPreviewIcon: {fileID: 0}
-  hoverAlpha: 0.15
+  hoverAlpha: 0.8
   normalAlpha: 0.35
   maxRotation: 8
   dragScale: 1.2
@@ -237597,9 +237612,9 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
-  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
-  dragHoverSlotClip: {fileID: 8300000, guid: 906cdeb1e815fc24baae82e4208910b7, type: 3}
+  dragStartClip: {fileID: 0}
+  dragEndClip: {fileID: 0}
+  dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
@@ -238102,7 +238117,7 @@ MonoBehaviour:
   Background: {fileID: 1894540154}
   SlotItemPrevirew: {fileID: 0}
   slotDropPreviewIcon: {fileID: 0}
-  hoverAlpha: 0.15
+  hoverAlpha: 0.8
   normalAlpha: 0.35
   maxRotation: 8
   dragScale: 1.2
@@ -238110,9 +238125,9 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
-  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
-  dragHoverSlotClip: {fileID: 8300000, guid: 906cdeb1e815fc24baae82e4208910b7, type: 3}
+  dragStartClip: {fileID: 0}
+  dragEndClip: {fileID: 0}
+  dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
@@ -239809,7 +239824,7 @@ MonoBehaviour:
   Background: {fileID: 0}
   SlotItemPrevirew: {fileID: 0}
   slotDropPreviewIcon: {fileID: 0}
-  hoverAlpha: 1
+  hoverAlpha: 0.8
   normalAlpha: 0.35
   maxRotation: 8
   dragScale: 1.2
@@ -239817,9 +239832,9 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
-  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
-  dragHoverSlotClip: {fileID: 8300000, guid: 906cdeb1e815fc24baae82e4208910b7, type: 3}
+  dragStartClip: {fileID: 0}
+  dragEndClip: {fileID: 0}
+  dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0

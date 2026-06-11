@@ -39,15 +39,15 @@ public class invToolTip : MonoBehaviour
             transform.position = Mouse.current.position.ReadValue();
     }
 
-    // SHOW TOOLTIP
-    public void ShowToolTip(ItemData item, float currentDurability)
+    // SHOW TOOLTIP - Updated to accept waterAmount
+    public void ShowToolTip(ItemData item, float currentDurability, float waterAmount = 0f)
     {
         if (item == null) return;
 
         titleText.text = $"<size=120%>{item.itemName}</size>";
         typeText.text = $"<size=90%>{item.itemType}</size>";
 
-        string desc = GenerateDescription(item, currentDurability);
+        string desc = GenerateDescription(item, currentDurability, waterAmount);
 
         descriptionText.text = $"<size=80%><i>{desc}</i></size>";
 
@@ -74,22 +74,18 @@ public class invToolTip : MonoBehaviour
         gameObject.SetActive(false);
     }
 
-    // GENERATE DESCRIPTION (GREY + DASH WRAPPING)
-    private string GenerateDescription(ItemData item, float currentDurability)
+    // GENERATE DESCRIPTION - Updated to include Bucket check
+    private string GenerateDescription(ItemData item, float currentDurability, float waterAmount)
     {
         string content = "";
 
-        // =========================
-        // ITEM DESCRIPTION (GREY + - WRAP)
-        // =========================
+        // Item Description
         if (!string.IsNullOrWhiteSpace(item.ItemDescription))
         {
             content += $"<color=#808080>{item.ItemDescription}</color>";
         }
 
-        // =========================
-        // USEABLE ITEM INFO
-        // =========================
+        // Useable Item Info
         if (item is UseableItem u && u.abilityToExecute != null)
         {
             if (!string.IsNullOrEmpty(content))
@@ -115,9 +111,14 @@ public class invToolTip : MonoBehaviour
             content += ip.GetDetailedDescription();
         }
 
-        // =========================
-        // DURABILITY (NORMAL COLOR)
-        // =========================
+        // NEW: BUCKET WATER INFO
+        if (item is buckeSO)
+        {
+            if (!string.IsNullOrEmpty(content)) content += "\n\n";
+            content += $"Water: {waterAmount}L";
+        }
+
+        // Durability
         if (!string.IsNullOrEmpty(content))
             content += "\n\n";
 

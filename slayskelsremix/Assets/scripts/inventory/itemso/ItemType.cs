@@ -3,5 +3,6 @@ public enum ItemType
     Consumable,
     Constructable,
     Resource,
-    Tool
+    Tool,
+    Bucket
 }

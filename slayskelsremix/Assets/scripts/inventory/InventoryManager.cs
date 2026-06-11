@@ -26,6 +26,7 @@ public class InventoryManager : MonoBehaviour
     [Header("Inventory Data")]
     public List<InventorySlot> inventory = new List<InventorySlot>();
     public List<HotbarSlotData> hotbarData = new List<HotbarSlotData>();
+
     public int inventorySize = 30;
     public int hotbarSize = 9;
 
@@ -34,8 +35,6 @@ public class InventoryManager : MonoBehaviour
     public AbilityDatabase abilityDatabase;
 
     private string savePath;
-
-
 
     void Awake()
     {
@@ -57,7 +56,8 @@ public class InventoryManager : MonoBehaviour
 
     void InitializeHotbarData()
     {
-        if (hotbarData == null) hotbarData = new List<HotbarSlotData>();
+        if (hotbarData == null)
+            hotbarData = new List<HotbarSlotData>();
 
         if (hotbarData.Count != hotbarSize)
         {
@@ -68,38 +68,26 @@ public class InventoryManager : MonoBehaviour
     }
 
     // =========================================================
-    // STACK RULE (DEBUG VERSION)
+    // STACK CHECK
     // =========================================================
     bool CanStack(ItemData data, InventorySlot slot, float durability)
     {
-        if (slot.item == null)
-            return false;
+        if (slot.item == null) return false;
+        if (slot.item.itemID != data.itemID) return false;
 
-        if (slot.item.itemID != data.itemID)
-        {
-            return false;
-        }
+        if (data.maxDurability <= 0) return true;
 
-        if (data.maxDurability <= 0)
-        {
-            return true;
-        }
-
-        bool match = Mathf.Approximately(slot.currentDurability, durability);
-
-
-        return match;
+        return Mathf.Approximately(slot.currentDurability, durability);
     }
 
     // =========================================================
-    // ADD ITEM (ENTRY POINT)
+    // ADD ITEM (FIXED SIGNATURE)
     // =========================================================
     public void AddItem(ItemData data, int amount, float customDurability = -1f)
     {
         if (data == null || amount <= 0) return;
 
-        int durability = (int)Mathf.Max(customDurability, data.maxDurability);
-
+        float durability = Mathf.Max(customDurability, data.maxDurability);
 
         StackItem(data, amount, durability);
 
@@ -108,13 +96,13 @@ public class InventoryManager : MonoBehaviour
     }
 
     // =========================================================
-    // STACKING CORE
+    // STACKING
     // =========================================================
-    void StackItem(ItemData data, int amount, int durability)
+    void StackItem(ItemData data, int amount, float durability)
     {
         int remaining = amount;
 
-        // 1. Try existing stacks
+        // Fill existing stacks
         for (int i = 0; i < inventory.Count && remaining > 0; i++)
         {
             var slot = inventory[i];
@@ -127,14 +115,13 @@ public class InventoryManager : MonoBehaviour
                 {
                     int add = Mathf.Min(space, remaining);
 
-
                     slot.count += add;
                     remaining -= add;
                 }
             }
         }
 
-        // 2. Empty slots
+        // Empty slots
         for (int i = 0; i < inventory.Count && remaining > 0; i++)
         {
             var slot = inventory[i];
@@ -143,10 +130,9 @@ public class InventoryManager : MonoBehaviour
             {
                 int add = Mathf.Min(remaining, data.maxStackSize);
 
-
                 slot.item = data;
                 slot.count = add;
-                slot.currentDurability = durability;
+                slot.currentDurability = (int)durability;
 
                 remaining -= add;
             }
@@ -154,6 +140,7 @@ public class InventoryManager : MonoBehaviour
 
         if (remaining > 0)
         {
+            Debug.LogWarning("[Inventory] Not enough space for items!");
         }
     }
 
@@ -170,8 +157,8 @@ public class InventoryManager : MonoBehaviour
         {
             var slot = inventory[i];
 
-            if (slot.item == null || slot.item.itemID != data.itemID)
-                continue;
+            if (slot.item == null) continue;
+            if (slot.item.itemID != data.itemID) continue;
 
             int take = Mathf.Min(slot.count, remaining);
 
@@ -348,5 +335,4 @@ public class InventoryManager : MonoBehaviour
         RefreshAll();
         OnInventoryChanged?.Invoke();
     }
-
 }

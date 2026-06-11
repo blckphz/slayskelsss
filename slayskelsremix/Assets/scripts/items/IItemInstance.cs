@@ -10,4 +10,6 @@ public interface IItemInstance
     bool IsBroken { get; }
 
     void UseDurability(float amount);
+
+    void FillBucket(float amount);
 }
