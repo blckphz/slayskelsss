@@ -20,6 +20,8 @@ public class invToolTip : MonoBehaviour
     [SerializeField] private float baseHeight = 80f;
     [SerializeField] private float heightPerLine = 25f;
 
+    private const string WATER_COLOR = "#00E5FF";
+
     private void Awake()
     {
         if (Instance == null)
@@ -39,7 +41,6 @@ public class invToolTip : MonoBehaviour
             transform.position = Mouse.current.position.ReadValue();
     }
 
-    // SHOW TOOLTIP - Updated to accept waterAmount
     public void ShowToolTip(ItemData item, float currentDurability, float waterAmount = 0f)
     {
         if (item == null) return;
@@ -68,13 +69,11 @@ public class invToolTip : MonoBehaviour
         }
     }
 
-    // HIDE TOOLTIP
     public void HideToolTip()
     {
         gameObject.SetActive(false);
     }
 
-    // GENERATE DESCRIPTION - Updated to include Bucket check
     private string GenerateDescription(ItemData item, float currentDurability, float waterAmount)
     {
         string content = "";
@@ -111,11 +110,13 @@ public class invToolTip : MonoBehaviour
             content += ip.GetDetailedDescription();
         }
 
-        // NEW: BUCKET WATER INFO
+        // BUCKET WATER INFO (CYAN)
         if (item is buckeSO)
         {
-            if (!string.IsNullOrEmpty(content)) content += "\n\n";
-            content += $"Water: {waterAmount}L";
+            if (!string.IsNullOrEmpty(content))
+                content += "\n\n";
+
+            content += $"<color={WATER_COLOR}>Water: {waterAmount}L</color>";
         }
 
         // Durability

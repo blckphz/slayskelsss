@@ -55,4 +55,6 @@ public class PlantSaveData
     public int growthStage;
     public float growthProgress;
     public int durability;
+    public int waterLevel;
+
 }

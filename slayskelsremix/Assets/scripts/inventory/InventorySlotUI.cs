@@ -350,6 +350,7 @@ public class InventorySlotUI : MonoBehaviour,
         FinalizeStackTransaction(source);
     }
 
+    // ✅ FIXED TOOLTIP (THIS IS THE IMPORTANT PART)
     private void SetHoverVisual(bool state)
     {
         if (Background != null)
@@ -364,9 +365,17 @@ public class InventorySlotUI : MonoBehaviour,
             : Quaternion.identity;
 
         if (state && currentItem != null)
-            invToolTip.Instance?.ShowToolTip(currentItem, currentDurability);
+        {
+            invToolTip.Instance?.ShowToolTip(
+                currentItem,
+                currentDurability,
+                currentDurability
+            );
+        }
         else
+        {
             invToolTip.Instance?.HideToolTip();
+        }
     }
 
     private void ApplyBackgroundState()
@@ -385,6 +394,12 @@ public class InventorySlotUI : MonoBehaviour,
         InvUI.Instance?.RefreshUI();
         PlayerHotbarManager.Instance?.RefreshHotbar();
         invToolTip.Instance?.HideToolTip();
+    }
+
+    public ItemInstance GetItemInstance()
+    {
+        if (currentItem == null) return null;
+        return new ItemInstance(currentItem, currentCount, currentDurability);
     }
 
     public ItemData GetItem() => currentItem;

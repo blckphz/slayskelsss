@@ -6,13 +6,20 @@ public class PlantBehav : ItemHealth, IInteractable
     [Header("Identity")]
     public string plantPrefabName;
 
-    [Header("Growth")]
+    [Header("Growth (Time Based)")]
     public Sprite[] growthSprites;
-    public float growTimePerStage = 60f;
     public int maxGrowthStage = 3;
-
     public int growthStage = 0;
-    public float growthProgress = 0f;
+
+    public float growTimePerStage = 60f;
+    private float growthTimer = 0f;
+
+    [Header("Water Gate System")]
+    public int waterLevel = 0;
+    public int maxWater = 3;
+
+    public float dryInterval = 1f;
+    private float dryTimer = 0f;
 
     [Header("Harvest")]
     public GameObject producePrefab;
@@ -22,6 +29,9 @@ public class PlantBehav : ItemHealth, IInteractable
     [Header("Harvest Rules")]
     public bool harvestable = false;
     public bool dontDestroyOnHarvest = true;
+
+    [Header("Harvest Visuals")]
+    public Sprite harvestableSprite;   // NEW
     public Sprite harvestedSprite;
 
     [Header("Audio")]
@@ -30,6 +40,8 @@ public class PlantBehav : ItemHealth, IInteractable
 
     private SpriteRenderer sr;
     private bool isHarvestedState = false;
+
+    // ================= UNITY =================
 
     private void Awake()
     {
@@ -49,61 +61,129 @@ public class PlantBehav : ItemHealth, IInteractable
 
     private void Update()
     {
-        growthProgress += Time.deltaTime;
+        if (harvestable) return;
 
-        if (growthProgress >= growTimePerStage)
+        // 💧 WATER DRAIN
+        dryTimer += Time.deltaTime;
+
+        if (dryTimer >= dryInterval)
         {
-            growthProgress -= growTimePerStage;
+            dryTimer = 0f;
 
-            if (growthStage < maxGrowthStage)
-            {
-                growthStage++;
-            }
+            if (waterLevel > 0)
+                waterLevel--;
+        }
 
-            if (growthStage >= maxGrowthStage)
-            {
-                harvestable = true;
-                isHarvestedState = false;
-            }
+        // 🚫 BLOCK GROWTH IF DRY
+        if (waterLevel <= 0)
+            return;
 
-            UpdateVisuals();
-            BuildingSaveManager.Instance?.SaveAfterChange();
+        // 🌱 TIME-BASED GROWTH
+        growthTimer += Time.deltaTime;
+
+        if (growthTimer >= growTimePerStage)
+        {
+            growthTimer = 0f;
+            GrowOneStage();
         }
     }
 
+    // ================= WATER SYSTEM =================
+
+    public void Water(int amount)
+    {
+        if (harvestable) return;
+
+        waterLevel += amount;
+        waterLevel = Mathf.Clamp(waterLevel, 0, maxWater);
+
+        Debug.Log($"[Plant] Water: {waterLevel}/{maxWater}");
+    }
+
+    // ================= GROWTH =================
+
+    private void GrowOneStage()
+    {
+        if (growthStage < maxGrowthStage)
+        {
+            growthStage++;
+            Debug.Log($"[Plant] Grew to stage {growthStage}");
+        }
+
+        if (growthStage >= maxGrowthStage)
+        {
+            harvestable = true;
+            isHarvestedState = false;
+        }
+
+        UpdateVisuals();
+        BuildingSaveManager.Instance?.SaveAfterChange();
+    }
+
+    // ================= INTERACTION =================
+
     public void Interact(InventoryManager playerInventory = null)
     {
-        if (!harvestable)
+        if (harvestable)
+        {
+            Harvest();
             return;
+        }
 
-        Harvest();
+        TryWater(playerInventory);
     }
+
+    private void TryWater(InventoryManager inv)
+    {
+        if (inv == null) return;
+
+        var hotbar = PlayerHotbarManager.Instance;
+        if (hotbar == null) return;
+
+        int index = hotbar.selectedIndex;
+        if (index < 0 || index >= inv.hotbarData.Count) return;
+
+        var slot = inv.hotbarData[index];
+        if (slot?.item == null) return;
+
+        if (slot.item is buckeSO)
+        {
+            if (slot.currentDurability <= 0) return;
+
+            int waterAmount = 1;
+
+            Water(waterAmount);
+
+            slot.currentDurability -= waterAmount;
+            slot.currentDurability = Mathf.Max(0, slot.currentDurability);
+
+            hotbar.RefreshHotbar();
+            inv.SaveInventory();
+
+            Debug.Log("[Plant] Watered!");
+        }
+    }
+
+    // ================= HARVEST =================
 
     private void Harvest()
     {
-        // 🎧 SFX
         if (harvestSfx != null && AudioManager.Instance != null)
         {
             AudioManager.Instance.PlaySound(harvestSfx);
         }
 
-        // Spawn produce
         if (producePrefab != null)
         {
             for (int i = 0; i < produceAmount; i++)
             {
                 Vector2 randomOffset = UnityEngine.Random.insideUnitCircle * spawnRadius;
 
-                GameObject loot = Instantiate(
+                Instantiate(
                     producePrefab,
                     transform.position + (Vector3)randomOffset,
                     Quaternion.identity
                 );
-
-                if (loot.TryGetComponent(out LootArc arc))
-                {
-                    arc.Initialize(transform.position);
-                }
             }
         }
 
@@ -117,22 +197,21 @@ public class PlantBehav : ItemHealth, IInteractable
         isHarvestedState = true;
 
         growthStage = 0;
-        growthProgress = 0f;
+        growthTimer = 0f;
+        waterLevel = 0;
 
         UpdateVisuals();
-
         BuildingSaveManager.Instance?.SaveAfterChange();
     }
+
+    // ================= UI =================
 
     public string GetPrompt()
     {
         if (harvestable)
             return "Harvest";
 
-        if (isHarvestedState)
-            return "Harvested";
-
-        return "Growing...";
+        return "Water";
     }
 
     public void OnFocus() { }
@@ -148,7 +227,7 @@ public class PlantBehav : ItemHealth, IInteractable
             plantID = UniqOverworldItemID,
             position = transform.position,
             growthStage = growthStage,
-            growthProgress = growthProgress,
+            waterLevel = waterLevel
         };
     }
 
@@ -160,7 +239,11 @@ public class PlantBehav : ItemHealth, IInteractable
         transform.position = data.position;
 
         growthStage = data.growthStage;
-        growthProgress = data.growthProgress;
+        waterLevel = data.waterLevel;
+
+        // restore state correctly
+        harvestable = (growthStage >= maxGrowthStage);
+        isHarvestedState = false;
 
         UpdateVisuals();
     }
@@ -172,13 +255,22 @@ public class PlantBehav : ItemHealth, IInteractable
         if (sr == null) sr = GetComponent<SpriteRenderer>();
         if (growthSprites == null || growthSprites.Length == 0) return;
 
+        // ✂️ just harvested state
         if (isHarvestedState && harvestedSprite != null)
         {
             sr.sprite = harvestedSprite;
             return;
         }
 
-        if (growthStage < growthSprites.Length)
+        // 🌾 ready to harvest state
+        if (harvestable && harvestableSprite != null)
+        {
+            sr.sprite = harvestableSprite;
+            return;
+        }
+
+        // 🌱 normal growth
+        if (growthStage >= 0 && growthStage < growthSprites.Length)
         {
             sr.sprite = growthSprites[growthStage];
         }
