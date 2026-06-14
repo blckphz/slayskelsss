@@ -215,5 +215,17 @@ public class CampfireBehav : MonoBehaviour, IInteractable, IBuildPreview
         return isBurning ? "Manage Campfire" : "Light Campfire";
     }
 
+    private void OnTriggerExit2D(Collider2D other)
+    {
+        if (!other.CompareTag("Player"))
+            return;
+
+        if (CampfireUI.Instance != null &&
+            CampfireUI.Instance.CurrentCampfire == this)
+        {
+            CampfireUI.Instance.CloseCampfire();
+        }
+    }
+
     public void OnPreviewUpdate() { }
 }

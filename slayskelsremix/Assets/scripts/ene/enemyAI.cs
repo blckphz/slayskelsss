@@ -6,46 +6,101 @@ public class EnemyAI : MonoBehaviour
     private IAstarAI ai;
     private Animator anim;
 
-    [Header("Targeting Settings")]
-    private Transform currentTarget;
-    public float detectionRefreshRate = 0.5f;
+    [Header("Target")]
+    [SerializeField] private Transform currentTarget;
+
+    [Header("Detection")]
+    public float detectionRange = 5f;
+    public float loseTargetRange = 7f;
+
+    [Header("Wandering")]
+    public float wanderRadius = 3f;
+    public float wanderInterval = 3f;
+
+    private float nextWanderTime;
+    private bool isChasing;
+    private Vector3 spawnPosition;
 
     [Header("Combat Settings")]
     public float attackRange = 1.2f;
     public float attackCooldown = 1.5f;
     public int damageAmount = 10;
+
     private float lastAttackTime;
 
     [Header("Trigger Setup")]
     [SerializeField] private CircleCollider2D weaponTrigger;
     [SerializeField] private LayerMask targetLayers;
 
-    void Start()
+    private void Start()
     {
         ai = GetComponent<IAstarAI>();
         anim = GetComponent<Animator>();
 
-        InvokeRepeating(nameof(FindClosestTarget), 0f, detectionRefreshRate);
-
         if (weaponTrigger == null)
             weaponTrigger = GetComponent<CircleCollider2D>();
+
+        spawnPosition = transform.position;
+
+        FindPlayer();
     }
 
-    void Update()
+    private void FindPlayer()
     {
-        if (currentTarget == null || ai == null)
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+
+        if (player != null)
+            currentTarget = player.transform;
+    }
+
+    private void Update()
+    {
+        if (ai == null)
+            return;
+
+        if (currentTarget == null)
         {
-            StopMovement();
+            Wander();
+            UpdateAnimator();
             return;
         }
 
-        float distanceToTarget = Vector2.Distance(transform.position, currentTarget.position);
+        float distanceToTarget =
+            Vector2.Distance(transform.position, currentTarget.position);
 
+        // Start chasing when player enters detection range
+        if (!isChasing && distanceToTarget <= detectionRange)
+        {
+            isChasing = true;
+        }
+
+        // Stop chasing when player gets too far away
+        if (isChasing && distanceToTarget > loseTargetRange)
+        {
+            isChasing = false;
+            anim.SetBool("isattacking", false);
+        }
+
+        if (isChasing)
+        {
+            ChaseAndAttack(distanceToTarget);
+        }
+        else
+        {
+            Wander();
+        }
+
+        UpdateAnimator();
+    }
+
+    private void ChaseAndAttack(float distanceToTarget)
+    {
         if (distanceToTarget <= attackRange)
         {
             ai.isStopped = true;
 
-            if (Time.time >= lastAttackTime + attackCooldown && IsTargetInWeaponTrigger())
+            if (Time.time >= lastAttackTime + attackCooldown &&
+                IsTargetInWeaponTrigger())
             {
                 anim.SetBool("isattacking", true);
                 lastAttackTime = Time.time;
@@ -54,22 +109,43 @@ public class EnemyAI : MonoBehaviour
         else
         {
             anim.SetBool("isattacking", false);
+
             ai.isStopped = false;
             ai.destination = currentTarget.position;
         }
-
-        UpdateAnimator();
     }
 
-    void StopMovement()
+    private void Wander()
     {
-        ai.isStopped = true;
+        anim.SetBool("isattacking", false);
+
+        if (Time.time < nextWanderTime)
+            return;
+
+        nextWanderTime = Time.time + wanderInterval;
+
+        Vector2 randomPoint =
+            Random.insideUnitCircle * wanderRadius;
+
+        Vector3 destination =
+            spawnPosition + new Vector3(randomPoint.x, randomPoint.y, 0);
+
+        ai.isStopped = false;
+        ai.destination = destination;
+    }
+
+    private void StopMovement()
+    {
+        if (ai != null)
+            ai.isStopped = true;
+
         anim.SetBool("isattacking", false);
     }
 
     private bool IsTargetInWeaponTrigger()
     {
-        if (weaponTrigger == null) return false;
+        if (weaponTrigger == null)
+            return false;
 
         ContactFilter2D filter = new ContactFilter2D();
         filter.SetLayerMask(targetLayers);
@@ -82,12 +158,18 @@ public class EnemyAI : MonoBehaviour
         return hitCount > 0;
     }
 
-    void UpdateAnimator()
+    private void UpdateAnimator()
     {
+        if (ai == null)
+            return;
+
         Vector3 velocity = ai.velocity;
+
         if (velocity.magnitude > 0.1f)
         {
-            Vector2 movementVector = new Vector2(velocity.x, velocity.y).normalized;
+            Vector2 movementVector =
+                new Vector2(velocity.x, velocity.y).normalized;
+
             anim.SetFloat("x", movementVector.x);
             anim.SetFloat("y", movementVector.y);
         }
@@ -95,7 +177,8 @@ public class EnemyAI : MonoBehaviour
 
     public void checkforplayerdmg()
     {
-        if (weaponTrigger == null) return;
+        if (weaponTrigger == null)
+            return;
 
         ContactFilter2D filter = new ContactFilter2D();
         filter.SetLayerMask(targetLayers);
@@ -109,8 +192,8 @@ public class EnemyAI : MonoBehaviour
 
         for (int i = 0; i < hitCount; i++)
         {
-            // NEW: Centralized check. Any script inheriting healthMaster works.
             healthMaster h = results[i].GetComponent<healthMaster>();
+
             if (h != null)
             {
                 h.TakeDamage(damageAmount);
@@ -126,36 +209,35 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
-    private void FindClosestTarget()
-    {
-        float closestDistance = Mathf.Infinity;
-        Transform bestTarget = null;
-
-        // Find all objects with health
-        healthMaster[] allTargets = FindObjectsOfType<healthMaster>();
-
-        foreach (healthMaster target in allTargets)
-        {
-            // Don't target yourself or other enemies
-            if (target is enemyHealth || !target.gameObject.activeInHierarchy) continue;
-
-            float dist = Vector2.Distance(transform.position, target.transform.position);
-            if (dist < closestDistance)
-            {
-                closestDistance = dist;
-                bestTarget = target.transform;
-            }
-        }
-
-        currentTarget = bestTarget;
-    }
-
     private void OnDrawGizmosSelected()
     {
+        // Attack Range
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(transform.position, attackRange);
+
+        // Detection Range
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireSphere(transform.position, detectionRange);
+
+        // Lose Target Range
+        Gizmos.color = Color.magenta;
+        Gizmos.DrawWireSphere(transform.position, loseTargetRange);
+
+        // Wander Area
+        Gizmos.color = Color.green;
+        Gizmos.DrawWireSphere(
+            Application.isPlaying ? spawnPosition : transform.position,
+            wanderRadius
+        );
+
         if (weaponTrigger != null)
         {
-            Gizmos.color = Color.red;
-            Gizmos.DrawWireSphere(transform.position + (Vector3)weaponTrigger.offset, weaponTrigger.radius);
+            Gizmos.color = Color.cyan;
+
+            Gizmos.DrawWireSphere(
+                transform.position + (Vector3)weaponTrigger.offset,
+                weaponTrigger.radius
+            );
         }
     }
 }
