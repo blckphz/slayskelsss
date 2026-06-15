@@ -18,7 +18,7 @@ public class ResourceSpawner : MonoBehaviour
     public Tilemap tilemap;
     public Tilemap blockedTilemap;
 
-    public List<ResourceEntry> resources = new List<ResourceEntry>();
+    public List<ResourceEntry> resources = new();
 
     [Header("Blocking")]
     public LayerMask spawnBlockLayers;
@@ -30,7 +30,7 @@ public class ResourceSpawner : MonoBehaviour
     private int lastDay = -1;
     private bool hasLoadedSave = false;
 
-    void Start()
+    private void Start()
     {
         if (dayNightCycle == null)
             dayNightCycle = FindFirstObjectByType<DayNightCycle>();
@@ -45,12 +45,12 @@ public class ResourceSpawner : MonoBehaviour
         StartCoroutine(SpawnAfterLoad());
     }
 
-    void Update()
+    private void Update()
     {
         CheckNewDay();
     }
 
-    void CheckNewDay()
+    private void CheckNewDay()
     {
         if (dayNightCycle == null)
             return;
@@ -60,49 +60,68 @@ public class ResourceSpawner : MonoBehaviour
             lastDay = dayNightCycle.DaysPassed;
 
             if (hasLoadedSave)
-            {
-                SpawnSinglePerType();
-            }
+                StartCoroutine(SpawnResources(false));
             else
-            {
-                SpawnResources(true);
-            }
+                StartCoroutine(SpawnResources(true));
         }
     }
 
-    IEnumerator SpawnAfterLoad()
+    private IEnumerator SpawnAfterLoad()
     {
+        LoadingScreen.Instance?.SetText("Preparing World...");
+
         yield return new WaitForSeconds(0.1f);
 
         if (hasLoadedSave)
         {
-            SpawnSinglePerType();
+            LoadingScreen.Instance?.SetText("Loading Save...");
+            yield return StartCoroutine(SpawnResources(false));
         }
         else
         {
-            SpawnResources(true);
+            LoadingScreen.Instance?.SetText("Generating World...");
+            yield return StartCoroutine(SpawnResources(true));
         }
+
+        LoadingScreen.Instance?.SetText("Done!");
+
+        yield return new WaitForSeconds(0.5f);
+
+        LoadingScreen.Instance?.FinishLoading();
     }
 
-    // =========================================================
-    // MAIN SPAWN FUNCTION
-    // bulkMode = true  -> initial world gen (full spawning)
-    // bulkMode = false -> spawn only 1 per resource type
-    // =========================================================
-    void SpawnResources(bool bulkMode)
+    private IEnumerator SpawnResources(bool bulkMode)
     {
         if (BuildingSaveManager.Instance == null)
-            return;
+            yield break;
 
         var save = BuildingSaveManager.Instance.GetSaveData();
         BoundsInt bounds = tilemap.cellBounds;
 
+        int currentType = 0;
+        int totalTypes = resources.Count;
+
         foreach (ResourceEntry entry in resources)
         {
-            List<Vector3> validPositions = new List<Vector3>();
+            currentType++;
+
+            LoadingScreen.Instance?.SetText(
+                $"Spawning {entry.prefab.name} ({currentType}/{totalTypes})..."
+            );
+
+            yield return null;
+
+            List<Vector3> validPositions = new();
+
+            int checkedTiles = 0;
 
             foreach (Vector3Int pos in bounds.allPositionsWithin)
             {
+                checkedTiles++;
+
+                if (checkedTiles % 250 == 0)
+                    yield return null;
+
                 if (!tilemap.HasTile(pos))
                     continue;
 
@@ -127,46 +146,56 @@ public class ResourceSpawner : MonoBehaviour
                 if (bulkMode && spawned >= entry.maxSpawnCount)
                     break;
 
+                if (spawned % 25 == 0)
+                    yield return null;
+
                 if (IsTooClose(pos, entry.minDistance))
                     continue;
 
                 bool alreadyExists =
                     save != null &&
                     (
-                        save.trees.Exists(t => Vector3.Distance(t.position, pos) < 0.1f) ||
-                        save.bushes.Exists(b => Vector3.Distance(b.position, pos) < 0.1f)
+                        save.trees.Exists(t =>
+                            Vector3.Distance(t.position, pos) < 0.1f)
+                        ||
+                        save.bushes.Exists(b =>
+                            Vector3.Distance(b.position, pos) < 0.1f)
                     );
 
                 if (alreadyExists)
                     continue;
 
-                // ✅ NEW LAYERMASK BLOCK CHECK
-                if (Physics2D.OverlapCircle(pos, blockCheckRadius, spawnBlockLayers) != null)
+                if (Physics2D.OverlapCircle(
+                    pos,
+                    blockCheckRadius,
+                    spawnBlockLayers) != null)
                     continue;
 
-                GameObject obj = Instantiate(entry.prefab, pos, Quaternion.identity);
+                GameObject obj =
+                    Instantiate(entry.prefab, pos, Quaternion.identity);
 
                 if (obj.TryGetComponent(out ItemHealth item))
                 {
-                    item.UniqOverworldItemID = System.Guid.NewGuid().ToString();
+                    item.UniqOverworldItemID =
+                        System.Guid.NewGuid().ToString();
                 }
 
                 spawned++;
             }
         }
 
+        LoadingScreen.Instance?.SetText("Saving World...");
+
+        yield return null;
+
         BuildingSaveManager.Instance.SaveAfterChange();
+
+        LoadingScreen.Instance?.SetText("Finalizing...");
+
+        yield return null;
     }
 
-    // Convenience wrapper for clarity
-    void SpawnSinglePerType()
-    {
-        SpawnResources(false);
-    }
-
-    // ================= HELPERS =================
-
-    void Shuffle(List<Vector3> list)
+    private void Shuffle(List<Vector3> list)
     {
         for (int i = 0; i < list.Count; i++)
         {
@@ -175,16 +204,19 @@ public class ResourceSpawner : MonoBehaviour
         }
     }
 
-    bool IsBlocked(Vector3Int cellPos)
+    private bool IsBlocked(Vector3Int cellPos)
     {
-        return blockedTilemap != null && blockedTilemap.HasTile(cellPos);
+        return blockedTilemap != null &&
+               blockedTilemap.HasTile(cellPos);
     }
 
-    bool IsTooClose(Vector3 pos, float minDist)
+    private bool IsTooClose(Vector3 pos, float minDist)
     {
         float sqr = minDist * minDist;
 
-        foreach (var item in FindObjectsByType<ItemHealth>(FindObjectsSortMode.None))
+        foreach (var item in
+                 FindObjectsByType<ItemHealth>(
+                     FindObjectsSortMode.None))
         {
             if ((item.transform.position - pos).sqrMagnitude < sqr)
                 return true;

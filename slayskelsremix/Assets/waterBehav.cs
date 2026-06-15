@@ -3,8 +3,9 @@
 public class waterBehav : MonoBehaviour
 {
     [SerializeField] private float fillRate = 10f;
+    [SerializeField] private AudioClip fillSound; // 👈 add this
 
-    private void OnTriggerEnter2D(Collider2D other)
+    private void OnTriggerStay2D(Collider2D other)
     {
         if (!other.CompareTag("Player"))
         {
@@ -34,20 +35,24 @@ public class waterBehav : MonoBehaviour
             return;
         }
 
-        Debug.Log($"[waterBehav] Using item: {slot.item.name}");
-
-        // OLD SYSTEM LOGIC (SAFE)
-
         if (slot.item is buckeSO bucket)
         {
+            int oldValue = slot.currentDurability;
+
             slot.currentDurability = Mathf.RoundToInt(
-     Mathf.Min(
-         bucket.maxWater,
-         slot.currentDurability + fillRate
-     )
- );
+                Mathf.Min(
+                    bucket.maxWater,
+                    slot.currentDurability + fillRate
+                )
+            );
 
             Debug.Log($"[waterBehav] Bucket filled → {slot.currentDurability}");
+
+            // 🔊 play sound ONLY if something actually changed
+            if (slot.currentDurability > oldValue)
+            {
+                AudioManager.Instance?.PlaySound(fillSound);
+            }
 
             hotbar.RefreshHotbar();
             invManager.SaveInventory();
