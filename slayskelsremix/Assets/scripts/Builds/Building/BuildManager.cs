@@ -188,17 +188,20 @@ public class BuildManager : MonoBehaviour
             Mathf.Abs(playerCamera.transform.position.z))
         );
 
+        Vector3 snapped;
+
         if (BuildState.UseGridPlacement)
         {
             float x = Mathf.Floor(world.x / gridSize) * gridSize;
             float y = Mathf.Floor(world.y / gridSize) * gridSize;
-
-            previewObject.transform.position = new Vector3(x, y, 0f);
+            snapped = new Vector3(x, y, 0f);
         }
         else
         {
-            previewObject.transform.position = new Vector3(world.x, world.y, 0f);
+            snapped = new Vector3(world.x, world.y, 0f);
         }
+
+        previewObject.transform.position = snapped;
     }
 
     void TryPlace()
@@ -211,6 +214,9 @@ public class BuildManager : MonoBehaviour
 
         Vector3 pos = previewObject.transform.position;
 
+        // ✅ IMPORTANT: GRID CELL (source of truth)
+        Vector3Int cell = Vector3Int.FloorToInt(pos / gridSize);
+
         GameObject obj = Instantiate(
             currentItem.placeablePrefab,
             pos,
@@ -218,14 +224,23 @@ public class BuildManager : MonoBehaviour
         );
 
         // ================================
-        // SAVE SYSTEM
+        // BUILD IDENTITY
         // ================================
         BuildIdentity id = obj.GetComponent<BuildIdentity>();
         if (id == null)
             id = obj.AddComponent<BuildIdentity>();
 
         id.item = currentItem;
+        id.cell = cell;
 
+        // ================================
+        // REGISTER TO SOIL SYSTEM
+        // ================================
+        SoilOccupancyManager.Instance?.Register(cell, id);
+
+        // ================================
+        // SAVE SYSTEM
+        // ================================
         if (BuildingSaveManager.Instance != null)
         {
             BuildingSaveManager.Instance.RegisterBuilding(obj);
@@ -259,7 +274,7 @@ public class BuildManager : MonoBehaviour
         }
 
         // ================================
-        // 🔥 ITEM CONSUMPTION (FIX)
+        // CONSUME ITEM
         // ================================
         if (PlayerHotbarManager.Instance != null)
         {
@@ -267,7 +282,6 @@ public class BuildManager : MonoBehaviour
                 currentItem.consumeAmount
             );
         }
-
     }
 
     bool CanPlace()
