@@ -7,7 +7,15 @@ public class ToolsSO : offensivemelee, IItemDescriptionProvider
     [Tooltip("The main tool identity classification used by harvesting targets.")]
     public ToolType toolType;
 
-    // ✅ MUST be virtual so children can override it
+
+    [Header("Bonus Damage")]
+    public int bonusDamage = 0;
+
+
+    // =====================================================
+    // DESCRIPTION
+    // =====================================================
+
     public virtual string GetDetailedDescription()
     {
         return $"<color=#FF6B6B>Damage:</color> {damage}\n" +
@@ -19,8 +27,12 @@ public class ToolsSO : offensivemelee, IItemDescriptionProvider
                "• Swing: Used to harvest resources and deal melee damage.";
     }
 
-    public override bool Execute(Transform caster, Transform targetAnchor, bool isHolding)
+    // =====================================================
+    // OPTIONAL EXECUTE HOOK (if your system uses it)
+    // =====================================================
+
+    public virtual bool Execute(Transform caster, Transform targetAnchor, bool isHolding)
     {
-        return base.Execute(caster, targetAnchor, isHolding);
+        return true;
     }
 }

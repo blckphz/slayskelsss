@@ -212,7 +212,10 @@ MonoBehaviour:
   xpReward: 15
   lootPrefab: {fileID: 8504423254273432661, guid: 22af6c420dc2b11488f396c164eab3b4, type: 3}
   dropAmount: 3
-  correctToolUsageBonus: 2
+  correctToolUsageBonus: 50
+  correctToolDamageMultiplier: 2
+  noDurabilityLossChance: 0.459
+  extraDropChance: 0.632
   hitDropChance: 0.2
   hitDropAmount: 1
   damageTextPrefab: {fileID: 9146332368269871989, guid: e2da221bf74f11340b439450cb25f81e, type: 3}

@@ -19,7 +19,6 @@ public class meleebehav : MonoBehaviour
 
     private bool isActive;
 
-    // 🔥 callback to ability system
     public Action<bool> OnSwingFinished;
 
     private void Awake()
@@ -30,7 +29,6 @@ public class meleebehav : MonoBehaviour
 
     private void OnDisable()
     {
-        // 🔥 HARD RESET (fixes pooling bugs)
         DidHitSomething = false;
         hitEnemies.Clear();
         OnSwingFinished = null;
@@ -49,9 +47,10 @@ public class meleebehav : MonoBehaviour
         damage = dmg;
         bonusDamage = bDmg;
         owner = swingOwner;
+
+        // ✅ REAL FIX: this now always comes from weapon data
         associatedTool = toolType;
 
-        // reset state every swing
         DidHitSomething = false;
         hitEnemies.Clear();
         isActive = true;
@@ -78,9 +77,6 @@ public class meleebehav : MonoBehaviour
         }
     }
 
-    // ================================
-    // HIT DETECTION
-    // ================================
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (!isActive) return;
@@ -111,22 +107,17 @@ public class meleebehav : MonoBehaviour
             currentToolItem = PlayerHotbarManager.Instance.GetSelectedItem();
         }
 
+        // ✅ THIS NOW WORKS (NO GetToolType BUG)
         target.TakeDamage(finalDamage, associatedTool, currentToolItem);
 
         hitEnemies.Add(target);
     }
 
-    // ================================
-    // ANIMATION EVENT (CALL THIS)
-    // ================================
     public void AnimationFinished()
     {
         FinishSwing();
     }
 
-    // ================================
-    // END OF SWING
-    // ================================
     private void FinishSwing()
     {
         if (!isActive) return;
