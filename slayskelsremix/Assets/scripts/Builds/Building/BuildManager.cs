@@ -214,7 +214,6 @@ public class BuildManager : MonoBehaviour
 
         Vector3 pos = previewObject.transform.position;
 
-        // ✅ IMPORTANT: GRID CELL (source of truth)
         Vector3Int cell = Vector3Int.FloorToInt(pos / gridSize);
 
         GameObject obj = Instantiate(
@@ -223,9 +222,6 @@ public class BuildManager : MonoBehaviour
             Quaternion.identity
         );
 
-        // ================================
-        // BUILD IDENTITY
-        // ================================
         BuildIdentity id = obj.GetComponent<BuildIdentity>();
         if (id == null)
             id = obj.AddComponent<BuildIdentity>();
@@ -233,23 +229,14 @@ public class BuildManager : MonoBehaviour
         id.item = currentItem;
         id.cell = cell;
 
-        // ================================
-        // REGISTER TO SOIL SYSTEM
-        // ================================
         SoilOccupancyManager.Instance?.Register(cell, id);
 
-        // ================================
-        // SAVE SYSTEM
-        // ================================
         if (BuildingSaveManager.Instance != null)
         {
             BuildingSaveManager.Instance.RegisterBuilding(obj);
             BuildingSaveManager.Instance.SaveAfterChange();
         }
 
-        // ================================
-        // A* UPDATE
-        // ================================
         if (astar != null)
         {
             float size = Mathf.Max(currentItem.size.x, currentItem.size.y);
@@ -257,9 +244,6 @@ public class BuildManager : MonoBehaviour
             AstarPath.active.UpdateGraphs(b);
         }
 
-        // ================================
-        // EFFECTS
-        // ================================
         if (shakeOnPlace && CameraShaker.Instance != null)
             CameraShaker.Instance.Shake(buildShakeIntensity, buildShakeDuration);
 
@@ -274,8 +258,13 @@ public class BuildManager : MonoBehaviour
         }
 
         // ================================
-        // CONSUME ITEM
+        // SOUND (FIX ADDED HERE)
         // ================================
+        if (currentItem.placementSound != null && AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlaySound(currentItem.placementSound);
+        }
+
         if (PlayerHotbarManager.Instance != null)
         {
             PlayerHotbarManager.Instance.UseSelectedStack(

@@ -147,6 +147,7 @@ MonoBehaviour:
   GetsDestroyedByPlayer: 0
   item: {fileID: 11400000, guid: ae3fe171ccd50e1408ac62b4d46a986a, type: 2}
   recipeUsed: {fileID: 11400000, guid: 56a0538c8ed9a9548b1f8754a89a1451, type: 2}
+  cell: {x: 0, y: 0, z: 0}
 --- !u!114 &1781468449567393274
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -199,4 +200,5 @@ MonoBehaviour:
   - {fileID: 11400000, guid: b193844de7ccee8409cc282c7fc9f4c8, type: 2}
   - {fileID: 11400000, guid: 4e02bca10d8fc834e82fd75ded938dc0, type: 2}
   - {fileID: 11400000, guid: 72e82cc2d6626ec46bc06f269cce2a00, type: 2}
+  - {fileID: 11400000, guid: 6e7a4da5026ceba4b80c3cc5e48d7604, type: 2}
   prompt: Open Crafting Table

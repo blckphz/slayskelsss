@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.UI;
 using System;
 
 public class PlantBehav : ItemHealth, IInteractable
@@ -37,8 +38,12 @@ public class PlantBehav : ItemHealth, IInteractable
     [Header("Audio")]
     public AudioClip harvestSfx;
     public AudioClip waterSfx;
-    public AudioClip plantSfx;   // ✅ NEW PLANT SOUND
+    public AudioClip plantSfx;
     public AudioSource audioSource;
+
+    [Header("UI")]
+    public Image waterNeedIcon;
+    public float waterThreshold = 0f; // 0 = show when completely dry
 
     private SpriteRenderer sr;
     private bool isHarvestedState = false;
@@ -60,9 +65,11 @@ public class PlantBehav : ItemHealth, IInteractable
             audioSource = GetComponent<AudioSource>();
 
         UpdateVisuals();
+        UpdateWaterUI();
     }
 
-    // 👉 CALL THIS WHEN PLANT IS FIRST CREATED
+    // ================= PLANT INIT =================
+
     public void OnPlanted()
     {
         if (hasPlayedPlantSfx) return;
@@ -75,32 +82,36 @@ public class PlantBehav : ItemHealth, IInteractable
         }
     }
 
+    // ================= UPDATE =================
+
     private void Update()
     {
-        if (harvestable) return;
-
-        // 💧 WATER DRAIN
-        dryTimer += Time.deltaTime;
-
-        if (dryTimer >= dryInterval)
+        if (!harvestable)
         {
-            dryTimer = 0f;
+            // 💧 WATER DRAIN
+            dryTimer += Time.deltaTime;
 
+            if (dryTimer >= dryInterval)
+            {
+                dryTimer = 0f;
+
+                if (waterLevel > 0)
+                    waterLevel--;
+            }
+
+            // 🚫 BLOCK GROWTH IF DRY
             if (waterLevel > 0)
-                waterLevel--;
-        }
+            {
+                growthTimer += Time.deltaTime;
 
-        // 🚫 BLOCK GROWTH IF DRY
-        if (waterLevel <= 0)
-            return;
+                if (growthTimer >= growTimePerStage)
+                {
+                    growthTimer = 0f;
+                    GrowOneStage();
+                }
+            }
 
-        // 🌱 TIME-BASED GROWTH
-        growthTimer += Time.deltaTime;
-
-        if (growthTimer >= growTimePerStage)
-        {
-            growthTimer = 0f;
-            GrowOneStage();
+            UpdateWaterUI();
         }
     }
 
@@ -117,14 +128,21 @@ public class PlantBehav : ItemHealth, IInteractable
 
         if (waterLevel > oldWater)
         {
-            if (audioSource == null)
-                audioSource = GetComponent<AudioSource>();
-
             if (waterSfx != null && AudioManager.Instance != null)
             {
                 AudioManager.Instance.PlaySound(waterSfx);
             }
         }
+
+        UpdateWaterUI();
+    }
+
+    private void UpdateWaterUI()
+    {
+        if (waterNeedIcon == null) return;
+
+        bool needsWater = waterLevel <= waterThreshold && !harvestable;
+        waterNeedIcon.enabled = needsWater;
     }
 
     // ================= GROWTH =================
@@ -144,6 +162,7 @@ public class PlantBehav : ItemHealth, IInteractable
         }
 
         UpdateVisuals();
+        UpdateWaterUI();
         BuildingSaveManager.Instance?.SaveAfterChange();
     }
 
@@ -228,6 +247,7 @@ public class PlantBehav : ItemHealth, IInteractable
         waterLevel = 0;
 
         UpdateVisuals();
+        UpdateWaterUI();
         BuildingSaveManager.Instance?.SaveAfterChange();
     }
 
@@ -235,10 +255,7 @@ public class PlantBehav : ItemHealth, IInteractable
 
     public string GetPrompt()
     {
-        if (harvestable)
-            return "Harvest";
-
-        return "Water";
+        return harvestable ? "Harvest" : "Water";
     }
 
     public void OnFocus() { }
@@ -272,6 +289,7 @@ public class PlantBehav : ItemHealth, IInteractable
         isHarvestedState = false;
 
         UpdateVisuals();
+        UpdateWaterUI();
     }
 
     // ================= VISUALS =================

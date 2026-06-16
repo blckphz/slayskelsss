@@ -91,7 +91,6 @@ public class CircleAnim : MonoBehaviour
         {
             stepTriggered = true;
 
-            Debug.Log("[CircleAnim] STEP TRIGGERED");
 
             PlayStepSound();
             SpawnParticles();
@@ -124,10 +123,6 @@ public class CircleAnim : MonoBehaviour
             if (hasTile)
                 clipToPlay = soilStepClip;
         }
-        else
-        {
-            Debug.Log("[CircleAnim] Using default sound (missing references)");
-        }
 
         if (clipToPlay == null)
         {
@@ -138,7 +133,6 @@ public class CircleAnim : MonoBehaviour
         stepAudioSource.pitch = Random.Range(0.9f, 1.1f);
         stepAudioSource.PlayOneShot(clipToPlay);
 
-        Debug.Log($"[CircleAnim] Played: {clipToPlay.name}");
     }
 
     void SpawnParticles()
@@ -155,6 +149,5 @@ public class CircleAnim : MonoBehaviour
 
         Instantiate(stepParticlePrefab, spawn.position + offset, Quaternion.identity);
 
-        Debug.Log("[CircleAnim] Particle spawned");
     }
 }

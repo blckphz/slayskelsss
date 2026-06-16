@@ -26,7 +26,11 @@ public class EarthHoleDigBehav : MonoBehaviour, IInteractable
 
         GameObject newPlant = Instantiate(plantPrefab, transform.position, Quaternion.identity);
 
-        // IMPORTANT: register so it gets saved
+        if (newPlant.TryGetComponent(out PlantBehav plant))
+        {
+            plant.OnPlanted();
+        }
+
         BuildingSaveManager.Instance.RegisterBuilding(newPlant);
         BuildingSaveManager.Instance.SaveNow();
 

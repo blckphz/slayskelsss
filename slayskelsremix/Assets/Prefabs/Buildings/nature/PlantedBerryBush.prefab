@@ -219,14 +219,14 @@ RectTransform:
   m_GameObject: {fileID: 2822492492348111272}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.039880425, y: 0.039880425, z: 0.039880425}
+  m_LocalScale: {x: 0.0043365965, y: 0.0061186543, z: 0.0061186543}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 8928748399539473512}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -959.63, y: -537.17}
+  m_AnchoredPosition: {x: -959.9713, y: -539.22485}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &8231504513734970024
@@ -257,7 +257,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 96fba1ade03749441b6073bd6bd0cb31, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 6b82e199669c25b469d95770b9e7848a, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -422,6 +422,8 @@ MonoBehaviour:
   waterSfx: {fileID: 8300000, guid: 1db4b8294b2fc8f4ca82727c01da592d, type: 3}
   plantSfx: {fileID: 8300000, guid: 51678e12d0e86fd498dac3b412f433e1, type: 3}
   audioSource: {fileID: 6852235234762341173}
+  waterNeedIcon: {fileID: 5340113811236111609}
+  waterThreshold: 0
 --- !u!61 &5898757377427334765
 BoxCollider2D:
   m_ObjectHideFlags: 0

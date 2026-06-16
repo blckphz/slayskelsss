@@ -104,7 +104,7 @@ GameObject:
   - component: {fileID: 6909334842622762674}
   - component: {fileID: 4067340578167232330}
   m_Layer: 8
-  m_Name: Kraut
+  m_Name: shrubs
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

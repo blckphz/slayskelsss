@@ -136,14 +136,14 @@ public class ResourceSpawner : MonoBehaviour
 
             Shuffle(validPositions);
 
+            int targetSpawnCount =
+                bulkMode ? entry.maxSpawnCount : 1;
+
             int spawned = 0;
 
             foreach (Vector3 pos in validPositions)
             {
-                if (!bulkMode && spawned >= 1)
-                    break;
-
-                if (bulkMode && spawned >= entry.maxSpawnCount)
+                if (spawned >= targetSpawnCount)
                     break;
 
                 if (spawned % 25 == 0)
@@ -194,7 +194,6 @@ public class ResourceSpawner : MonoBehaviour
 
         yield return null;
     }
-
     private void Shuffle(List<Vector3> list)
     {
         for (int i = 0; i < list.Count; i++)
