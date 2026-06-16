@@ -70,7 +70,6 @@ public class BuildingSaveManager : MonoBehaviour
     // =====================================================
     public void SaveNow()
     {
-        Debug.Log("========== SAVE START ==========");
 
         SaveData data = new SaveData();
 
@@ -82,7 +81,6 @@ public class BuildingSaveManager : MonoBehaviour
 
         placedObjects.RemoveAll(x => x == null);
 
-        Debug.Log("[SAVE] placedObjects count: " + placedObjects.Count);
 
         // =========================
         // BUILDINGS
@@ -135,7 +133,6 @@ public class BuildingSaveManager : MonoBehaviour
             data.buildings.Add(b);
         }
 
-        Debug.Log("[SAVE] Buildings saved: " + data.buildings.Count);
 
         // =========================
         // PLANTS
@@ -149,7 +146,6 @@ public class BuildingSaveManager : MonoBehaviour
             data.plants.Add(plant.GetPlantSaveData());
         }
 
-        Debug.Log("[SAVE] Plants saved: " + data.plants.Count);
 
         // =========================
         // OTHER SYSTEMS
@@ -220,7 +216,6 @@ public class BuildingSaveManager : MonoBehaviour
         string json = JsonUtility.ToJson(data, true);
         File.WriteAllText(savePath, json);
 
-        Debug.Log("========== SAVE END ==========");
     }
 
     // =====================================================
@@ -228,11 +223,9 @@ public class BuildingSaveManager : MonoBehaviour
     // =====================================================
     public void LoadEverything()
     {
-        Debug.Log("========== LOAD START ==========");
 
         if (!File.Exists(savePath))
         {
-            Debug.LogWarning("[LOAD] NO SAVE FILE FOUND");
 
             HasLoadedWorld = true;
             OnWorldLoaded?.Invoke();
@@ -243,7 +236,6 @@ public class BuildingSaveManager : MonoBehaviour
         string json = File.ReadAllText(savePath);
         cachedData = JsonUtility.FromJson<SaveData>(json);
 
-        Debug.Log("[LOAD] Plants in save: " + cachedData.plants.Count);
 
         // =========================
         // PLAYER

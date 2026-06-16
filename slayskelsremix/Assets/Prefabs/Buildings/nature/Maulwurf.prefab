@@ -121,6 +121,7 @@ MonoBehaviour:
   GetsDestroyedByPlayer: 0
   item: {fileID: 11400000, guid: 058c1c778993d494c8ff4b1f4dd93b48, type: 2}
   recipeUsed: {fileID: 0}
+  cell: {x: 0, y: 0, z: 0}
 --- !u!114 &1094332369952324420
 MonoBehaviour:
   m_ObjectHideFlags: 0

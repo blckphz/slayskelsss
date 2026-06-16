@@ -181,8 +181,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CircleAnim
   playerScript: {fileID: 7437932651018339989}
+  tiltManager: {fileID: 0}
   stepAudioSource: {fileID: 7211434088705035477}
-  stepClip: {fileID: 8300000, guid: b6077688e31a75c4997ca56a89c46a0e, type: 3}
+  defaultStepClip: {fileID: 8300000, guid: 225a947d471dbb141b47b9666cd52994, type: 3}
+  soilStepClip: {fileID: 8300000, guid: f50bc0a95657d464695ac8cadd2c2c29, type: 3}
   stepParticlePrefab: {fileID: 4552068773035836224, guid: 6b4ecf3c4b189d5439bb01087ddec620, type: 3}
   particleSpawnPoint: {fileID: 6464020614380587009}
   pulseSpeed: 10

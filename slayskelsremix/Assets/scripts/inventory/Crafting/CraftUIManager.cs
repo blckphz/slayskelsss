@@ -226,7 +226,7 @@ public class CraftUIManager : MonoBehaviour
             {
                 if (recipes[i] == previousSelected)
                 {
-                    SelectRecipe(previousSelected, i);
+                    SelectRecipe(previousSelected, i, false);
                     break;
                 }
             }
@@ -281,12 +281,12 @@ public class CraftUIManager : MonoBehaviour
         }
     }
 
-    public void SelectRecipe(CraftingSO recipe, int selectedIndex)
+    public void SelectRecipe(CraftingSO recipe, int selectedIndex, bool playSound = true)
     {
         selectedRecipe = recipe;
         currentSelectedIndex = selectedIndex;
 
-        if (AudioManager.Instance != null)
+        if (playSound && AudioManager.Instance != null)
         {
             AudioManager.Instance.PlayUISound(selectSfx);
         }
@@ -298,11 +298,7 @@ public class CraftUIManager : MonoBehaviour
 
         for (int i = 0; i < bgSlots.Count; i++)
         {
-            SetAlpha(
-                bgSlots[i],
-                (i == selectedIndex) ? selectedAlpha : normalAlpha
-            );
-
+            SetAlpha(bgSlots[i], (i == selectedIndex) ? selectedAlpha : normalAlpha);
             targetRotations[i] = Quaternion.identity;
         }
 

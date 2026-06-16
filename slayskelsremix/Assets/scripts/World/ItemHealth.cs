@@ -76,7 +76,6 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
 
         maxHealth = health;
 
-        Debug.Log($"[ItemHealth] Awake → MaxHealth set to {maxHealth} on {gameObject.name}");
     }
 
     protected virtual void Start()
@@ -87,7 +86,6 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
     private void GenerateUniqueIDIfNeeded()
     {
         UniqOverworldItemID = Guid.NewGuid().ToString();
-        Debug.Log($"[ItemHealth] Generated Unique ID: {UniqOverworldItemID} for {gameObject.name}");
     }
 
     protected virtual bool IsDamageIgnored()

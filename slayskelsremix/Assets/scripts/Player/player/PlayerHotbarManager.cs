@@ -143,7 +143,7 @@ public class PlayerHotbarManager : MonoBehaviour
         {
             if (Time.time - lastBuildModeMessageTime > buildModeMessageCooldown)
             {
-                InteractionUI.Instance?.Show("Currently building");
+                //InteractionUI.Instance?.Show("Currently building");
                 lastBuildModeMessageTime = Time.time;
             }
             return;

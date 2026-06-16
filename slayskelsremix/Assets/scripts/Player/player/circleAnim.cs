@@ -4,9 +4,12 @@ public class CircleAnim : MonoBehaviour
 {
     [Header("References")]
     public PlayerMovement playerScript;
+    public TiltManager tiltManager;
 
     public AudioSource stepAudioSource;
-    public AudioClip stepClip;
+
+    public AudioClip defaultStepClip;
+    public AudioClip soilStepClip;
 
     public GameObject stepParticlePrefab;
     public Transform particleSpawnPoint;
@@ -26,8 +29,16 @@ public class CircleAnim : MonoBehaviour
     {
         originalScale = transform.localScale;
 
+        Debug.Log("[CircleAnim] Initialized");
+
         if (playerScript == null)
-            Debug.LogError("CircleAnim: Drag the Player into the Reference slot!");
+            Debug.LogError("[CircleAnim] Missing PlayerMovement");
+
+        if (stepAudioSource == null)
+            Debug.LogError("[CircleAnim] Missing AudioSource");
+
+        if (tiltManager == null)
+            Debug.LogWarning("[CircleAnim] Missing TiltManager (soil detection disabled)");
     }
 
     void Update()
@@ -59,11 +70,6 @@ public class CircleAnim : MonoBehaviour
                 originalScale,
                 Time.deltaTime * returnSpeed
             );
-
-            if (Vector3.Distance(transform.localScale, originalScale) < 0.001f)
-            {
-                transform.localScale = originalScale;
-            }
         }
     }
 
@@ -78,41 +84,77 @@ public class CircleAnim : MonoBehaviour
 
         float wave = Mathf.Sin(Time.time * pulseSpeed);
 
-        bool crossedDown = (wave < 0f && lastWaveValue >= 0f);
-        bool crossedUp = (wave > 0f && lastWaveValue <= 0f);
+        bool crossed = (wave < 0f && lastWaveValue >= 0f) ||
+                       (wave > 0f && lastWaveValue <= 0f);
 
-        if (!stepTriggered && (crossedDown || crossedUp))
+        if (!stepTriggered && crossed)
         {
             stepTriggered = true;
 
-            // 🎲 RANDOM PITCH (main juice)
-            if (stepAudioSource != null && stepClip != null)
-            {
-                stepAudioSource.pitch = Random.Range(0.9f, 1.1f);
-                stepAudioSource.PlayOneShot(stepClip);
-            }
+            Debug.Log("[CircleAnim] STEP TRIGGERED");
 
-            // 💨 PARTICLE with slight offset
-            if (stepParticlePrefab != null)
-            {
-                Transform spawn = particleSpawnPoint != null ? particleSpawnPoint : transform;
-
-                Vector3 randomOffset = new Vector3(
-                    Random.Range(-0.05f, 0.05f),
-                    0f,
-                    Random.Range(-0.05f, 0.05f)
-                );
-
-                Instantiate(stepParticlePrefab, spawn.position + randomOffset, Quaternion.identity);
-            }
+            PlayStepSound();
+            SpawnParticles();
         }
 
-        // reset trigger zone
-        if (wave > 0.1f || wave < -0.1f)
-        {
+        if (Mathf.Abs(wave) > 0.1f)
             stepTriggered = false;
-        }
 
         lastWaveValue = wave;
+    }
+
+    void PlayStepSound()
+    {
+        if (stepAudioSource == null) return;
+
+        AudioClip clipToPlay = defaultStepClip;
+
+        if (tiltManager != null && tiltManager.Tilemap != null && playerScript != null)
+        {
+            Vector3 pos = playerScript.transform.position;
+            pos.z = 0f;
+
+            Vector3Int cell = tiltManager.Tilemap.WorldToCell(pos);
+            cell.z = 0;
+
+            bool hasTile = tiltManager.Tilemap.GetTile(cell) != null;
+
+            Debug.Log($"[CircleAnim] Checking cell {cell} → Tile: {(hasTile ? "YES" : "NO")}");
+
+            if (hasTile)
+                clipToPlay = soilStepClip;
+        }
+        else
+        {
+            Debug.Log("[CircleAnim] Using default sound (missing references)");
+        }
+
+        if (clipToPlay == null)
+        {
+            Debug.LogError("[CircleAnim] clipToPlay is NULL");
+            return;
+        }
+
+        stepAudioSource.pitch = Random.Range(0.9f, 1.1f);
+        stepAudioSource.PlayOneShot(clipToPlay);
+
+        Debug.Log($"[CircleAnim] Played: {clipToPlay.name}");
+    }
+
+    void SpawnParticles()
+    {
+        if (stepParticlePrefab == null) return;
+
+        Transform spawn = particleSpawnPoint != null ? particleSpawnPoint : transform;
+
+        Vector3 offset = new Vector3(
+            Random.Range(-0.05f, 0.05f),
+            0f,
+            Random.Range(-0.05f, 0.05f)
+        );
+
+        Instantiate(stepParticlePrefab, spawn.position + offset, Quaternion.identity);
+
+        Debug.Log("[CircleAnim] Particle spawned");
     }
 }

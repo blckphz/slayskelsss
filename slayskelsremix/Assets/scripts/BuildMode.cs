@@ -20,6 +20,11 @@ public class BuildMode : MonoBehaviour
     public Vector3 hotbarHiddenOffset = new Vector3(0, 0.2f, 0);
     public float spriteSpeed = 8f;
 
+    [Header("Audio")]
+    public AudioClip enterBuildModeSfx;
+    public AudioClip exitBuildModeSfx;
+    public AudioClip toggleGridSfx;
+
     private bool buildMode;
     private bool useGridPlacement = true;
 
@@ -135,21 +140,21 @@ public class BuildMode : MonoBehaviour
 
         BuildState.Set(buildMode);
 
-        // TEMP MESSAGE
-        if (InteractionUI.Instance != null)
+        // AUDIO
+        if (AudioManager.Instance != null)
         {
             if (buildMode)
-            {
-                InteractionUI.Instance.Show(
-                    "Enter BUILD MODE"
-                );
-            }
+                AudioManager.Instance.PlayUISound(enterBuildModeSfx);
             else
-            {
-                InteractionUI.Instance.Show(
-                    "EXIT BUILD MODE"
-                );
-            }
+                AudioManager.Instance.PlayUISound(exitBuildModeSfx);
+        }
+
+        // UI MESSAGE
+        if (InteractionUI.Instance != null)
+        {
+            InteractionUI.Instance.Show(
+                buildMode ? "Enter BUILD MODE" : "EXIT BUILD MODE"
+            );
         }
     }
 
@@ -162,7 +167,13 @@ public class BuildMode : MonoBehaviour
 
         BuildState.SetGridPlacement(useGridPlacement);
 
-        // TEMP MESSAGE
+        // AUDIO (optional)
+        if (AudioManager.Instance != null && toggleGridSfx != null)
+        {
+            AudioManager.Instance.PlayUISound(toggleGridSfx);
+        }
+
+        // UI MESSAGE
         if (InteractionUI.Instance != null)
         {
             InteractionUI.Instance.Show(

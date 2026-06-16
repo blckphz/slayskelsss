@@ -3,24 +3,18 @@
 public class waterBehav : MonoBehaviour
 {
     [SerializeField] private float fillRate = 10f;
-    [SerializeField] private AudioClip fillSound; // 👈 add this
+    [SerializeField] private AudioClip fillSound;
 
     private void OnTriggerStay2D(Collider2D other)
     {
         if (!other.CompareTag("Player"))
-        {
-            Debug.Log("[waterBehav] Not player.");
             return;
-        }
 
         var invManager = InventoryManager.Instance;
         var hotbar = PlayerHotbarManager.Instance;
 
         if (invManager == null || hotbar == null)
-        {
-            Debug.LogWarning("[waterBehav] Missing managers.");
             return;
-        }
 
         int index = hotbar.selectedIndex;
 
@@ -30,26 +24,26 @@ public class waterBehav : MonoBehaviour
         HotbarSlotData slot = invManager.hotbarData[index];
 
         if (slot == null || slot.item == null)
-        {
-            Debug.Log("[waterBehav] Empty slot.");
             return;
-        }
 
         if (slot.item is buckeSO bucket)
         {
             int oldValue = slot.currentDurability;
 
-            slot.currentDurability = Mathf.RoundToInt(
-                Mathf.Min(
-                    bucket.maxWater,
-                    slot.currentDurability + fillRate
-                )
+            float newValue = Mathf.Min(
+                bucket.maxWater,
+                slot.currentDurability + fillRate
             );
+
+            slot.currentDurability = Mathf.RoundToInt(newValue);
+
+            bool wasFull = oldValue >= bucket.maxWater;
+            bool isFullNow = slot.currentDurability >= bucket.maxWater;
 
             Debug.Log($"[waterBehav] Bucket filled → {slot.currentDurability}");
 
-            // 🔊 play sound ONLY if something actually changed
-            if (slot.currentDurability > oldValue)
+            // ✅ play ONLY when it *just became full*
+            if (!wasFull && isFullNow)
             {
                 AudioManager.Instance?.PlaySound(fillSound);
             }
@@ -59,7 +53,5 @@ public class waterBehav : MonoBehaviour
 
             return;
         }
-
-        Debug.Log("[waterBehav] Not a bucket.");
     }
 }

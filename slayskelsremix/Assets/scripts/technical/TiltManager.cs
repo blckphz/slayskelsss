@@ -29,6 +29,9 @@ public class TiltManager : MonoBehaviour
     private float camZ;
     private CompositeCollider2D compositeCollider;
 
+    // ✅ ADD THIS (safe external access)
+    public Tilemap Tilemap => tilemap;
+
     void Awake()
     {
         if (cam == null) cam = Camera.main;

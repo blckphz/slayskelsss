@@ -31,15 +31,18 @@ public class PlantBehav : ItemHealth, IInteractable
     public bool dontDestroyOnHarvest = true;
 
     [Header("Harvest Visuals")]
-    public Sprite harvestableSprite;   // NEW
+    public Sprite harvestableSprite;
     public Sprite harvestedSprite;
 
     [Header("Audio")]
     public AudioClip harvestSfx;
+    public AudioClip waterSfx;
+    public AudioClip plantSfx;   // ✅ NEW PLANT SOUND
     public AudioSource audioSource;
 
     private SpriteRenderer sr;
     private bool isHarvestedState = false;
+    private bool hasPlayedPlantSfx = false;
 
     // ================= UNITY =================
 
@@ -57,6 +60,19 @@ public class PlantBehav : ItemHealth, IInteractable
             audioSource = GetComponent<AudioSource>();
 
         UpdateVisuals();
+    }
+
+    // 👉 CALL THIS WHEN PLANT IS FIRST CREATED
+    public void OnPlanted()
+    {
+        if (hasPlayedPlantSfx) return;
+
+        hasPlayedPlantSfx = true;
+
+        if (AudioManager.Instance != null && plantSfx != null)
+        {
+            AudioManager.Instance.PlaySound(plantSfx);
+        }
     }
 
     private void Update()
@@ -94,10 +110,21 @@ public class PlantBehav : ItemHealth, IInteractable
     {
         if (harvestable) return;
 
+        int oldWater = waterLevel;
+
         waterLevel += amount;
         waterLevel = Mathf.Clamp(waterLevel, 0, maxWater);
 
-        Debug.Log($"[Plant] Water: {waterLevel}/{maxWater}");
+        if (waterLevel > oldWater)
+        {
+            if (audioSource == null)
+                audioSource = GetComponent<AudioSource>();
+
+            if (waterSfx != null && AudioManager.Instance != null)
+            {
+                AudioManager.Instance.PlaySound(waterSfx);
+            }
+        }
     }
 
     // ================= GROWTH =================
@@ -241,7 +268,6 @@ public class PlantBehav : ItemHealth, IInteractable
         growthStage = data.growthStage;
         waterLevel = data.waterLevel;
 
-        // restore state correctly
         harvestable = (growthStage >= maxGrowthStage);
         isHarvestedState = false;
 
@@ -255,21 +281,18 @@ public class PlantBehav : ItemHealth, IInteractable
         if (sr == null) sr = GetComponent<SpriteRenderer>();
         if (growthSprites == null || growthSprites.Length == 0) return;
 
-        // ✂️ just harvested state
         if (isHarvestedState && harvestedSprite != null)
         {
             sr.sprite = harvestedSprite;
             return;
         }
 
-        // 🌾 ready to harvest state
         if (harvestable && harvestableSprite != null)
         {
             sr.sprite = harvestableSprite;
             return;
         }
 
-        // 🌱 normal growth
         if (growthStage >= 0 && growthStage < growthSprites.Length)
         {
             sr.sprite = growthSprites[growthStage];
