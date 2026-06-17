@@ -8,6 +8,7 @@ public class TiltManager : MonoBehaviour
 {
     [Header("References")]
     public Tilemap tilemap;
+    public Tilemap blockedTilemap; // Tiles on this map block soil placement
     public TileBase soilTile;
     public Camera cam;
     public BuildingSaveManager saveManager;
@@ -29,12 +30,13 @@ public class TiltManager : MonoBehaviour
     private float camZ;
     private CompositeCollider2D compositeCollider;
 
-    // ✅ ADD THIS (safe external access)
+    // Safe external access
     public Tilemap Tilemap => tilemap;
 
     void Awake()
     {
-        if (cam == null) cam = Camera.main;
+        if (cam == null)
+            cam = Camera.main;
 
         camZ = -cam.transform.position.z;
         compositeCollider = tilemap.GetComponent<CompositeCollider2D>();
@@ -119,6 +121,7 @@ public class TiltManager : MonoBehaviour
     void HandleDragPaint()
     {
         Vector2 screenPos = Pointer.current.position.ReadValue();
+
         Vector3 worldPos = cam.ScreenToWorldPoint(
             new Vector3(screenPos.x, screenPos.y, camZ)
         );
@@ -163,8 +166,18 @@ public class TiltManager : MonoBehaviour
                EventSystem.current.IsPointerOverGameObject();
     }
 
+    bool IsBlocked(Vector3Int pos)
+    {
+        return blockedTilemap != null &&
+               blockedTilemap.GetTile(pos) != null;
+    }
+
     void Place(Vector3Int pos)
     {
+        // Don't allow soil placement on blocked tiles
+        if (IsBlocked(pos))
+            return;
+
         if (tilemap.GetTile(pos) != null)
             return;
 
@@ -223,6 +236,11 @@ public class TiltManager : MonoBehaviour
         foreach (SoilData s in data)
         {
             Vector3Int pos = new Vector3Int(s.x, s.y, 0);
+
+            // Skip loading soil onto blocked tiles
+            if (IsBlocked(pos))
+                continue;
+
             tilemap.SetTile(pos, soilTile);
             placedTiles.Add(pos);
         }
