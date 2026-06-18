@@ -118,6 +118,7 @@ public class CircleAnim : MonoBehaviour
 
             bool hasTile = tiltManager.Tilemap.GetTile(cell) != null;
 
+            Debug.Log($"[CircleAnim] Checking cell {cell} → Tile: {(hasTile ? "YES" : "NO")}");
 
             if (hasTile)
                 clipToPlay = soilStepClip;
