@@ -11,5 +11,5 @@ public interface IItemInstance
 
     void UseDurability(float amount);
 
-    void FillBucket(float amount);
+    //void FillBucket(float amount);
 }
