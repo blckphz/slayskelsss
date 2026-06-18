@@ -44,6 +44,7 @@ public class PlantBehav : ItemHealth, IInteractable
     [Header("UI")]
     public Image waterNeedIcon;
     public float waterThreshold = 0f; // 0 = show when completely dry
+    public int waterflowLimit;
 
     private SpriteRenderer sr;
     private bool isHarvestedState = false;
@@ -196,7 +197,7 @@ public class PlantBehav : ItemHealth, IInteractable
         {
             if (slot.currentDurability <= 0) return;
 
-            int waterAmount = 1;
+            int waterAmount = waterflowLimit;
 
             Water(waterAmount);
 
@@ -244,7 +245,6 @@ public class PlantBehav : ItemHealth, IInteractable
 
         growthStage = 0;
         growthTimer = 0f;
-        waterLevel = 0;
 
         UpdateVisuals();
         UpdateWaterUI();

@@ -407,10 +407,10 @@ MonoBehaviour:
   - {fileID: 3376106324329366409, guid: 95646f66d4cd07b4f95f682573973c86, type: 3}
   maxGrowthStage: 3
   growthStage: 0
-  growTimePerStage: 3
+  growTimePerStage: 10
   waterLevel: 0
-  maxWater: 10
-  dryInterval: 3
+  maxWater: 100
+  dryInterval: 10
   producePrefab: {fileID: 350394197004487116, guid: 6a2c298227ba1f94d99f3d3863c4759e, type: 3}
   produceAmount: 3
   spawnRadius: 0.5
@@ -424,6 +424,7 @@ MonoBehaviour:
   audioSource: {fileID: 6852235234762341173}
   waterNeedIcon: {fileID: 5340113811236111609}
   waterThreshold: 0
+  waterflowLimit: 10
 --- !u!61 &5898757377427334765
 BoxCollider2D:
   m_ObjectHideFlags: 0

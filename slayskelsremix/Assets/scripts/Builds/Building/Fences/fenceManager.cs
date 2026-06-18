@@ -5,8 +5,8 @@ public class FenceManager : MonoBehaviour
 {
     public static FenceManager Instance;
 
-    // GRID STORAGE
-    private Dictionary<Vector2Int, FenceBehav> fences = new Dictionary<Vector2Int, FenceBehav>();
+    private Dictionary<Vector2Int, FenceBehav> fences = new();
+    private HashSet<Vector2Int> gates = new();
 
     private void Awake()
     {
@@ -14,36 +14,61 @@ public class FenceManager : MonoBehaviour
     }
 
     // =========================
-    // REGISTER FENCE
+    // FENCES
     // =========================
+
     public void Register(Vector2Int pos, FenceBehav fence)
     {
         fences[pos] = fence;
         UpdateNeighbors(pos);
     }
 
-    // =========================
-    // REMOVE FENCE
-    // =========================
     public void Remove(Vector2Int pos)
     {
-        if (fences.ContainsKey(pos))
-            fences.Remove(pos);
-
+        fences.Remove(pos);
         UpdateNeighbors(pos);
     }
 
-    // =========================
-    // GET NEIGHBOR CHECK
-    // =========================
     public bool HasFence(Vector2Int pos)
     {
         return fences.ContainsKey(pos);
     }
 
     // =========================
-    // UPDATE SURROUNDINGS
+    // GATES
     // =========================
+
+    /*
+
+    public void RegisterGate(Vector2Int pos)
+    {
+        gates.Add(pos);
+        UpdateNeighbors(pos);
+    }
+
+    */
+
+    public void RemoveGate(Vector2Int pos)
+    {
+        gates.Remove(pos);
+        UpdateNeighbors(pos);
+    }
+
+    public bool HasGate(Vector2Int pos)
+    {
+        return gates.Contains(pos);
+    }
+
+    // Fence OR Gate
+    public bool HasConnection(Vector2Int pos)
+    {
+        return fences.ContainsKey(pos) || gates.Contains(pos);
+    }
+
+    // =========================
+    // UPDATE
+    // =========================
+
     public void UpdateNeighbors(Vector2Int pos)
     {
         Vector2Int[] dirs =
@@ -54,7 +79,6 @@ public class FenceManager : MonoBehaviour
             Vector2Int.down
         };
 
-        // update self + neighbors
         foreach (Vector2Int dir in dirs)
         {
             Vector2Int check = pos + dir;
@@ -65,7 +89,6 @@ public class FenceManager : MonoBehaviour
             }
         }
 
-        // also update self if it exists
         if (fences.TryGetValue(pos, out FenceBehav self))
         {
             self.UpdateShape();

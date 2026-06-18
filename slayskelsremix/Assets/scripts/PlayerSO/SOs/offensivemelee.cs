@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using static Unity.VisualScripting.Dependencies.Sqlite.SQLite3;
 
 public abstract class offensivemelee : offensiveability, IItemDescriptionProvider
 {
@@ -14,14 +13,10 @@ public abstract class offensivemelee : offensiveability, IItemDescriptionProvide
     public float spawnOffset = 1.5f;
     public float rotationOffset = 0f;
 
-    [Header("Miss Recovery")]
-    [Range(0f, 1f)]
-    public float missCooldownMultiplier = 0.65f;
 
     private int currentSwingIndex;
     private float nextSwingTime;
     private float cooldownEndTime;
-    private bool comboConnected;
 
     public bool IsOnCooldown => Time.time < cooldownEndTime;
 
@@ -55,7 +50,6 @@ public abstract class offensivemelee : offensiveability, IItemDescriptionProvide
         currentSwingIndex = 0;
         nextSwingTime = 0f;
         cooldownEndTime = 0f;
-        comboConnected = false;
     }
 
     // =====================================================
@@ -77,8 +71,6 @@ public abstract class offensivemelee : offensiveability, IItemDescriptionProvide
 
         meleebehav swing = PerformSwing(caster, targetAnchor, currentSwingIndex, owner);
 
-        if (swing != null)
-            swing.OnSwingFinished = OnSwingFinished;
 
         currentSwingIndex++;
         nextSwingTime = Time.time + swingFreq;
@@ -87,12 +79,9 @@ public abstract class offensivemelee : offensiveability, IItemDescriptionProvide
         {
             currentSwingIndex = 0;
 
-            float finalCooldown = comboConnected
-                ? fireRate
-                : fireRate * missCooldownMultiplier;
+            float finalCooldown = fireRate;
 
             cooldownEndTime = Time.time + finalCooldown;
-            comboConnected = false;
 
             return true;
         }
@@ -101,7 +90,7 @@ public abstract class offensivemelee : offensiveability, IItemDescriptionProvide
     }
 
     // =====================================================
-    // SWING CREATION
+    // SWING CREATION (VERTICAL ONLY FIX)
     // =====================================================
 
     public meleebehav PerformSwing(Transform caster, Transform targetAnchor, int index, SwingOwner owner)
@@ -114,9 +103,21 @@ public abstract class offensivemelee : offensiveability, IItemDescriptionProvide
 
         Vector2 dir = ((Vector2)targetPos - (Vector2)caster.position).normalized;
 
-        Vector2 snappedDir = Mathf.Abs(dir.x) > Mathf.Abs(dir.y)
-            ? new Vector2(Mathf.Sign(dir.x), 0)
-            : new Vector2(0, Mathf.Sign(dir.y));
+        // =====================================================
+        // ✅ NORTH / SOUTH ONLY MELEE LOGIC
+        // =====================================================
+        Vector2 snappedDir;
+
+        if (Mathf.Abs(dir.y) >= Mathf.Abs(dir.x))
+        {
+            // vertical attack (allowed)
+            snappedDir = new Vector2(0, Mathf.Sign(dir.y));
+        }
+        else
+        {
+            // horizontal input is forced into vertical (fallback)
+            snappedDir = new Vector2(0, dir.y >= 0 ? 1 : -1);
+        }
 
         Vector3 offset = (Vector3)(snappedDir * spawnOffset);
         float angle = Mathf.Atan2(snappedDir.y, snappedDir.x) * Mathf.Rad2Deg + rotationOffset;
@@ -138,16 +139,16 @@ public abstract class offensivemelee : offensiveability, IItemDescriptionProvide
         var behav = woosh.GetComponent<meleebehav>();
 
         behav.Setup(
-      damage,
-      bonus,
-      index,
-      owner,
-      caster,
-      offset,
-      (owner == SwingOwner.Player && this is ToolsSO toolSO)
-          ? toolSO.toolType
-          : ToolType.None
-  );
+            damage,
+            bonus,
+            index,
+            owner,
+            caster,
+            offset,
+            (owner == SwingOwner.Player && this is ToolsSO toolSO)
+                ? toolSO.toolType
+                : ToolType.None
+        );
 
         if (owner == SwingOwner.Player && CameraShaker.Instance != null)
             CameraShaker.Instance.Shake(0.15f, 0.1f);
@@ -159,8 +160,4 @@ public abstract class offensivemelee : offensiveability, IItemDescriptionProvide
     // COMBO
     // =====================================================
 
-    private void OnSwingFinished(bool hit)
-    {
-        comboConnected |= hit;
-    }
 }

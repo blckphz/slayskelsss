@@ -469,14 +469,13 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 0}
-  dragEndClip: {fileID: 0}
+  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
+  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
   dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
-  currentWater: 0
 --- !u!1 &40142402
 GameObject:
   m_ObjectHideFlags: 0
@@ -1113,14 +1112,13 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 0}
-  dragEndClip: {fileID: 0}
+  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
+  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
   dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
-  currentWater: 0
 --- !u!1 &49376306
 GameObject:
   m_ObjectHideFlags: 0
@@ -185892,7 +185890,7 @@ GameObject:
   m_Component:
   - component: {fileID: 80345878}
   m_Layer: 5
-  m_Name: GameObject
+  m_Name: BuildModeUIICON
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -190282,7 +190280,7 @@ MonoBehaviour:
   m_fontColor32:
     serializedVersion: 2
     rgba: 4278190080
-  m_fontColor: {r: 0, g: 0, b: 0, a: 1}
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -190639,10 +190637,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8167bcdb5c8b59f4d9a23c26a77600c1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ItemGiver
-  itemToGive: {fileID: 11400000, guid: 4909735c119e37e44b4232da4ae18c1b, type: 2}
+  itemToGive: {fileID: 11400000, guid: 309d3d7abeebb2946bf7540a0dbef96e, type: 2}
   amount: 1
   destroyOnPickup: 0
-  bobbingEffect: 1
+  bobbingEffect: 0
 --- !u!4 &348052537
 Transform:
   m_ObjectHideFlags: 0
@@ -191218,14 +191216,13 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 0}
-  dragEndClip: {fileID: 0}
+  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
+  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
   dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
-  currentWater: 0
 --- !u!1 &363157312
 GameObject:
   m_ObjectHideFlags: 0
@@ -191293,7 +191290,7 @@ MonoBehaviour:
   m_fontColor32:
     serializedVersion: 2
     rgba: 4278190080
-  m_fontColor: {r: 0, g: 0, b: 0, a: 1}
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -192948,14 +192945,13 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 0}
-  dragEndClip: {fileID: 0}
+  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
+  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
   dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
-  currentWater: 0
 --- !u!1 &495877181
 GameObject:
   m_ObjectHideFlags: 0
@@ -193111,14 +193107,13 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 0}
-  dragEndClip: {fileID: 0}
+  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
+  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
   dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
-  currentWater: 0
 --- !u!1 &496018880
 GameObject:
   m_ObjectHideFlags: 0
@@ -193336,7 +193331,7 @@ MonoBehaviour:
   m_fontColor32:
     serializedVersion: 2
     rgba: 4278190080
-  m_fontColor: {r: 0, g: 0, b: 0, a: 1}
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -193915,184 +193910,6 @@ MonoBehaviour:
   m_Spacing: {x: 230.58, y: 216.22}
   m_Constraint: 1
   m_ConstraintCount: 4
---- !u!43 &523777349
-Mesh:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_Name: 
-  serializedVersion: 12
-  m_SubMeshes:
-  - serializedVersion: 2
-    firstByte: 0
-    indexCount: 0
-    topology: 0
-    baseVertex: 0
-    firstVertex: 0
-    vertexCount: 0
-    localAABB:
-      m_Center: {x: 0, y: 0, z: 0}
-      m_Extent: {x: 0, y: 0, z: 0}
-  m_Shapes:
-    vertices: []
-    shapes: []
-    channels: []
-    fullWeights: []
-  m_BindPose: []
-  m_BoneNameHashes: 
-  m_RootBoneNameHash: 0
-  m_BonesAABB: []
-  m_VariableBoneCountWeights:
-    m_Data: 
-  m_MeshCompression: 0
-  m_IsReadable: 1
-  m_KeepVertices: 1
-  m_KeepIndices: 1
-  m_IndexFormat: 0
-  m_IndexBuffer: 
-  m_VertexData:
-    serializedVersion: 3
-    m_VertexCount: 0
-    m_Channels:
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 3
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    - stream: 0
-      offset: 0
-      format: 0
-      dimension: 0
-    m_DataSize: 0
-    _typelessdata: 
-  m_CompressedMesh:
-    m_Vertices:
-      m_NumItems: 0
-      m_Range: 0
-      m_Start: 0
-      m_Data: 
-      m_BitSize: 0
-    m_UV:
-      m_NumItems: 0
-      m_Range: 0
-      m_Start: 0
-      m_Data: 
-      m_BitSize: 0
-    m_Normals:
-      m_NumItems: 0
-      m_Range: 0
-      m_Start: 0
-      m_Data: 
-      m_BitSize: 0
-    m_Tangents:
-      m_NumItems: 0
-      m_Range: 0
-      m_Start: 0
-      m_Data: 
-      m_BitSize: 0
-    m_Weights:
-      m_NumItems: 0
-      m_Data: 
-      m_BitSize: 0
-    m_NormalSigns:
-      m_NumItems: 0
-      m_Data: 
-      m_BitSize: 0
-    m_TangentSigns:
-      m_NumItems: 0
-      m_Data: 
-      m_BitSize: 0
-    m_FloatColors:
-      m_NumItems: 0
-      m_Range: 0
-      m_Start: 0
-      m_Data: 
-      m_BitSize: 0
-    m_BoneIndices:
-      m_NumItems: 0
-      m_Data: 
-      m_BitSize: 0
-    m_Triangles:
-      m_NumItems: 0
-      m_Data: 
-      m_BitSize: 0
-    m_UVInfo: 0
-  m_LocalAABB:
-    m_Center: {x: 0, y: 0, z: 0}
-    m_Extent: {x: 0, y: 0, z: 0}
-  m_MeshUsageFlags: 0
-  m_CookingOptions: 30
-  m_BakedConvexCollisionMesh: 
-  m_BakedTriangleCollisionMesh: 
-  'm_MeshMetrics[0]': 1
-  'm_MeshMetrics[1]': 1
-  m_MeshOptimizationFlags: 1
-  m_StreamData:
-    serializedVersion: 2
-    offset: 0
-    size: 0
-    path: 
-  m_MeshLodInfo:
-    serializedVersion: 2
-    m_LodSelectionCurve:
-      serializedVersion: 1
-      m_LodSlope: 0
-      m_LodBias: 0
-    m_NumLevels: 1
-    m_SubMeshes:
-    - serializedVersion: 2
-      m_Levels:
-      - serializedVersion: 1
-        m_IndexStart: 0
-        m_IndexCount: 0
 --- !u!1 &527922044
 GameObject:
   m_ObjectHideFlags: 0
@@ -194475,14 +194292,13 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 0}
-  dragEndClip: {fileID: 0}
+  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
+  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
   dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
-  currentWater: 0
 --- !u!1 &540516057
 GameObject:
   m_ObjectHideFlags: 0
@@ -194633,7 +194449,7 @@ MonoBehaviour:
   m_fontColor32:
     serializedVersion: 2
     rgba: 4278190080
-  m_fontColor: {r: 0, g: 0, b: 0, a: 1}
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -196155,14 +195971,13 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 0}
-  dragEndClip: {fileID: 0}
+  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
+  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
   dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
-  currentWater: 0
 --- !u!225 &629904599
 CanvasGroup:
   m_ObjectHideFlags: 0
@@ -196406,7 +196221,7 @@ MonoBehaviour:
   m_fontColor32:
     serializedVersion: 2
     rgba: 4278190080
-  m_fontColor: {r: 0, g: 0, b: 0, a: 1}
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -196606,7 +196421,7 @@ GameObject:
   - component: {fileID: 662514394}
   - component: {fileID: 662514395}
   m_Layer: 5
-  m_Name: GameObject (2)
+  m_Name: ComboText
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -197563,14 +197378,13 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 0}
-  dragEndClip: {fileID: 0}
+  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
+  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
   dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
-  currentWater: 0
 --- !u!1 &734664954
 GameObject:
   m_ObjectHideFlags: 0
@@ -197639,14 +197453,13 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 0}
-  dragEndClip: {fileID: 0}
+  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
+  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
   dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
-  currentWater: 0
 --- !u!225 &734664957
 CanvasGroup:
   m_ObjectHideFlags: 0
@@ -198622,14 +198435,13 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 0}
-  dragEndClip: {fileID: 0}
+  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
+  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
   dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
-  currentWater: 0
 --- !u!1 &798000562
 GameObject:
   m_ObjectHideFlags: 0
@@ -199192,7 +199004,7 @@ MonoBehaviour:
   dragPreviewIcon: {fileID: 418820014}
   Background: {fileID: 0}
   SlotItemPrevirew: {fileID: 0}
-  slotDropPreviewIcon: {fileID: 0}
+  slotDropPreviewIcon: {fileID: 1659104549}
   hoverAlpha: 0.8
   normalAlpha: 0.35
   maxRotation: 8
@@ -199201,14 +199013,13 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 0}
-  dragEndClip: {fileID: 0}
+  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
+  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
   dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
-  currentWater: 0
 --- !u!114 &807999491
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -201176,14 +200987,13 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 0}
-  dragEndClip: {fileID: 0}
+  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
+  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
   dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
-  currentWater: 0
 --- !u!1 &963370530
 GameObject:
   m_ObjectHideFlags: 0
@@ -201438,14 +201248,13 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 0}
-  dragEndClip: {fileID: 0}
+  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
+  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
   dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
-  currentWater: 0
 --- !u!1 &974253231
 GameObject:
   m_ObjectHideFlags: 0
@@ -201507,7 +201316,7 @@ MonoBehaviour:
   dragPreviewIcon: {fileID: 418820014}
   Background: {fileID: 0}
   SlotItemPrevirew: {fileID: 0}
-  slotDropPreviewIcon: {fileID: 0}
+  slotDropPreviewIcon: {fileID: 1659104549}
   hoverAlpha: 0.8
   normalAlpha: 0.35
   maxRotation: 8
@@ -201516,14 +201325,13 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 0}
-  dragEndClip: {fileID: 0}
+  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
+  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
   dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
-  currentWater: 0
 --- !u!114 &974253234
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -384318,7 +384126,6 @@ MonoBehaviour:
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
-  currentWater: 0
 --- !u!114 &998401308
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -384394,7 +384201,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TiltManager
   tilemap: {fileID: 1004712766}
-  blockedTilemap: {fileID: 1157381476}
+  blockedTilemap: {fileID: 0}
   soilTile: {fileID: 11400000, guid: 072441a4ac7a1be4ebad086209d8aa3b, type: 2}
   cam: {fileID: 519420031}
   saveManager: {fileID: 2036798120}
@@ -386022,14 +385829,13 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 0}
-  dragEndClip: {fileID: 0}
+  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
+  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
   dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
-  currentWater: 0
 --- !u!225 &1077669248
 CanvasGroup:
   m_ObjectHideFlags: 0
@@ -386122,14 +385928,13 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 0}
-  dragEndClip: {fileID: 0}
+  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
+  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
   dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
-  currentWater: 0
 --- !u!1 &1080067460
 GameObject:
   m_ObjectHideFlags: 0
@@ -537456,7 +537261,7 @@ MonoBehaviour:
   dragPreviewIcon: {fileID: 418820014}
   Background: {fileID: 0}
   SlotItemPrevirew: {fileID: 0}
-  slotDropPreviewIcon: {fileID: 0}
+  slotDropPreviewIcon: {fileID: 1659104549}
   hoverAlpha: 0.8
   normalAlpha: 0.35
   maxRotation: 8
@@ -537465,14 +537270,13 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 0}
-  dragEndClip: {fileID: 0}
+  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
+  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
   dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
-  currentWater: 0
 --- !u!224 &1282107809
 RectTransform:
   m_ObjectHideFlags: 0
@@ -538157,14 +537961,13 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 0}
-  dragEndClip: {fileID: 0}
+  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
+  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
   dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
-  currentWater: 0
 --- !u!1 &1310551961
 GameObject:
   m_ObjectHideFlags: 0
@@ -538905,14 +538708,13 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 0}
-  dragEndClip: {fileID: 0}
+  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
+  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
   dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
-  currentWater: 0
 --- !u!1 &1342397995
 GameObject:
   m_ObjectHideFlags: 0
@@ -539068,14 +538870,13 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 0}
-  dragEndClip: {fileID: 0}
+  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
+  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
   dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
-  currentWater: 0
 --- !u!1 &1347127543
 GameObject:
   m_ObjectHideFlags: 0
@@ -539279,6 +539080,184 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1350277177}
   m_CullTransparentMesh: 1
+--- !u!43 &1350594074
+Mesh:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: 
+  serializedVersion: 12
+  m_SubMeshes:
+  - serializedVersion: 2
+    firstByte: 0
+    indexCount: 0
+    topology: 0
+    baseVertex: 0
+    firstVertex: 0
+    vertexCount: 0
+    localAABB:
+      m_Center: {x: 0, y: 0, z: 0}
+      m_Extent: {x: 0, y: 0, z: 0}
+  m_Shapes:
+    vertices: []
+    shapes: []
+    channels: []
+    fullWeights: []
+  m_BindPose: []
+  m_BoneNameHashes: 
+  m_RootBoneNameHash: 0
+  m_BonesAABB: []
+  m_VariableBoneCountWeights:
+    m_Data: 
+  m_MeshCompression: 0
+  m_IsReadable: 1
+  m_KeepVertices: 1
+  m_KeepIndices: 1
+  m_IndexFormat: 0
+  m_IndexBuffer: 
+  m_VertexData:
+    serializedVersion: 3
+    m_VertexCount: 0
+    m_Channels:
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 3
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    - stream: 0
+      offset: 0
+      format: 0
+      dimension: 0
+    m_DataSize: 0
+    _typelessdata: 
+  m_CompressedMesh:
+    m_Vertices:
+      m_NumItems: 0
+      m_Range: 0
+      m_Start: 0
+      m_Data: 
+      m_BitSize: 0
+    m_UV:
+      m_NumItems: 0
+      m_Range: 0
+      m_Start: 0
+      m_Data: 
+      m_BitSize: 0
+    m_Normals:
+      m_NumItems: 0
+      m_Range: 0
+      m_Start: 0
+      m_Data: 
+      m_BitSize: 0
+    m_Tangents:
+      m_NumItems: 0
+      m_Range: 0
+      m_Start: 0
+      m_Data: 
+      m_BitSize: 0
+    m_Weights:
+      m_NumItems: 0
+      m_Data: 
+      m_BitSize: 0
+    m_NormalSigns:
+      m_NumItems: 0
+      m_Data: 
+      m_BitSize: 0
+    m_TangentSigns:
+      m_NumItems: 0
+      m_Data: 
+      m_BitSize: 0
+    m_FloatColors:
+      m_NumItems: 0
+      m_Range: 0
+      m_Start: 0
+      m_Data: 
+      m_BitSize: 0
+    m_BoneIndices:
+      m_NumItems: 0
+      m_Data: 
+      m_BitSize: 0
+    m_Triangles:
+      m_NumItems: 0
+      m_Data: 
+      m_BitSize: 0
+    m_UVInfo: 0
+  m_LocalAABB:
+    m_Center: {x: 0, y: 0, z: 0}
+    m_Extent: {x: 0, y: 0, z: 0}
+  m_MeshUsageFlags: 0
+  m_CookingOptions: 30
+  m_BakedConvexCollisionMesh: 
+  m_BakedTriangleCollisionMesh: 
+  'm_MeshMetrics[0]': 1
+  'm_MeshMetrics[1]': 1
+  m_MeshOptimizationFlags: 1
+  m_StreamData:
+    serializedVersion: 2
+    offset: 0
+    size: 0
+    path: 
+  m_MeshLodInfo:
+    serializedVersion: 2
+    m_LodSelectionCurve:
+      serializedVersion: 1
+      m_LodSlope: 0
+      m_LodBias: 0
+    m_NumLevels: 1
+    m_SubMeshes:
+    - serializedVersion: 2
+      m_Levels:
+      - serializedVersion: 1
+        m_IndexStart: 0
+        m_IndexCount: 0
 --- !u!1 &1351436891
 GameObject:
   m_ObjectHideFlags: 0
@@ -539347,14 +539326,13 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 0}
-  dragEndClip: {fileID: 0}
+  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
+  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
   dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
-  currentWater: 0
 --- !u!225 &1351436894
 CanvasGroup:
   m_ObjectHideFlags: 0
@@ -539570,13 +539548,13 @@ MonoBehaviour:
   normalAlpha: 0.5
   hoverAlpha: 0.35
   selectedAlpha: 0.85
-  maxRotation: 6
+  maxRotation: 8
   rotationLerpSpeed: 12
   infoText: {fileID: 594228091}
   largePreviewIcon: {fileID: 41881740}
   craftButton: {fileID: 462098582}
   searchField: {fileID: 567508680}
-  craftSfx: {fileID: 8300000, guid: 62d0392b656a0c34c99d7d14ae8a36e9, type: 3}
+  craftSfx: {fileID: 8300000, guid: 937fb6237c7ab82468941fda7c7234d7, type: 3}
   selectSfx: {fileID: 8300000, guid: 906cdeb1e815fc24baae82e4208910b7, type: 3}
 --- !u!1 &1370434959
 GameObject:
@@ -541665,7 +541643,6 @@ MonoBehaviour:
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
-  currentWater: 0
 --- !u!114 &1494256841
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -542214,14 +542191,14 @@ RectTransform:
   m_GameObject: {fileID: 1532477363}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 1.053, y: 1.053, z: 1.053}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1305268342}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 695.9, y: 508}
+  m_AnchoredPosition: {x: 643, y: 500}
   m_SizeDelta: {x: 50, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1532477365
@@ -543916,14 +543893,13 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 0}
-  dragEndClip: {fileID: 0}
+  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
+  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
   dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
-  currentWater: 0
 --- !u!225 &1657868525
 CanvasGroup:
   m_ObjectHideFlags: 0
@@ -544336,14 +544312,13 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 0}
-  dragEndClip: {fileID: 0}
+  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
+  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
   dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
-  currentWater: 0
 --- !u!1 &1682475842
 GameObject:
   m_ObjectHideFlags: 0
@@ -545095,14 +545070,13 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 0}
-  dragEndClip: {fileID: 0}
+  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
+  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
   dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
-  currentWater: 0
 --- !u!1 &1725093662
 GameObject:
   m_ObjectHideFlags: 0
@@ -547440,14 +547414,13 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 0}
-  dragEndClip: {fileID: 0}
+  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
+  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
   dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
-  currentWater: 0
 --- !u!1 &1894540152
 GameObject:
   m_ObjectHideFlags: 0
@@ -548295,14 +548268,13 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 0}
-  dragEndClip: {fileID: 0}
+  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
+  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
   dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
-  currentWater: 0
 --- !u!1 &1977871234
 GameObject:
   m_ObjectHideFlags: 0
@@ -549246,14 +549218,13 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 0}
-  dragEndClip: {fileID: 0}
+  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
+  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
   dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
-  currentWater: 0
 --- !u!1 &2009737588
 GameObject:
   m_ObjectHideFlags: 0
@@ -549945,14 +549916,13 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 0}
-  dragEndClip: {fileID: 0}
+  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
+  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
   dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
-  currentWater: 0
 --- !u!225 &2023807411
 CanvasGroup:
   m_ObjectHideFlags: 0
@@ -550586,14 +550556,13 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 0}
-  dragEndClip: {fileID: 0}
+  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
+  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
   dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
-  currentWater: 0
 --- !u!1 &2033319687
 GameObject:
   m_ObjectHideFlags: 0
@@ -551215,14 +551184,13 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 0}
-  dragEndClip: {fileID: 0}
+  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
+  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
   dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
-  currentWater: 0
 --- !u!225 &2041088164
 CanvasGroup:
   m_ObjectHideFlags: 0
@@ -552683,7 +552651,7 @@ MonoBehaviour:
   dragPreviewIcon: {fileID: 418820014}
   Background: {fileID: 0}
   SlotItemPrevirew: {fileID: 0}
-  slotDropPreviewIcon: {fileID: 0}
+  slotDropPreviewIcon: {fileID: 1659104549}
   hoverAlpha: 0.8
   normalAlpha: 0.35
   maxRotation: 8
@@ -552692,14 +552660,13 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 0}
-  dragEndClip: {fileID: 0}
+  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
+  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
   dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
-  currentWater: 0
 --- !u!114 &2101199046
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -552847,7 +552814,7 @@ MonoBehaviour:
   buildModeHiddenOffset: {x: -7.05, y: -15.27, z: 0}
   hotbarHiddenOffset: {x: -7.05, y: -15.27, z: 0}
   spriteSpeed: 8
-  enterBuildModeSfx: {fileID: 8300000, guid: 937fb6237c7ab82468941fda7c7234d7, type: 3}
+  enterBuildModeSfx: {fileID: 0}
   exitBuildModeSfx: {fileID: 0}
   toggleGridSfx: {fileID: 0}
 --- !u!1 &2105651387
@@ -553231,14 +553198,13 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 0}
-  dragEndClip: {fileID: 0}
+  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
+  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
   dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
-  currentWater: 0
 --- !u!114 &2115071798
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -553321,14 +553287,13 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 0}
-  dragEndClip: {fileID: 0}
+  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
+  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
   dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
-  currentWater: 0
 --- !u!225 &2115571046
 CanvasGroup:
   m_ObjectHideFlags: 0
@@ -553676,8 +553641,8 @@ MonoBehaviour:
     minDistance: 2
   spawnBlockLayers:
     serializedVersion: 2
-    m_Bits: 1280
-  blockCheckRadius: 1
+    m_Bits: 0
+  blockCheckRadius: 0.2
   dayNightCycle: {fileID: 1725093664}
 --- !u!1 &2124161836
 GameObject:
@@ -553834,14 +553799,13 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 0}
-  dragEndClip: {fileID: 0}
+  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
+  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
   dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
-  currentWater: 0
 --- !u!1 &2141584924
 GameObject:
   m_ObjectHideFlags: 0
@@ -555204,7 +555168,7 @@ GameObject:
   - component: {fileID: 7181708550711822908}
   - component: {fileID: 1087278872021454317}
   m_Layer: 5
-  m_Name: GameObject (1)
+  m_Name: Stats
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -555532,7 +555496,7 @@ MonoBehaviour:
   dragPreviewIcon: {fileID: 418820014}
   Background: {fileID: 0}
   SlotItemPrevirew: {fileID: 0}
-  slotDropPreviewIcon: {fileID: 0}
+  slotDropPreviewIcon: {fileID: 1659104549}
   hoverAlpha: 0.8
   normalAlpha: 0.35
   maxRotation: 8
@@ -555541,14 +555505,13 @@ MonoBehaviour:
   rotationLerpSpeed: 12
   duration: 0.2
   strength: 6
-  dragStartClip: {fileID: 0}
-  dragEndClip: {fileID: 0}
+  dragStartClip: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
+  dragEndClip: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
   dragHoverSlotClip: {fileID: 0}
   currentItem: {fileID: 0}
   currentAbility: {fileID: 0}
   currentCount: 0
   currentDurability: 0
-  currentWater: 0
 --- !u!225 &8324033235924972867
 CanvasGroup:
   m_ObjectHideFlags: 0

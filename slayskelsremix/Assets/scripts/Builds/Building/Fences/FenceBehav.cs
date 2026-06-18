@@ -29,10 +29,10 @@ public class FenceBehav : MonoBehaviour
     {
         int mask = 0;
 
-        if (FenceManager.Instance.HasFence(gridPos + Vector2Int.right)) mask |= 1;
-        if (FenceManager.Instance.HasFence(gridPos + Vector2Int.left)) mask |= 2;
-        if (FenceManager.Instance.HasFence(gridPos + Vector2Int.up)) mask |= 4;
-        if (FenceManager.Instance.HasFence(gridPos + Vector2Int.down)) mask |= 8;
+        if (FenceManager.Instance.HasConnection(gridPos + Vector2Int.right)) mask |= 1;
+        if (FenceManager.Instance.HasConnection(gridPos + Vector2Int.left)) mask |= 2;
+        if (FenceManager.Instance.HasConnection(gridPos + Vector2Int.up)) mask |= 4;
+        if (FenceManager.Instance.HasConnection(gridPos + Vector2Int.down)) mask |= 8;
 
         if (fenceSprites != null && mask < fenceSprites.Length && fenceSprites[mask] != null)
         {
