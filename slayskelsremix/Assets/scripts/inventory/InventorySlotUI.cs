@@ -50,13 +50,15 @@ public class InventorySlotUI : MonoBehaviour,
 
     public bool IsEmpty => currentItem == null && currentAbility == null;
 
+    // ✅ GLOBAL DRAG STATE
+    public static bool IsAnyDragging { get; private set; }
+
     private bool isDragging;
     private bool isHovered;
 
     private RectTransform bgRect;
     private Quaternion targetRotation = Quaternion.identity;
 
-    private Coroutine shakeRoutine;
     private static InventorySlotUI lastHoveredDragSlot;
 
     private void Awake()
@@ -101,6 +103,8 @@ public class InventorySlotUI : MonoBehaviour,
     {
         isDragging = false;
         isHovered = false;
+        IsAnyDragging = false;
+
         lastHoveredDragSlot = null;
 
         if (dragPreviewIcon != null)
@@ -258,6 +262,8 @@ public class InventorySlotUI : MonoBehaviour,
         if (IsEmpty) return;
 
         isDragging = true;
+        IsAnyDragging = true;
+
         isHovered = false;
 
         HideDropPreview();
@@ -285,6 +291,8 @@ public class InventorySlotUI : MonoBehaviour,
     public void OnEndDrag(PointerEventData eventData)
     {
         isDragging = false;
+        IsAnyDragging = false;
+
         lastHoveredDragSlot = null;
 
         AudioManager.Instance?.PlayUISound(dragEndClip);
@@ -320,22 +328,6 @@ public class InventorySlotUI : MonoBehaviour,
             SetSlot(sourceItem, source.GetAbility(), source.GetCount(), source.GetDurability());
             source.ClearSlot();
         }
-        else if (sourceItem != null &&
-                 targetItem.itemID == sourceItem.itemID &&
-                 GetDurability() == source.GetDurability())
-        {
-            int max = targetItem.maxStackSize;
-            int total = GetCount() + source.GetCount();
-            int clamped = Mathf.Min(total, max);
-            int leftover = total - max;
-
-            SetSlot(targetItem, GetAbility(), clamped, GetDurability());
-
-            if (leftover > 0)
-                source.SetSlot(sourceItem, source.GetAbility(), leftover, source.GetDurability());
-            else
-                source.ClearSlot();
-        }
         else
         {
             ItemData tempItem = targetItem;
@@ -350,7 +342,6 @@ public class InventorySlotUI : MonoBehaviour,
         FinalizeStackTransaction(source);
     }
 
-    // ✅ FIXED TOOLTIP (THIS IS THE IMPORTANT PART)
     private void SetHoverVisual(bool state)
     {
         if (Background != null)
@@ -365,17 +356,9 @@ public class InventorySlotUI : MonoBehaviour,
             : Quaternion.identity;
 
         if (state && currentItem != null)
-        {
-            invToolTip.Instance?.ShowToolTip(
-                currentItem,
-                currentDurability,
-                currentDurability
-            );
-        }
+            invToolTip.Instance?.ShowToolTip(currentItem, currentDurability, currentDurability);
         else
-        {
             invToolTip.Instance?.HideToolTip();
-        }
     }
 
     private void ApplyBackgroundState()
@@ -394,12 +377,6 @@ public class InventorySlotUI : MonoBehaviour,
         InvUI.Instance?.RefreshUI();
         PlayerHotbarManager.Instance?.RefreshHotbar();
         invToolTip.Instance?.HideToolTip();
-    }
-
-    public ItemInstance GetItemInstance()
-    {
-        if (currentItem == null) return null;
-        return new ItemInstance(currentItem, currentCount, currentDurability);
     }
 
     public ItemData GetItem() => currentItem;

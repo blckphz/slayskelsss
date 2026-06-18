@@ -15,10 +15,10 @@ MonoBehaviour:
   itemID: 441415325
   itemName: Wooden Bucket
   ItemDescription: 
-  icon: {fileID: 21300000, guid: 485320fcd8c917847bbc353fe0031902, type: 3}
+  icon: {fileID: 4174471388266327163, guid: af81992aadc86f5409abca9b1f24114c, type: 3}
   DragStartSound: {fileID: 0}
   DragEndSound: {fileID: 0}
-  itemType: 4
+  itemType: 0
   maxStackSize: 1
   usesDurability: 0
   maxDurability: 0
@@ -26,5 +26,3 @@ MonoBehaviour:
   consumeAmount: 1
   abilityToExecute: {fileID: 0}
   maxWater: 100
-  EmtpySprite: {fileID: 0}
-  FullSprite: {fileID: 0}

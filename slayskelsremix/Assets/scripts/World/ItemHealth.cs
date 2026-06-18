@@ -142,18 +142,11 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
             float original = damage;
             damage = Mathf.RoundToInt(damage * correctToolDamageMultiplier);
 
-            Debug.Log($"[ItemHealth] ✅ Correct tool used ({toolType}). " +
-                      $"Damage boosted: {original} → {damage} (x{correctToolDamageMultiplier})");
-        }
-        else
-        {
-            Debug.Log($"[ItemHealth] ❌ Wrong tool or no bonus. Used: {toolType}, Required: {effectiveTool}");
         }
 
         health -= damage;
         health = Mathf.Clamp(health, 0, maxHealth);
 
-        Debug.Log($"[ItemHealth] {gameObject.name} took {damage} damage. Health now: {health}/{maxHealth}");
 
         AudioManager.Instance?.PlaySound(hitSound, hitVolume);
 
@@ -206,7 +199,6 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
         PlayerHotbarManager.Instance.ReduceActiveToolDurability(
             Mathf.CeilToInt(durabilityPerHit));
 
-        Debug.Log($"[ItemHealth] Tool durability reduced by {durabilityPerHit}");
     }
 
     // =====================================================
