@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class fishingManager : MonoBehaviour, IInteractable
+public class fishingManager : MonoBehaviour//, IInteractable
 {
     [Header("References")]
     public FishingUI fishingUI;
@@ -47,10 +47,14 @@ public class fishingManager : MonoBehaviour, IInteractable
         }
     }
 
+    
+
     public string GetPrompt()
     {
         return "Fish";
     }
+
+    
 
     public void OnFocus()
     {
