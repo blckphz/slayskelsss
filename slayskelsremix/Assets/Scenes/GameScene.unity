@@ -586878,7 +586878,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::fishingManager
   fishingUI: {fileID: 595711170}
   fishingGameObject: {fileID: 297782920}
-  pressEPrompt: {fileID: 1957402290}
+  pressEPrompt: {fileID: 0}
   fadeDuration: 0.25
 --- !u!114 &1157381478
 MonoBehaviour:
