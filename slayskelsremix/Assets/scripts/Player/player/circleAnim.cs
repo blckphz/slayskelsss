@@ -29,7 +29,6 @@ public class CircleAnim : MonoBehaviour
     {
         originalScale = transform.localScale;
 
-        Debug.Log("[CircleAnim] Initialized");
 
         if (playerScript == null)
             Debug.LogError("[CircleAnim] Missing PlayerMovement");

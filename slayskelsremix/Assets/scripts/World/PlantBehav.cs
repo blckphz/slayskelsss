@@ -184,6 +184,13 @@ public class PlantBehav : ItemHealth, IInteractable
     {
         if (inv == null) return;
 
+        // Don't allow watering if already full
+        if (waterLevel >= maxWater)
+        {
+            Debug.Log("[Plant] Doesn't need water.");
+            return;
+        }
+
         var hotbar = PlayerHotbarManager.Instance;
         if (hotbar == null) return;
 
@@ -198,6 +205,10 @@ public class PlantBehav : ItemHealth, IInteractable
             if (slot.currentDurability <= 0) return;
 
             int waterAmount = waterflowLimit;
+
+            // Only add as much water as needed
+            int neededWater = maxWater - waterLevel;
+            waterAmount = Mathf.Min(waterAmount, neededWater);
 
             Water(waterAmount);
 
