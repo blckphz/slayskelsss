@@ -6,15 +6,19 @@ public class MainMenuManager : MonoBehaviour
 {
     [SerializeField] private TMP_Text playButtonText;
     [SerializeField] private GameLoader gameLoader;
+    [SerializeField] private GameObject newGamePanel;
+
+    private string savePath;
 
     private void Start()
     {
         Debug.Log("MainMenuManager Start running");
 
-        string savePath =
-            Application.persistentDataPath + "/buildings.json";
+        savePath = Path.Combine(Application.persistentDataPath, "buildings.json");
 
-        Debug.Log("Save exists: " + File.Exists(savePath));
+        bool saveExists = File.Exists(savePath);
+
+        Debug.Log("Save exists: " + saveExists);
 
         if (playButtonText == null)
         {
@@ -22,16 +26,37 @@ public class MainMenuManager : MonoBehaviour
             return;
         }
 
-        playButtonText.text =
-            File.Exists(savePath)
-            ? "Continue"
-            : "New Game";
+        playButtonText.text = saveExists ? "Continue" : "New Game";
+
+        if (newGamePanel != null)
+            newGamePanel.SetActive(false);
     }
+
     public void PlayGame()
     {
         GameLoadingState.WorldReady = false;
 
-        // IMPORTANT: use loader instead of direct scene load
+        if (File.Exists(savePath))
+        {
+            // Continue existing game
+            gameLoader.StartNewGame();
+        }
+        else
+        {
+            // Show New Game setup panel
+            if (newGamePanel != null)
+                newGamePanel.SetActive(true);
+        }
+    }
+
+    public void ConfirmNewGame()
+    {
         gameLoader.StartNewGame();
+    }
+
+    public void CancelNewGame()
+    {
+        if (newGamePanel != null)
+            newGamePanel.SetActive(false);
     }
 }

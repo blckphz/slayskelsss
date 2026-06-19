@@ -4,6 +4,10 @@ using UnityEngine.SceneManagement;
 
 public class GameLoader : MonoBehaviour
 {
+
+    public GameObject loadingScreenPrefab;
+    public GameObject blackbg;
+
     public void StartNewGame()
     {
         StartCoroutine(LoadGame());
@@ -11,6 +15,9 @@ public class GameLoader : MonoBehaviour
 
     private IEnumerator LoadGame()
     {
+        loadingScreenPrefab.SetActive(true);
+        blackbg.SetActive(true);
+
         LoadingScreen.Instance?.SetText("Loading Game Scene...");
 
         AsyncOperation op = SceneManager.LoadSceneAsync("GameScene");
