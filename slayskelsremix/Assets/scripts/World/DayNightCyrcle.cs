@@ -15,9 +15,17 @@ public class DayNightCycle : MonoBehaviour
     [Header("UI")]
     public TextMeshProUGUI timeText;
 
+    [Header("Blood Moon")]
+    public int bloodMoonEveryNDays = 5;
+    public Color bloodMoonTint = new Color(1f, 0.3f, 0.3f);
+    public float bloodMoonIntensityMultiplier = 1.2f;
+
     public float TotalTime { get; private set; }
     public float RawTime { get; private set; }
     public int DaysPassed { get; private set; }
+
+    public bool IsBloodMoon =>
+        DaysPassed > 0 && (DaysPassed % bloodMoonEveryNDays == 0);
 
     void Update()
     {
@@ -44,8 +52,22 @@ public class DayNightCycle : MonoBehaviour
     {
         if (globalLight == null) return;
 
-        globalLight.color = nightDayColor.Evaluate(RawTime);
-        globalLight.intensity = intensityCurve.Evaluate(RawTime);
+        float hour = RawTime * 24f;
+
+        bool isNight = hour >= 18f || hour < 6f;
+
+        Color baseColor = nightDayColor.Evaluate(RawTime);
+        float baseIntensity = intensityCurve.Evaluate(RawTime);
+
+        // 🌙 Only apply Blood Moon during NIGHT
+        if (IsBloodMoon && isNight)
+        {
+            baseColor = Color.Lerp(baseColor, bloodMoonTint, 0.5f);
+            baseIntensity *= bloodMoonIntensityMultiplier;
+        }
+
+        globalLight.color = baseColor;
+        globalLight.intensity = baseIntensity;
     }
 
     private void UpdateUI()
@@ -60,9 +82,18 @@ public class DayNightCycle : MonoBehaviour
         string period = totalHours >= 12 ? "PM" : "AM";
 
         timeText.text = $"Day {DaysPassed + 1} {hour12:00} {period}";
+
+        // 🌙 Blood Moon text tint
+        if (IsBloodMoon)
+        {
+            timeText.color = Color.Lerp(Color.white, new Color(1f, 0.3f, 0.3f), 0.5f);
+        }
+        else
+        {
+            timeText.color = Color.white;
+        }
     }
 
-    // Called by your save system
     public void LoadTime(float total, float raw, int days)
     {
         TotalTime = total;

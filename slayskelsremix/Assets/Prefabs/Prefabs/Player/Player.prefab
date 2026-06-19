@@ -498,6 +498,7 @@ GameObject:
   - component: {fileID: 3277555629805189734}
   - component: {fileID: 2378147042435376624}
   - component: {fileID: 8387650452570734870}
+  - component: {fileID: 8415306902994302872}
   m_Layer: 7
   m_Name: Player
   m_TagString: Untagged
@@ -978,6 +979,18 @@ MonoBehaviour:
   xpToNextLevel: 100
   skillPoints: 0
   saveID: 
+--- !u!114 &8415306902994302872
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5074179420469325824}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6623e1ac7455ead4a9c1bdf280b23448, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerNeeds
 --- !u!1 &5294298298383211905
 GameObject:
   m_ObjectHideFlags: 0

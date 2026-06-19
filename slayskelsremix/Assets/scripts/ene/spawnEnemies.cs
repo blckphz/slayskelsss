@@ -6,7 +6,7 @@ public class EnemySpawner : MonoBehaviour
     public GameObject enemyPrefab;
 
     [Header("Spawning Settings")]
-    public float spawnInterval = 2.0f;
+    public float spawnInterval;
     public float buffer = 0.1f;
 
     [Header("References")]
@@ -27,6 +27,10 @@ public class EnemySpawner : MonoBehaviour
 
     void Update()
     {
+        // 1 = "none", so stop spawning
+        if (PlayerPrefs.GetInt("Enemies", 0) == 1)
+            return;
+
         // Only spawn at night (6 PM - 6 AM)
         if (dayNightCycle == null || !IsNight())
             return;

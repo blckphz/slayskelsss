@@ -81,6 +81,12 @@ public class BuildingSaveManager : MonoBehaviour
 
         placedObjects.RemoveAll(x => x == null);
 
+        var needs = player.GetComponent<PlayerNeeds>();
+        if (needs != null)
+        {
+            data.saturation = needs.saturation;
+        }
+
 
         // =========================
         // BUILDINGS
@@ -248,6 +254,13 @@ public class BuildingSaveManager : MonoBehaviour
                 cc.enabled = false;
 
             player.position = cachedData.playerPosition;
+            var needs = player.GetComponent<PlayerNeeds>();
+            if (needs != null)
+            {
+                needs.saturation = cachedData.saturation;
+            }
+
+
 
             if (cc != null)
                 cc.enabled = true;

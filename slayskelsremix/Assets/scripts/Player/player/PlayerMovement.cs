@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 using System.Collections;
@@ -137,13 +137,11 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    // NEW: Check if enough stamina exists
     public bool HasEnoughStamina(float amount)
     {
         return currentStamina >= amount;
     }
 
-    // NEW: Spend stamina
     public bool TryUseStamina(float amount)
     {
         if (currentStamina < amount)
@@ -157,6 +155,7 @@ public class PlayerMovement : MonoBehaviour
 
     private void ResetExhaustion()
     {
+        // (optional future logic)
     }
 
     private void SpawnDashClone()
@@ -192,4 +191,7 @@ public class PlayerMovement : MonoBehaviour
         if (backgroundImage != null)
             backgroundImage.rectTransform.anchoredPosition = bgOriginalPos;
     }
+
+    // ✅ NEW: used by PlayerNeeds
+    public bool IsMoving => moveInput != Vector2.zero;
 }

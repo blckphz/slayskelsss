@@ -6,9 +6,9 @@ public class SaveData
 {
     public Vector3 playerPosition;
 
+    public int saturation; // ✅ ADD THIS
     public List<BuildingData> buildings = new();
     public List<PlantSaveData> plants = new();
-
     public List<NpcInventorySaveData> npcInventories = new();
     public List<BushSaveData> bushes = new();
     public List<TreeSaveData> trees = new();
@@ -20,6 +20,8 @@ public class SaveData
     public float rawTime;
     public int daysPassed;
 }
+
+
 
 [System.Serializable]
 public class BuildingData
