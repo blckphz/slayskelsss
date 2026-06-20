@@ -17,7 +17,7 @@ public class AudioManager : MonoBehaviour
 
     private void Awake()
     {
-        // singleton
+        // Singleton
         if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
@@ -27,7 +27,10 @@ public class AudioManager : MonoBehaviour
         Instance = this;
         DontDestroyOnLoad(gameObject);
 
-        // audio source
+        // Load saved volume
+        masterVolume = PlayerPrefs.GetFloat("MasterVolume", 1f);
+
+        // Audio source
         audioSource = GetComponent<AudioSource>();
 
         if (audioSource == null)
@@ -35,10 +38,27 @@ public class AudioManager : MonoBehaviour
             audioSource = gameObject.AddComponent<AudioSource>();
         }
 
-        // recommended defaults
+        // Recommended defaults
         audioSource.playOnAwake = false;
         audioSource.loop = false;
         audioSource.spatialBlend = 0f; // 2D audio
+    }
+
+    // =====================================================
+    // VOLUME CONTROL
+    // =====================================================
+
+    public void SetMasterVolume(float volume)
+    {
+        masterVolume = Mathf.Clamp01(volume);
+
+        PlayerPrefs.SetFloat("MasterVolume", masterVolume);
+        PlayerPrefs.Save();
+    }
+
+    public float GetMasterVolume()
+    {
+        return masterVolume;
     }
 
     // =====================================================
@@ -53,7 +73,6 @@ public class AudioManager : MonoBehaviour
             return;
         }
 
-        // random pitch variation
         if (randomizePitch)
         {
             audioSource.pitch = Random.Range(minPitch, maxPitch);
@@ -70,7 +89,7 @@ public class AudioManager : MonoBehaviour
     }
 
     // =====================================================
-    // UI SOUND (NO RANDOM PITCH)
+    // UI SOUND
     // =====================================================
 
     public void PlayUISound(AudioClip clip, float volume = 1f, bool useRandomPitch = false)
@@ -90,6 +109,9 @@ public class AudioManager : MonoBehaviour
             audioSource.pitch = 1f;
         }
 
-        audioSource.PlayOneShot(clip, volume * masterVolume);
+        audioSource.PlayOneShot(
+            clip,
+            volume * masterVolume
+        );
     }
 }
