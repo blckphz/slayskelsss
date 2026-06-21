@@ -18,8 +18,6 @@ public class NPCBrain : MonoBehaviour
     private AIDestinationSetter destinationSetter;
     private AIPath aiPath;
     private NpcInvBrain inventory;
-    private NpcAttack attackModule;
-    private npcJobBrain jobBrain;
 
     private float nextActionTime;
     private GameObject wanderTarget;
@@ -30,8 +28,6 @@ public class NPCBrain : MonoBehaviour
         destinationSetter = GetComponent<AIDestinationSetter>();
         aiPath = GetComponent<AIPath>();
         inventory = GetComponent<NpcInvBrain>();
-        attackModule = GetComponent<NpcAttack>();
-        jobBrain = GetComponent<npcJobBrain>();
 
         // Create a unique helper object for wandering positions
         wanderTarget = new GameObject(gameObject.name + "_WanderTarget");
@@ -83,24 +79,6 @@ public class NPCBrain : MonoBehaviour
         Transform nextTarget;
         string nextDesc;
 
-        // Pull the highest priority job from the npcJobBrain
-        jobBrain.DetermineNextJob(out nextState, out nextTarget, out nextDesc);
-
-        if (nextState == NPCState.Wandering)
-        {
-            StartWander();
-        }
-        else if (nextTarget != null)
-        {
-            StartJob(nextTarget, nextState, nextDesc);
-        }
-        else
-        {
-            // If absolutely no jobs exist, wait a bit
-            currentState = NPCState.Idle;
-            jobDescription = "No work found...";
-            nextActionTime = Time.time + 1.5f;
-        }
     }
 
     private void StartJob(Transform target, NPCState state, string desc)
@@ -161,10 +139,6 @@ public class NPCBrain : MonoBehaviour
             case NPCState.Gathering:
                 // Note: PickupItem logic is handled by triggers in the PickupItem script.
                 // Here we handle attacking trees.
-                if (t.GetComponent<IDamageable>() != null)
-                {
-                    attackModule.TryAttack(t);
-                }
                 break;
         }
     }

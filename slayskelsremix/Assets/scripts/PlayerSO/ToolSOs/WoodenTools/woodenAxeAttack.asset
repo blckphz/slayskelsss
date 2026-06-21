@@ -23,7 +23,7 @@ MonoBehaviour:
   maxSwings: 3
   swingFreq: 0.35
   customAudioLogic: 0
-  spawnOffset: 1.2
+  spawnOffset: 0.75
   rotationOffset: 90
   toolType: 2
   bonusDamage: 0

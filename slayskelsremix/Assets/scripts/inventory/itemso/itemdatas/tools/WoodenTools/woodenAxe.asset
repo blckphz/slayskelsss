@@ -21,7 +21,7 @@ MonoBehaviour:
   itemType: 0
   maxStackSize: 99
   usesDurability: 1
-  maxDurability: 10
+  maxDurability: 100
   isUsable: 1
   consumeAmount: 0
   abilityToExecute: {fileID: 11400000, guid: 7e01b482a0ff8d94d8c4718317374df0, type: 2}

@@ -7,6 +7,9 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
     [Header("Persistent ID")]
     public string UniqOverworldItemID;
 
+    [HideInInspector]
+    public NPCJobManager ReservedBy;
+
     [Header("Health")]
     public float health = 50f;
     protected float maxHealth;
@@ -64,10 +67,6 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
 
     private bool isSlowed = false;
 
-    // =====================================================
-    // UNITY
-    // =====================================================
-
     protected virtual void Awake()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
@@ -75,7 +74,6 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
         originalLocalPosition = transform.localPosition;
 
         maxHealth = health;
-
     }
 
     protected virtual void Start()
@@ -97,25 +95,25 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
     // DAMAGE
     // =====================================================
 
+
     public virtual void TakeDamage(int damage, ToolType toolType, ItemData toolItem)
     {
-        if (IsDamageIgnored())
-        {
-            Debug.Log("[ItemHealth] Damage ignored (custom override)");
-            return;
-        }
+        TakeDamage(damage, toolType, toolItem, null);
+    }
 
-        ApplyToolDurability(toolItem);
+    public virtual void TakeDamage(int damage, ToolType toolType, ItemData toolItem, GameObject attacker)
+    {
+        if (IsDamageIgnored())
+            return;
+
+        ApplyToolDurability(toolItem, attacker);
         ProcessDamage(damage, toolType);
     }
 
     public virtual void TakeDamage(int damage, ToolType toolType)
     {
         if (IsDamageIgnored())
-        {
-            Debug.Log("[ItemHealth] Damage ignored (toolType overload)");
             return;
-        }
 
         ProcessDamage(damage, toolType);
     }
@@ -123,10 +121,7 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
     public virtual void TakeDamage(int damage)
     {
         if (IsDamageIgnored())
-        {
-            Debug.Log("[ItemHealth] Damage ignored (basic overload)");
             return;
-        }
 
         ProcessDamage(damage, ToolType.None);
     }
@@ -142,71 +137,70 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
             float original = damage;
             damage = Mathf.RoundToInt(damage * correctToolDamageMultiplier);
 
-            Debug.Log($"[ItemHealth] ✅ Correct tool used ({toolType}). " +
-                      $"Damage boosted: {original} → {damage} (x{correctToolDamageMultiplier})");
-        }
-        else
-        {
-            Debug.Log($"[ItemHealth] ❌ Wrong tool or no bonus. Used: {toolType}, Required: {effectiveTool}");
+            Debug.Log($"[ItemHealth] Correct tool used. Damage boosted: {original} → {damage}");
         }
 
         health -= damage;
         health = Mathf.Clamp(health, 0, maxHealth);
 
-        Debug.Log($"[ItemHealth] {gameObject.name} took {damage} damage. Health now: {health}/{maxHealth}");
-
         AudioManager.Instance?.PlaySound(hitSound, hitVolume);
-
-        CameraShaker.Instance?.Shake(
-            cameraShakeIntensity,
-            cameraShakeDuration
-        );
+        CameraShaker.Instance?.Shake(cameraShakeIntensity, cameraShakeDuration);
 
         ShowDamageText(damage);
         TriggerFlash();
         TriggerShake();
 
         if (UnityEngine.Random.value <= hitDropChance)
-        {
-            Debug.Log("[ItemHealth] Hit loot spawned.");
             SpawnHitLoot();
-        }
 
         if (health <= 0)
-        {
-            Debug.Log("[ItemHealth] Object destroyed → Die()");
             Die(toolType);
-        }
     }
 
     // =====================================================
-    // TOOL DURABILITY
+    // TOOL DURABILITY (PLAYER + NPC)
     // =====================================================
 
-    protected virtual void ApplyToolDurability(ItemData toolItem)
+    protected virtual void ApplyToolDurability(ItemData toolItem, GameObject attacker = null)
     {
-        if (toolItem == null)
+        if (toolItem == null || toolItem.IsUnbreakable)
+            return;
+
+        int damage = Mathf.CeilToInt(durabilityPerHit);
+
+        // ================= PLAYER =================
+        if (PlayerHotbarManager.Instance != null)
         {
-            Debug.Log("[ItemHealth] No tool item provided.");
+            PlayerHotbarManager.Instance.ReduceActiveToolDurability(damage);
             return;
         }
 
-        if (toolItem.IsUnbreakable)
+        // ================= NPC =================
+        if (attacker != null && attacker.TryGetComponent(out NpcInvBrain inv))
         {
-            Debug.Log("[ItemHealth] Tool is unbreakable.");
-            return;
+            for (int i = 0; i < inv.inventory.Count; i++)
+            {
+                var slot = inv.inventory[i];
+
+                if (slot.item == toolItem && slot.count > 0)
+                {
+                    slot.currentDurability -= damage;
+
+                    if (slot.currentDurability <= 0)
+                    {
+                        slot.count--;
+
+                        if (slot.count > 0)
+                            slot.currentDurability = toolItem.maxDurability;
+
+                        if (slot.count <= 0)
+                            inv.inventory.RemoveAt(i);
+                    }
+
+                    break;
+                }
+            }
         }
-
-        if (PlayerHotbarManager.Instance == null)
-        {
-            Debug.LogWarning("[ItemHealth] No PlayerHotbarManager instance.");
-            return;
-        }
-
-        PlayerHotbarManager.Instance.ReduceActiveToolDurability(
-            Mathf.CeilToInt(durabilityPerHit));
-
-        Debug.Log($"[ItemHealth] Tool durability reduced by {durabilityPerHit}");
     }
 
     // =====================================================
@@ -215,39 +209,27 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
 
     protected virtual void SpawnHitLoot()
     {
-        if (lootPrefab == null)
-            return;
+        if (lootPrefab == null) return;
 
         for (int i = 0; i < hitDropAmount; i++)
         {
-            GameObject loot = Instantiate(
-                lootPrefab,
-                transform.position,
-                Quaternion.identity);
+            GameObject loot = Instantiate(lootPrefab, transform.position, Quaternion.identity);
 
             if (loot.TryGetComponent(out LootArc arc))
-            {
                 arc.Initialize(transform.position);
-            }
         }
     }
 
     public virtual void SpawnLoot()
     {
-        if (lootPrefab == null)
-            return;
+        if (lootPrefab == null) return;
 
         for (int i = 0; i < dropAmount; i++)
         {
-            GameObject loot = Instantiate(
-                lootPrefab,
-                transform.position,
-                Quaternion.identity);
+            GameObject loot = Instantiate(lootPrefab, transform.position, Quaternion.identity);
 
             if (loot.TryGetComponent(out LootArc arc))
-            {
                 arc.Initialize(transform.position);
-            }
         }
     }
 
@@ -257,18 +239,12 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
 
     protected virtual void ShowDamageText(int damage)
     {
-        if (damageTextPrefab == null || damage <= 0)
-            return;
+        if (damageTextPrefab == null || damage <= 0) return;
 
-        GameObject obj = Instantiate(
-            damageTextPrefab,
-            transform.position + Vector3.up,
-            Quaternion.identity);
+        GameObject obj = Instantiate(damageTextPrefab, transform.position + Vector3.up, Quaternion.identity);
 
         if (obj.TryGetComponent(out DamageNumber dn))
-        {
             dn.Setup(damage);
-        }
     }
 
     // =====================================================
@@ -290,7 +266,6 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
         while (t < flashDuration)
         {
             t += Time.deltaTime;
-
             float intensity = Mathf.Lerp(1f, 0f, t / flashDuration);
 
             spriteRenderer.GetPropertyBlock(propertyBlock);
@@ -322,7 +297,6 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
             t += Time.deltaTime;
 
             Vector2 offset = UnityEngine.Random.insideUnitCircle * shakeMagnitude;
-
             transform.localPosition = originalLocalPosition + (Vector3)offset;
 
             yield return null;
@@ -340,10 +314,7 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
         GameObject player = GameObject.FindGameObjectWithTag("Player");
 
         if (player != null && player.TryGetComponent(out LevelManager lm))
-        {
             lm.AddXP(xpReward);
-            Debug.Log($"[ItemHealth] Granted {xpReward} XP");
-        }
     }
 
     // =====================================================
@@ -352,15 +323,12 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
 
     protected virtual void Die(ToolType tool)
     {
-        Debug.Log($"[ItemHealth] Die() called by tool: {tool}");
-
         NPCGlobalEvents.NotifyDestroyed(gameObject.GetInstanceID());
 
         if (givesXP)
             GrantXP();
 
         SpawnLoot();
-
         Destroy(gameObject);
     }
 
@@ -376,7 +344,6 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
     public virtual void ApplySlow(float slowPercent, float duration, int tickDmg, float tickInterval)
     {
         StartCoroutine(SlowRoutine(duration));
-        Debug.Log($"[ItemHealth] Slow applied: {slowPercent}% for {duration}s");
     }
 
     private IEnumerator SlowRoutine(float duration)
@@ -384,8 +351,6 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
         isSlowed = true;
         yield return new WaitForSeconds(duration);
         isSlowed = false;
-
-        Debug.Log("[ItemHealth] Slow ended");
     }
 
     public bool IsSlowed => isSlowed;

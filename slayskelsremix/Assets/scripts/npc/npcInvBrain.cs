@@ -8,34 +8,118 @@ public class NpcInvBrain : MonoBehaviour
     {
         public ItemData item;
         public int count;
+        public int currentDurability;
 
         public InventorySlot(ItemData d, int c)
         {
             item = d;
             count = c;
+
+            if (d != null && d.usesDurability)
+                currentDurability = d.maxDurability;
+            else
+                currentDurability = -1;
         }
     }
 
     [Header("Unique NPC Save ID")]
     public string npcId;
 
+    [Header("Inventory")]
     public List<InventorySlot> inventory = new List<InventorySlot>();
+
+    // =====================================================
+    // DEBUG HELPERS
+    // =====================================================
+
+    private void Log(string msg)
+    {
+        Debug.Log($"<color=cyan>[NPC INV]</color> [{name}] {msg}");
+    }
+
+    private void Warn(string msg)
+    {
+        Debug.LogWarning($"<color=yellow>[NPC INV]</color> [{name}] {msg}");
+    }
+
+    private void Error(string msg)
+    {
+        Debug.LogError($"<color=red>[NPC INV]</color> [{name}] {msg}");
+    }
+
+    // =====================================================
+    // ITEM SEARCH
+    // =====================================================
+
+    public UseableItem GetBestUsableItem(System.Predicate<UseableItem> match)
+    {
+        Log("Searching for usable item...");
+
+        foreach (var slot in inventory)
+        {
+            if (slot.item is UseableItem u && slot.count > 0)
+            {
+                Log($"Checking item: {u.itemName}");
+
+                if (match(u))
+                {
+                    Log($"FOUND MATCH: {u.itemName}");
+                    return u;
+                }
+            }
+        }
+
+        Warn("No matching usable item found.");
+        return null;
+    }
+
+    public UseableItem GetTool(ToolType tool)
+    {
+        Log($"Searching tool: {tool}");
+
+        foreach (var slot in inventory)
+        {
+            if (slot.item is UseableItem useable &&
+                useable.abilityToExecute is ToolsSO toolSO)
+            {
+                Log($"Checking tool item: {useable.itemName} -> {toolSO.toolType}");
+
+                if (toolSO.toolType == tool && slot.count > 0)
+                {
+                    Log($"FOUND TOOL: {useable.itemName}");
+                    return useable;
+                }
+            }
+        }
+
+        Warn("No tool found.");
+        return null;
+    }
 
     public bool HasItem(int itemID)
     {
-        return inventory.Exists(s =>
+        bool result = inventory.Exists(s =>
             s.item != null &&
             s.item.itemID == itemID &&
             s.count > 0);
+
+        Log($"HasItem({itemID}) = {result}");
+        return result;
     }
+
+    // =====================================================
+    // ADD ITEM
+    // =====================================================
 
     public void AddItem(ItemData data, int amount)
     {
         if (data == null)
         {
-            Debug.LogWarning($"{name}: Tried to add NULL item.");
+            Error("Attempted to add NULL item!");
             return;
         }
+
+        Log($"Adding item: {data.name} x{amount}");
 
         var slot = inventory.Find(s =>
             s.item != null &&
@@ -44,18 +128,66 @@ public class NpcInvBrain : MonoBehaviour
         if (slot != null)
         {
             slot.count += amount;
-            Debug.Log($"{name}: Added {amount}x {data.name}. New count = {slot.count}");
+            Log($"Stack updated -> {data.name} total: {slot.count}");
         }
         else
         {
             inventory.Add(new InventorySlot(data, amount));
-            Debug.Log($"{name}: Added NEW item {data.name} x{amount}");
+            Log($"New item added -> {data.name}");
         }
     }
 
+    // =====================================================
+    // CORE ITEM USAGE SYSTEM (FIXED + DEBUGGED)
+    // =====================================================
+
+    public bool TryUseItem(UseableItem item, Transform caster, Transform targetAnchor, GameObject target)
+    {
+        if (item == null)
+            return false;
+
+        var slot = inventory.Find(s => s.item == item && s.count > 0);
+
+        if (slot == null)
+        {
+            Debug.Log($"[NPC INV] Item not found: {item.itemName}");
+            return false;
+        }
+
+        Debug.Log($"[NPC INV] Using item: {item.itemName}");
+
+        bool used = item.Use(caster, targetAnchor, target);
+
+        if (!used)
+        {
+            Debug.LogWarning($"[NPC INV] Use FAILED: {item.itemName}");
+            return false;
+        }
+
+        // ONLY consumables are reduced here
+        if (item.itemType == ItemType.Consumable)
+        {
+            //slot.count--;
+
+           // Debug.Log($"[NPC INV] Consumable used: {item.itemName} left={slot.count}");
+
+            if (slot.count <= 0)
+            {
+               // inventory.Remove(slot);
+              //  Debug.Log($"[NPC INV] Removed item: {item.itemName}");
+            }
+        }
+
+        return true;
+    }
+
+    // =====================================================
+    // SAVE SYSTEM
+    // =====================================================
+
     public NpcInventorySaveData GetSaveData()
     {
-        Debug.Log($"=== SAVING NPC: {name} | npcId={npcId} ===");
+        Log("Saving inventory...");
 
         NpcInventorySaveData save = new NpcInventorySaveData();
         save.npcId = npcId;
@@ -63,58 +195,47 @@ public class NpcInvBrain : MonoBehaviour
         foreach (var slot in inventory)
         {
             if (slot.item == null)
-            {
-                Debug.LogWarning($"{name}: Found NULL item in inventory.");
                 continue;
-            }
-
-            Debug.Log($"Saving item: {slot.item.name} (ID={slot.item.itemID}) x{slot.count}");
 
             save.items.Add(new SaveSlot
             {
                 itemId = slot.item.itemID,
                 count = slot.count
             });
+
+            Log($"Saved: {slot.item.name} x{slot.count}");
         }
 
-        Debug.Log($"Saved {save.items.Count} items for {name}");
+        Log($"Save complete. Items: {save.items.Count}");
         return save;
     }
 
     public void LoadFromSave(NpcInventorySaveData save, ItemDatabase itemDatabase)
     {
-        Debug.Log($"=== LOADING NPC: {name} | npcId={npcId} ===");
+        Log("Loading inventory...");
 
         inventory.Clear();
 
         if (save == null)
         {
-            Debug.LogWarning($"{name}: save data is NULL.");
+            Warn("Save is NULL.");
             return;
         }
 
-        if (save.items.Count == 0)
+        foreach (var s in save.items)
         {
-            Debug.LogWarning($"{name}: save has 0 items.");
-        }
-
-        foreach (var savedSlot in save.items)
-        {
-            Debug.Log($"Trying to load item ID={savedSlot.itemId} x{savedSlot.count}");
-
-            ItemData item = itemDatabase.GetItemByID(savedSlot.itemId);
+            ItemData item = itemDatabase.GetItemByID(s.itemId);
 
             if (item == null)
             {
-                Debug.LogError($"{name}: Could NOT find ItemData for ID {savedSlot.itemId} in ItemDatabase!");
+                Error($"Missing item ID: {s.itemId}");
                 continue;
             }
 
-            inventory.Add(new InventorySlot(item, savedSlot.count));
-
-            Debug.Log($"Loaded: {item.name} x{savedSlot.count}");
+            inventory.Add(new InventorySlot(item, s.count));
+            Log($"Loaded: {item.name} x{s.count}");
         }
 
-        Debug.Log($"{name}: Finished loading. Inventory count = {inventory.Count}");
+        Log($"Load complete. Total items: {inventory.Count}");
     }
 }
