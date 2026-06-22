@@ -152,29 +152,35 @@ public class PerkManager : MonoBehaviour
     {
         Debug.Log("[PerkManager] ConfirmUpgrade");
 
-        if (_selectedPerk == null || _selectedAbility == null)
+        if (_selectedPerk == null)
+            return;
+
+        if (_selectedPerk.Level >= _selectedPerk.MaxLevel)
         {
-            Debug.LogWarning("[PerkManager] No perk selected.");
+            Debug.Log("[PerkManager] Perk already maxed.");
             return;
         }
 
-        if (_selectedPerk.Level < _selectedPerk.MaxLevel)
+        // ✅ PASSIVE PERK HANDLING
+        if (_selectedPerk is PassivePerkSO passive)
         {
-            Debug.Log($"[PerkManager] Applying upgrade: {_selectedPerk.name}");
-
-            _selectedPerk.Apply(_selectedAbility);
-            _selectedPerk.Level++;
-            _selectedPerk.SaveLevel();
-
-            if (UIShaker.Instance != null)
-                UIShaker.Instance.ShakeUI(0.2f, 20f);
-
-            DisplayPerkDetails(_selectedPerk, _selectedAbility);
+            PassivePerkManager.Instance.AddPassive(passive);
         }
         else
         {
-            Debug.Log("[PerkManager] Perk already maxed.");
+            // ACTIVE PERK HANDLING
+            if (_selectedAbility != null)
+                _selectedPerk.Apply(_selectedAbility);
         }
+
+        _selectedPerk.Level++;
+        _selectedPerk.SaveLevel();
+
+        if (UIShaker.Instance != null)
+            UIShaker.Instance.ShakeUI(0.2f, 20f);
+
+        if (_selectedAbility != null)
+            DisplayPerkDetails(_selectedPerk, _selectedAbility);
     }
 
     public void DisplayPerkDetails(AbilityUpgradeSO perkAsset, Ability ability)

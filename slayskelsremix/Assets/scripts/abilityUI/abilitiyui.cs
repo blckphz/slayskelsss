@@ -49,26 +49,43 @@ public class AbilityUI : MonoBehaviour,
 
     public void OnBeginDrag(PointerEventData eventData)
     {
-        if (linkedPerk != null && linkedPerk.Level <= 0) return;
+        Debug.Log("[AbilityUI] OnBeginDrag: " + ability?.name);
 
-        // Set global dragging state
-        DragState.IsDraggingAbility = true;
-
-        if (UIShaker.Instance != null)
-            UIShaker.Instance.ShakeUI(0.1f, 6f);
-
-        if (ghostPrefab != null)
+        if (linkedPerk != null && linkedPerk.Level <= 0)
         {
-            ghost = Instantiate(ghostPrefab.gameObject, canvas.transform);
-            if (icon != null) ghost.GetComponent<Image>().sprite = icon.sprite;
-
-            ghost.transform.position = eventData.position;
-
-            // Start the size lerp effect
-            StartCoroutine(LerpGhostScale(ghost.transform, 0.85f, 0.15f));
+            Debug.Log("[AbilityUI] Drag blocked: perk level 0");
+            return;
         }
 
-        if (canvasGroup != null) canvasGroup.blocksRaycasts = false;
+        DragState.IsDraggingAbility = true;
+        Debug.Log("[AbilityUI] DragState = TRUE");
+
+        if (ghostPrefab == null)
+        {
+            Debug.LogWarning("[AbilityUI] ghostPrefab is NULL");
+            return;
+        }
+
+        ghost = Instantiate(ghostPrefab.gameObject, canvas.transform);
+        Debug.Log("[AbilityUI] Ghost spawned: " + ghost.name);
+
+        if (icon != null)
+        {
+            var img = ghost.GetComponent<Image>();
+            Debug.Log("[AbilityUI] Ghost Image exists: " + (img != null));
+            if (img != null) img.sprite = icon.sprite;
+        }
+
+        ghost.transform.position = eventData.position;
+        Debug.Log("[AbilityUI] Ghost position set: " + eventData.position);
+
+        StartCoroutine(LerpGhostScale(ghost.transform, 0.85f, 0.15f));
+
+        if (canvasGroup != null)
+        {
+            canvasGroup.blocksRaycasts = false;
+            Debug.Log("[AbilityUI] Raycasts disabled on source");
+        }
     }
 
     public void OnDrag(PointerEventData eventData)
