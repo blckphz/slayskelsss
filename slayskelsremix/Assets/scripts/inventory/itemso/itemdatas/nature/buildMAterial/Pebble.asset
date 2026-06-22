@@ -10,12 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 771ce3d21dff6744ab8438dc21d9992f, type: 3}
-  m_Name: Stone 1
+  m_Name: Pebble
   m_EditorClassIdentifier: Assembly-CSharp::UseableItem
-  itemID: 201
-  itemName: Stone
-  ItemDescription: Rock & Stone
-  icon: {fileID: 21300000, guid: 26c91eaec167ced42a3b7e7dea241553, type: 3}
+  itemID: 20345233
+  itemName: Pebble
+  ItemDescription: Dont be skipping stones
+  icon: {fileID: 21300000, guid: 157ea01718c0ebe4db50bbfbf78c140e, type: 3}
   DragStartSound: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
   DragEndSound: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
   itemType: 0
@@ -24,4 +24,4 @@ MonoBehaviour:
   maxDurability: 0
   isUsable: 1
   consumeAmount: 1
-  abilityToExecute: {fileID: 0}
+  abilityToExecute: {fileID: 11400000, guid: 840e766df5259c34192448d901bff02a, type: 2}

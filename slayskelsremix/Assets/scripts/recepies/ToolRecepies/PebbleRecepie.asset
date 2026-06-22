@@ -10,14 +10,12 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b8a9a032426623847a24a1e07df607e7, type: 3}
-  m_Name: WoodenShovelRecepie
+  m_Name: PebbleRecepie
   m_EditorClassIdentifier: Assembly-CSharp::CraftingSO
   recipeType: 2
-  resultItem: {fileID: 11400000, guid: 4648e9a8a2aed0043803d5f112ee356f, type: 2}
-  resultCount: 1
+  resultItem: {fileID: 11400000, guid: 61ac7c3c2cd76f84fb99df95ccfa6019, type: 2}
+  resultCount: 10
   ingredients:
-  - item: {fileID: 11400000, guid: 68b493ef73a853a4e96f65bccff6f878, type: 2}
-    amount: 3
-  - item: {fileID: 11400000, guid: 49c4ddfd179fdab4c99e01539317fe5a, type: 2}
-    amount: 3
+  - item: {fileID: 11400000, guid: ce9e29fd1c8a0c7459ed32970585fffc, type: 2}
+    amount: 1
   craftTime: 0

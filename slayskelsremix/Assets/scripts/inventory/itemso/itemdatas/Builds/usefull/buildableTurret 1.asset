@@ -14,17 +14,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::turretbuildso
   itemID: 22
   itemName: turret
-  ItemDescription: Home defence online
+  ItemDescription: Need a sentry here!
   icon: {fileID: 21300000, guid: 859e98a146b6f3049b6e74c198e5b18a, type: 3}
   DragStartSound: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
   DragEndSound: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
   itemType: 1
   maxStackSize: 99
+  usesDurability: 0
+  maxDurability: 0
   isUsable: 1
   consumeAmount: 1
-  maxDurability: 0
   placeablePrefab: {fileID: 4756307116986998837, guid: 82851b4711e5b7b468dbe6624f40bf39, type: 3}
-  size: {x: 1, y: 1}
+  size: {x: 2, y: 2}
   placementSound: {fileID: 8300000, guid: 516a69b0c85ebbf48b7eba6994cbebd1, type: 3}
   turretHealth: 100
   turretDamage: 10

@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 771ce3d21dff6744ab8438dc21d9992f, type: 3}
   m_Name: woodenPickAXe
   m_EditorClassIdentifier: Assembly-CSharp::UseableItem
-  itemID: 0
+  itemID: 2424443
   itemName: Wooden Pickaxe
   ItemDescription: dark as a dungeon
   icon: {fileID: 21300000, guid: c700d5420735d5d4ba47b364178862e8, type: 3}
@@ -21,7 +21,7 @@ MonoBehaviour:
   itemType: 0
   maxStackSize: 99
   usesDurability: 1
-  maxDurability: 0
+  maxDurability: 100
   isUsable: 1
   consumeAmount: 1
   abilityToExecute: {fileID: 0}

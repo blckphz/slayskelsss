@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: Gate
   m_EditorClassIdentifier: Assembly-CSharp::buildSO
   itemID: 45
-  itemName: 
-  ItemDescription: 
+  itemName: Wooden Gate
+  ItemDescription: what a gate craft!
   icon: {fileID: -5246620192179784051, guid: 1df3246f48365a0499a822802d75ad76, type: 3}
-  DragStartSound: {fileID: 0}
-  DragEndSound: {fileID: 0}
+  DragStartSound: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
+  DragEndSound: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
   itemType: 1
   maxStackSize: 99
   usesDurability: 0
