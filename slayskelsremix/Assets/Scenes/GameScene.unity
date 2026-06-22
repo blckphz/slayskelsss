@@ -188061,9 +188061,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 188603618}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 81490ff90dad0084b93a30b89f8deb8f, type: 3}
+  m_Script: {fileID: 11500000, guid: 9ac31083e1cbc714cbd25bcfb02d0dbf, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnemySaveSystem
+  m_EditorClassIdentifier: '::'
+  extraLoot: 0
 --- !u!1 &203593026
 GameObject:
   m_ObjectHideFlags: 0

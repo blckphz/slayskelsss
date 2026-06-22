@@ -207,11 +207,19 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
     // LOOT
     // =====================================================
 
-    protected virtual void SpawnHitLoot()
+    public virtual void SpawnLoot()
     {
         if (lootPrefab == null) return;
 
-        for (int i = 0; i < hitDropAmount; i++)
+        int bonus = LootBonusManager.Instance != null
+            ? LootBonusManager.Instance.GetBonusLoot()
+            : 0;
+
+        int totalDrops = dropAmount + bonus;
+
+        Debug.Log($"[ItemHealth] Loot drop: base={dropAmount}, bonus={bonus}, total={totalDrops}");
+
+        for (int i = 0; i < totalDrops; i++)
         {
             GameObject loot = Instantiate(lootPrefab, transform.position, Quaternion.identity);
 
@@ -220,11 +228,11 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
         }
     }
 
-    public virtual void SpawnLoot()
+    public virtual void SpawnHitLoot()
     {
         if (lootPrefab == null) return;
 
-        for (int i = 0; i < dropAmount; i++)
+        for (int i = 0; i < hitDropAmount; i++)
         {
             GameObject loot = Instantiate(lootPrefab, transform.position, Quaternion.identity);
 
