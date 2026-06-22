@@ -28,71 +28,41 @@ public class NpcInvBrain : MonoBehaviour
     [Header("Inventory")]
     public List<InventorySlot> inventory = new List<InventorySlot>();
 
-    // =====================================================
-    // DEBUG HELPERS
-    // =====================================================
-
-    private void Log(string msg)
-    {
-        Debug.Log($"<color=cyan>[NPC INV]</color> [{name}] {msg}");
-    }
-
-    private void Warn(string msg)
-    {
-        Debug.LogWarning($"<color=yellow>[NPC INV]</color> [{name}] {msg}");
-    }
-
-    private void Error(string msg)
-    {
-        Debug.LogError($"<color=red>[NPC INV]</color> [{name}] {msg}");
-    }
-
-    // =====================================================
-    // ITEM SEARCH
-    // =====================================================
 
     public UseableItem GetBestUsableItem(System.Predicate<UseableItem> match)
     {
-        Log("Searching for usable item...");
 
         foreach (var slot in inventory)
         {
             if (slot.item is UseableItem u && slot.count > 0)
             {
-                Log($"Checking item: {u.itemName}");
 
                 if (match(u))
                 {
-                    Log($"FOUND MATCH: {u.itemName}");
                     return u;
                 }
             }
         }
 
-        Warn("No matching usable item found.");
         return null;
     }
 
     public UseableItem GetTool(ToolType tool)
     {
-        Log($"Searching tool: {tool}");
 
         foreach (var slot in inventory)
         {
             if (slot.item is UseableItem useable &&
                 useable.abilityToExecute is ToolsSO toolSO)
             {
-                Log($"Checking tool item: {useable.itemName} -> {toolSO.toolType}");
 
                 if (toolSO.toolType == tool && slot.count > 0)
                 {
-                    Log($"FOUND TOOL: {useable.itemName}");
                     return useable;
                 }
             }
         }
 
-        Warn("No tool found.");
         return null;
     }
 
@@ -103,7 +73,6 @@ public class NpcInvBrain : MonoBehaviour
             s.item.itemID == itemID &&
             s.count > 0);
 
-        Log($"HasItem({itemID}) = {result}");
         return result;
     }
 
@@ -115,11 +84,9 @@ public class NpcInvBrain : MonoBehaviour
     {
         if (data == null)
         {
-            Error("Attempted to add NULL item!");
             return;
         }
 
-        Log($"Adding item: {data.name} x{amount}");
 
         var slot = inventory.Find(s =>
             s.item != null &&
@@ -128,12 +95,10 @@ public class NpcInvBrain : MonoBehaviour
         if (slot != null)
         {
             slot.count += amount;
-            Log($"Stack updated -> {data.name} total: {slot.count}");
         }
         else
         {
             inventory.Add(new InventorySlot(data, amount));
-            Log($"New item added -> {data.name}");
         }
     }
 
@@ -187,7 +152,6 @@ public class NpcInvBrain : MonoBehaviour
 
     public NpcInventorySaveData GetSaveData()
     {
-        Log("Saving inventory...");
 
         NpcInventorySaveData save = new NpcInventorySaveData();
         save.npcId = npcId;
@@ -203,22 +167,18 @@ public class NpcInvBrain : MonoBehaviour
                 count = slot.count
             });
 
-            Log($"Saved: {slot.item.name} x{slot.count}");
         }
 
-        Log($"Save complete. Items: {save.items.Count}");
         return save;
     }
 
     public void LoadFromSave(NpcInventorySaveData save, ItemDatabase itemDatabase)
     {
-        Log("Loading inventory...");
 
         inventory.Clear();
 
         if (save == null)
         {
-            Warn("Save is NULL.");
             return;
         }
 
@@ -228,14 +188,11 @@ public class NpcInvBrain : MonoBehaviour
 
             if (item == null)
             {
-                Error($"Missing item ID: {s.itemId}");
                 continue;
             }
 
             inventory.Add(new InventorySlot(item, s.count));
-            Log($"Loaded: {item.name} x{s.count}");
         }
 
-        Log($"Load complete. Total items: {inventory.Count}");
     }
 }
