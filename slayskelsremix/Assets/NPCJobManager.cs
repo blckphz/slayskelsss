@@ -26,6 +26,8 @@ public class NPCJobManager : MonoBehaviour
 
     private float nextTreeSearchTime;
 
+    private GameObject tempTarget;
+
     private void Awake()
     {
         aiPath = GetComponent<AIPath>();
@@ -72,9 +74,10 @@ public class NPCJobManager : MonoBehaviour
         if (currentTree == null)
             return;
 
-        destinationSetter.target = currentTree.transform;
-        aiPath.canMove = true;
+        Vector3 chopPos = GetChopPosition(currentTree);
+        destinationSetter.target = CreateTempTarget(chopPos);
 
+        aiPath.canMove = true;
         currentState = JobState.MovingToTree;
     }
 
@@ -90,7 +93,13 @@ public class NPCJobManager : MonoBehaviour
             return;
         }
 
-        float distance = Vector2.Distance(transform.position, currentTree.transform.position);
+        if (destinationSetter.target == null)
+        {
+            currentState = JobState.SearchingTree;
+            return;
+        }
+
+        float distance = Vector2.Distance(transform.position, destinationSetter.target.position);
 
         if (distance <= chopRange)
         {
@@ -100,7 +109,7 @@ public class NPCJobManager : MonoBehaviour
     }
 
     // =====================================================
-    // CHOP (GENERIC ITEM USAGE)
+    // CHOP
     // =====================================================
 
     private void HandleChopping()
@@ -111,7 +120,13 @@ public class NPCJobManager : MonoBehaviour
             return;
         }
 
-        float distance = Vector2.Distance(transform.position, currentTree.transform.position);
+        if (destinationSetter.target == null)
+        {
+            currentState = JobState.SearchingTree;
+            return;
+        }
+
+        float distance = Vector2.Distance(transform.position, destinationSetter.target.position);
 
         if (distance > chopRange)
         {
@@ -120,14 +135,14 @@ public class NPCJobManager : MonoBehaviour
             return;
         }
 
-        // ✅ GENERIC TOOL SEARCH (NO HARDCODE)
         UseableItem tool = inventory.GetBestUsableItem(u =>
             u.abilityToExecute is ToolsSO t &&
             t.toolType == ToolType.Axe);
 
         if (tool == null)
         {
-            Debug.Log($"{name}: No axe found.");
+            if (showDebug)
+                Debug.Log($"{name}: No axe found.");
             return;
         }
 
@@ -157,5 +172,33 @@ public class NPCJobManager : MonoBehaviour
         }
 
         return best;
+    }
+
+    // =====================================================
+    // POSITIONING FIX (TOP/BOTTOM ALIGNMENT)
+    // =====================================================
+
+    private Vector3 GetChopPosition(treeItemBehav tree)
+    {
+        Vector3 treePos = tree.transform.position;
+
+        Vector3 up = treePos + Vector3.up * 1.2f;
+        Vector3 down = treePos + Vector3.down * 1.2f;
+
+        float distUp = Vector2.Distance(transform.position, up);
+        float distDown = Vector2.Distance(transform.position, down);
+
+        return distUp < distDown ? up : down;
+    }
+
+    private Transform CreateTempTarget(Vector3 pos)
+    {
+        if (tempTarget == null)
+        {
+            tempTarget = new GameObject("NPC_TempChopTarget");
+        }
+
+        tempTarget.transform.position = pos;
+        return tempTarget.transform;
     }
 }
