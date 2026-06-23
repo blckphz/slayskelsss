@@ -35,7 +35,12 @@ public class OptionsMenu : MonoBehaviour
         optionsPanel.SetActive(false);
     }
 
-    private void ToggleOptions(InputAction.CallbackContext context)
+    public void ToggleOptions(InputAction.CallbackContext context)
+    {
+        toggleOptionsFunktion();
+    }
+
+    public void toggleOptionsFunktion()
     {
         isOpen = !isOpen;
         optionsPanel.SetActive(isOpen);
@@ -44,9 +49,12 @@ public class OptionsMenu : MonoBehaviour
         Time.timeScale = isOpen ? 0f : 1f;
 
         // Optional: unlock cursor
-        Cursor.lockState = isOpen ? CursorLockMode.None : CursorLockMode.Locked;
-        Cursor.visible = isOpen;
+        // Cursor.lockState = isOpen ? CursorLockMode.None : CursorLockMode.Locked;
+        // Cursor.visible = isOpen;
+
+
     }
+
 
     private void OnVolumeChanged(float value)
     {

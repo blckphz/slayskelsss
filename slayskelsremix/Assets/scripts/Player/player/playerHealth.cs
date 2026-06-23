@@ -67,10 +67,17 @@ public class playerHealth : healthMaster
 
     protected override void Die()
     {
-        // Note: base.Die() is NOT called here because we usually want 
-        // custom Game Over logic for players rather than just Destroy(gameObject)
         Debug.LogError("playerHealth: PLAYER HAS DIED.");
 
-        // Add your Respawn or Game Over Screen logic here
+        GameObject gameOverCanvas = GameObject.Find("GameOverCanvas");
+
+        if (gameOverCanvas != null)
+        {
+            gameOverCanvas.SetActive(true);
+        }
+        else
+        {
+            Debug.LogError("GameOverCanvas not found in scene!");
+        }
     }
 }
