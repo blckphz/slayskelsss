@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using TMPro;
-using UnityEngine.InputSystem; // Required for Mouse.current
+using UnityEngine.InputSystem;
 
 public class perkTooltip : MonoBehaviour
 {
@@ -9,53 +9,68 @@ public class perkTooltip : MonoBehaviour
     public TextMeshProUGUI tooltipInfo;
 
     [Header("Settings")]
-    public Vector2 offset = new Vector2(20, -20); // Down and to the right
+    public Vector2 offset = new Vector2(20, -20);
 
     private RectTransform _rectTransform;
 
-    void Awake()
+    private void Awake()
     {
         _rectTransform = GetComponent<RectTransform>();
 
-        // Ensure the Pivot is set to Top-Left (0, 1) in the Inspector 
-        // so it doesn't flicker under the mouse cursor.
+        if (_rectTransform == null)
+        {
+            Debug.LogError("[perkTooltip] Missing RectTransform!");
+            return;
+        }
+
         _rectTransform.pivot = new Vector2(0, 1);
 
         gameObject.SetActive(false);
+
+        Debug.Log("[perkTooltip] Initialized.");
     }
 
-    void Update()
+    private void Update()
     {
-        FollowMouse();
+        if (gameObject.activeSelf)
+            FollowMouse();
     }
 
     private void FollowMouse()
     {
-        if (Mouse.current == null) return;
+        if (Mouse.current == null)
+            return;
 
-        // Get mouse position from the New Input System
         Vector2 mousePosition = Mouse.current.position.ReadValue();
 
-        // Apply position with offset
         _rectTransform.position = mousePosition + offset;
-
-        // Optional: Keep tooltip on screen
     }
 
-
-
-    public void ShowTooltip(string name, string description, int lv, int maxLv)
+    public void ShowTooltip(string perkName, string description, int level, int maxLevel)
     {
-        gameObject.SetActive(true);
-        tooltipName.text = name;
-        tooltipInfo.text = $"<b>Lv {lv}/{maxLv}</b>\n{description}";
+        if (tooltipName == null || tooltipInfo == null)
+        {
+            Debug.LogError("[perkTooltip] Missing TMP references!");
+            return;
+        }
 
-        // Force update position immediately so it doesn't "jump" from last known pos
+        Debug.Log($"[perkTooltip] Showing tooltip: {perkName} ({level}/{maxLevel})");
+
+        gameObject.SetActive(true);
+
+        tooltipName.text = perkName;
+
+        tooltipInfo.text =
+            $"<b>Level {level}/{maxLevel}</b>\n\n" +
+            description;
+
         FollowMouse();
     }
 
     public void HideTooltip()
     {
+        Debug.Log("[perkTooltip] Hiding tooltip.");
+
         gameObject.SetActive(false);
     }
 }

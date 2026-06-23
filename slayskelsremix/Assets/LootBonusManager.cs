@@ -5,7 +5,7 @@ public class LootBonusManager : MonoBehaviour
     public static LootBonusManager Instance;
 
     [Header("Global Loot Bonus")]
-    public int extraLoot = 0;
+    public int extraLoot;
 
     private void Awake()
     {
@@ -13,20 +13,14 @@ public class LootBonusManager : MonoBehaviour
         Debug.Log("[LootBonusManager] Initialized.");
     }
 
+    public void SetLootBonus(int value)
+    {
+        extraLoot = value;
+        Debug.Log($"[LootBonusManager] Loot bonus set to: {extraLoot}");
+    }
+
     public int GetBonusLoot()
     {
         return extraLoot;
-    }
-
-    public void AddLootBonus(int amount)
-    {
-        extraLoot += amount;
-        Debug.Log($"[LootBonusManager] +{amount} loot bonus applied. Total bonus: {extraLoot}");
-    }
-
-    public void RemoveLootBonus(int amount)
-    {
-        extraLoot -= amount;
-        Debug.Log($"[LootBonusManager] -{amount} loot bonus removed. Total bonus: {extraLoot}");
     }
 }

@@ -105,29 +105,20 @@ public class PerkManager : MonoBehaviour
 
     private void InitializeAllSlots()
     {
-
         foreach (PerkSlot slot in perkSlots)
         {
-            if (slot == null)
-            {
-                Debug.LogWarning("[PerkManager] Null perk slot found.");
+            if (slot == null || slot.perk == null || slot.button == null)
                 continue;
-            }
-
-            if (slot.perk == null)
-            {
-                Debug.LogWarning("[PerkManager] Slot has null perk.");
-                continue;
-            }
-
-            if (slot.button == null)
-            {
-                Debug.LogWarning("[PerkManager] Slot has null button.");
-                continue;
-            }
-
 
             slot.perk.LoadLevel();
+
+            // 🔥 AUTO-APPLY PASSIVES ON LOAD
+            if (slot.perk is PassivePerkSO passive && slot.perk.Level > 0)
+            {
+                Debug.Log($"[PerkManager] Auto-applying passive: {passive.name} (Lv {slot.perk.Level})");
+                passive.ApplyPassive();
+            }
+
             slot.button.SetupButton(this, slot.targetAbility, slot.perk);
         }
     }
@@ -136,16 +127,34 @@ public class PerkManager : MonoBehaviour
     {
         Debug.Log($"[PerkManager] SelectPerk: {perkAsset?.name}");
 
-        if (perkAsset == null || ability == null)
+        if (perkAsset == null)
         {
-            Debug.LogWarning("[PerkManager] SelectPerk failed: null values.");
+            Debug.LogWarning("[PerkManager] SelectPerk failed: perk is null.");
             return;
         }
 
         _selectedPerk = perkAsset;
         _selectedAbility = ability;
 
-        DisplayPerkDetails(perkAsset, ability);
+        if (ability != null)
+            DisplayPerkDetails(perkAsset, ability);
+        else
+            DisplayPassivePerkDetails(perkAsset);
+    }
+
+    private void DisplayPassivePerkDetails(AbilityUpgradeSO perkAsset)
+    {
+        if (titleText == null || descriptionText == null)
+            return;
+
+        var info = perkAsset.GetDisplayStrings();
+
+        titleText.text = info.displayName;
+
+        descriptionText.text =
+            $"<b>Passive Perk</b>\n" +
+            $"Level: {perkAsset.Level}/{perkAsset.MaxLevel}\n\n" +
+            info.displayDesc;
     }
 
     public void ConfirmUpgrade()
@@ -161,25 +170,28 @@ public class PerkManager : MonoBehaviour
             return;
         }
 
-        // ✅ PASSIVE PERK HANDLING
+        _selectedPerk.Level++;
+        _selectedPerk.SaveLevel();
+
+        // 🔥 PASSIVE AUTO APPLY ON EVERY LEVEL
         if (_selectedPerk is PassivePerkSO passive)
         {
-            PassivePerkManager.Instance.AddPassive(passive);
+            Debug.Log($"[PerkManager] Updating passive: {passive.name}");
+
+            passive.ApplyPassive();
         }
         else
         {
-            // ACTIVE PERK HANDLING
             if (_selectedAbility != null)
                 _selectedPerk.Apply(_selectedAbility);
         }
 
-        _selectedPerk.Level++;
-        _selectedPerk.SaveLevel();
-
         if (UIShaker.Instance != null)
             UIShaker.Instance.ShakeUI(0.2f, 20f);
 
-        if (_selectedAbility != null)
+        if (_selectedPerk is PassivePerkSO)
+            DisplayPassivePerkDetails(_selectedPerk);
+        else if (_selectedAbility != null)
             DisplayPerkDetails(_selectedPerk, _selectedAbility);
     }
 
@@ -212,6 +224,9 @@ public class PerkManager : MonoBehaviour
         descriptionText.text = fullStats;
     }
 
+
+
+
     public void ClearPerkDetails()
     {
         if (DragState.IsDraggingAbility)
@@ -232,10 +247,16 @@ public class PerkManager : MonoBehaviour
     {
         Debug.Log("[PerkManager] RestoreSelectedPerk");
 
-        if (_selectedPerk != null && _selectedAbility != null)
+        if (_selectedPerk == null)
+        {
+            ClearPerkDetails();
+            return;
+        }
+
+        if (_selectedAbility != null)
             DisplayPerkDetails(_selectedPerk, _selectedAbility);
         else
-            ClearPerkDetails();
+            DisplayPassivePerkDetails(_selectedPerk);
     }
 
     public void NotifySelection(PerkButton selectedButton)

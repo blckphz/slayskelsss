@@ -41,10 +41,11 @@ public class AbilityUI : MonoBehaviour,
     public void OnPointerClick(PointerEventData eventData)
     {
         PerkManager pm = Object.FindFirstObjectByType<PerkManager>();
-        if (pm != null && ability != null && linkedPerk != null)
-        {
-            pm.SelectPerk(linkedPerk, ability);
-        }
+
+        if (pm == null || linkedPerk == null)
+            return;
+
+        pm.SelectPerk(linkedPerk, ability);
     }
 
     public void OnBeginDrag(PointerEventData eventData)

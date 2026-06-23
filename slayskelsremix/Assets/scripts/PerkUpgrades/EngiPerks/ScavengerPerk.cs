@@ -1,10 +1,9 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 [CreateAssetMenu(fileName = "ScavengerPerk", menuName = "Perks/Passive/Scavenger")]
 public class ScavengerPerk : PassivePerkSO
 {
-    [Header("Scavenger Bonus")]
-    public int bonusLoot = 1;
+    public int bonusPerLevel = 1;
 
     public override void ApplyPassive()
     {
@@ -14,19 +13,20 @@ public class ScavengerPerk : PassivePerkSO
             return;
         }
 
-        LootBonusManager.Instance.AddLootBonus(bonusLoot);
-        Debug.Log("[ScavengerPerk] Applied: +loot bonus");
+        int totalBonus = Level * bonusPerLevel;
+
+        LootBonusManager.Instance.SetLootBonus(totalBonus);
+
+        Debug.Log($"[ScavengerPerk] Applied → Level {Level}, Bonus Loot {totalBonus}");
     }
 
     public override void RemovePassive()
     {
         if (LootBonusManager.Instance == null)
-        {
-            Debug.LogWarning("[ScavengerPerk] LootBonusManager missing!");
             return;
-        }
 
-        LootBonusManager.Instance.RemoveLootBonus(bonusLoot);
-        Debug.Log("[ScavengerPerk] Removed: -loot bonus");
+        LootBonusManager.Instance.SetLootBonus(0);
+
+        Debug.Log("[ScavengerPerk] Removed passive bonus");
     }
 }
