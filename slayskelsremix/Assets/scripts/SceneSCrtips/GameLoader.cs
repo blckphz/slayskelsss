@@ -36,7 +36,7 @@ public class GameLoader : MonoBehaviour
 
         LoadingScreen.Instance?.SetText("Done!");
 
-        yield return new WaitForSeconds(0.5f);
+        yield return new WaitForSeconds(0.1f);
 
         LoadingScreen.Instance?.FinishLoading();
     }

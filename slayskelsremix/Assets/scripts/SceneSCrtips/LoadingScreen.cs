@@ -7,6 +7,7 @@ public class LoadingScreen : MonoBehaviour
 
     [SerializeField] private Canvas loadingCanvas;
     [SerializeField] private TMP_Text loadingText;
+    [SerializeField] private GameObject Background;
 
     private void Awake()
     {
@@ -21,22 +22,21 @@ public class LoadingScreen : MonoBehaviour
                 DontDestroyOnLoad(loadingCanvas.gameObject);
             }
         }
-        else
-        {
-            Destroy(gameObject);
-        }
     }
 
     public void Show()
     {
-        if (loadingCanvas != null)
+
+            Background.SetActive(true);
+            loadingText.gameObject.SetActive(true);
             loadingCanvas.gameObject.SetActive(true);
+
     }
 
     public void Hide()
     {
-        if (loadingCanvas != null)
-            loadingCanvas.gameObject.SetActive(false);
+        Background.SetActive(false);
+        loadingText.gameObject.SetActive(false);
     }
 
     public void SetText(string text)
