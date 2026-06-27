@@ -69,7 +69,7 @@ public class playerHealth : healthMaster
     {
         Debug.LogError("playerHealth: PLAYER HAS DIED.");
 
-        GameObject gameOverCanvas = GameObject.Find("GameOverCanvas");
+        GameObject gameOverCanvas = GameObject.Find("gameoverFam");
 
         if (gameOverCanvas != null)
         {
