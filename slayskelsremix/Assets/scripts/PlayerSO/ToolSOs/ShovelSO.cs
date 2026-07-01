@@ -15,7 +15,7 @@ public class ShovelSO : ToolsSO, IItemDescriptionProvider
                "<color=#FFA500><b>[TOOL TYPE]</b></color>\n" +
                $"• {toolType}\n\n" +
                "<color=#FFA500><b>[PRIMARY ACTION]</b></color>\n" +
-               "• Swing: Dig soil and harvest resources.\n\n" +
+               "• Swing or place flooring when in build modus.\n\n" +
                "<color=#FFA500><b>[SECONDARY ACTION]</b></color>\n" +
                "• Dig Hole: Toggle placement mode to create a new planting spot.";
     }

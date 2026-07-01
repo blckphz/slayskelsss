@@ -3,34 +3,48 @@ using UnityEngine.SceneManagement;
 
 public class MusicManager : MonoBehaviour
 {
-    [Header("Main Menu")]
+    [Header("Audio Sources")]
+    [SerializeField] private AudioSource musicSource;
+    [SerializeField] private AudioSource rainSource;
+    [SerializeField] private AudioSource ambienceSource;
+
+    [Header("Main Menu Clips")]
     public AudioClip menuMusic;
     public AudioClip menuRain;
     public AudioClip menuAmbience;
 
-    [Header("Game")]
+    [Header("Game Clips")]
     public AudioClip gameMusic;
-
-    private AudioSource musicSource;
-    private AudioSource rainSource;
-    private AudioSource ambienceSource;
 
     private void Awake()
     {
         DontDestroyOnLoad(gameObject);
-
-        AudioSource[] sources = GetComponents<AudioSource>();
-
-        musicSource = sources[0];
-        rainSource = sources[1];
-        ambienceSource = sources[2];
-
         SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
     private void Start()
     {
+        AudioManager.OnMusicVolumeChanged += SyncMusicVolume;
+        AudioManager.OnSFXVolumeChanged += SyncSFXVolume;
+
+        if (AudioManager.Instance != null)
+        {
+            SyncMusicVolume(AudioManager.Instance.GetMusicVolume());
+            SyncSFXVolume(AudioManager.Instance.GetSFXVolume());
+        }
+
         UpdateAudio(SceneManager.GetActiveScene().name);
+    }
+
+    private void SyncMusicVolume(float volume)
+    {
+        musicSource.volume = volume;
+    }
+
+    private void SyncSFXVolume(float volume)
+    {
+        rainSource.volume = volume;
+        ambienceSource.volume = volume;
     }
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
@@ -57,11 +71,21 @@ public class MusicManager : MonoBehaviour
 
     private void PlayLoop(AudioSource source, AudioClip clip)
     {
+        if (clip == null) return;
+
         if (source.clip != clip)
         {
             source.clip = clip;
             source.loop = true;
             source.Play();
         }
+    }
+
+    private void OnDestroy()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+
+        AudioManager.OnMusicVolumeChanged -= SyncMusicVolume;
+        AudioManager.OnSFXVolumeChanged -= SyncSFXVolume;
     }
 }

@@ -18,7 +18,7 @@ MonoBehaviour:
   icon: {fileID: 21300000, guid: c700d5420735d5d4ba47b364178862e8, type: 3}
   DragStartSound: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
   DragEndSound: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
-  itemType: 0
+  itemType: 3
   maxStackSize: 99
   usesDurability: 1
   maxDurability: 100

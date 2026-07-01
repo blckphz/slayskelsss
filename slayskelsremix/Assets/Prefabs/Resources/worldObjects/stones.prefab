@@ -243,8 +243,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::stoneWORLDobjectbehav
   UniqOverworldItemID: 28842b70-ec59-4bb4-a39d-f36e52f7728d
-  health: 50
+  ReservedBy: {fileID: 0}
+  health: 70
   effectiveTool: 1
+  correctToolDamageMultiplier: 1.5
   durabilityPerHit: 3
   givesXP: 1
   xpReward: 15

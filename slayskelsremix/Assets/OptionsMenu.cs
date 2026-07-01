@@ -1,24 +1,36 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 
 public class OptionsMenu : MonoBehaviour
 {
     [Header("Audio")]
-    [SerializeField] private Slider volumeSlider;
+    [SerializeField] private Slider sfxSlider;
+    [SerializeField] private Slider musicSlider;
 
     [Header("Input")]
-    [SerializeField] private InputActionReference pauseAction; // Bind this to Esc
+    [SerializeField] private InputActionReference pauseAction;
 
     [Header("UI")]
     [SerializeField] private GameObject optionsPanel;
+    [SerializeField] private GameObject backToMenuButton;
 
     private bool isOpen;
 
     private void OnEnable()
     {
-        pauseAction.action.Enable();
-        pauseAction.action.performed += ToggleOptions;
+        Debug.Log("OptionsMenu enabled.");
+
+        if (pauseAction != null)
+        {
+            pauseAction.action.Enable();
+            pauseAction.action.performed += ToggleOptions;
+        }
+        else
+        {
+            Debug.LogError("Pause Action is NOT assigned!");
+        }
     }
 
     private void Start()
@@ -29,49 +41,106 @@ public class OptionsMenu : MonoBehaviour
             return;
         }
 
-        volumeSlider.value = AudioManager.Instance.GetMasterVolume();
-        volumeSlider.onValueChanged.AddListener(OnVolumeChanged);
+        sfxSlider.value = AudioManager.Instance.GetSFXVolume();
+        musicSlider.value = AudioManager.Instance.GetMusicVolume();
+
+        sfxSlider.onValueChanged.AddListener(OnSFXChanged);
+        musicSlider.onValueChanged.AddListener(OnMusicChanged);
 
         optionsPanel.SetActive(false);
+
+        Debug.Log("Current Scene: " + SceneManager.GetActiveScene().name);
+
+        if (backToMenuButton == null)
+        {
+            Debug.LogError("Back To Menu Button is NOT assigned!");
+        }
+        else
+        {
+            Debug.Log("Back To Menu Button assigned to: " + backToMenuButton.name);
+            Debug.Log("Button active at Start: " + backToMenuButton.activeSelf);
+        }
     }
 
     public void ToggleOptions(InputAction.CallbackContext context)
     {
-        toggleOptionsFunktion();
+        Debug.Log($"Pause action triggered. Phase: {context.phase}");
+
+        if (context.performed)
+        {
+            Debug.Log("ESC key pressed.");
+            ToggleOptionsFunction();
+        }
     }
 
-    public void toggleOptionsFunktion()
+    public void ToggleOptionsFunction()
     {
         isOpen = !isOpen;
+
+        Debug.Log("--------------------------------");
+        Debug.Log("Current Scene: " + SceneManager.GetActiveScene().name);
+        Debug.Log("Options Open: " + isOpen);
+
         optionsPanel.SetActive(isOpen);
 
-        // Optional: pause game
+        if (backToMenuButton == null)
+        {
+            Debug.LogError("backToMenuButton is NULL!");
+            return;
+        }
+
+        Debug.Log("Button before change: " + backToMenuButton.activeSelf);
+
+        if (SceneManager.GetActiveScene().name == "GameScene")
+        {
+            Debug.Log("Detected GameScene.");
+
+            backToMenuButton.SetActive(isOpen);
+
+            Debug.Log("Button after SetActive(" + isOpen + "): " + backToMenuButton.activeSelf);
+        }
+        else
+        {
+            Debug.Log("NOT GameScene.");
+
+            backToMenuButton.SetActive(false);
+
+            Debug.Log("Button after SetActive(false): " + backToMenuButton.activeSelf);
+        }
+
         Time.timeScale = isOpen ? 0f : 1f;
-
-        // Optional: unlock cursor
-        // Cursor.lockState = isOpen ? CursorLockMode.None : CursorLockMode.Locked;
-        // Cursor.visible = isOpen;
-
-
     }
 
-
-    private void OnVolumeChanged(float value)
+    public void BackToMainMenu()
     {
-        AudioManager.Instance.SetMasterVolume(value);
+        Debug.Log("Back To Menu button clicked.");
+
+        Time.timeScale = 1f;
+        isOpen = false;
+
+        optionsPanel.SetActive(false);
+
+        SceneManager.LoadScene("MainMenuScene");
+    }
+
+    private void OnSFXChanged(float value)
+    {
+        AudioManager.Instance.SetSFXVolume(value);
+    }
+
+    private void OnMusicChanged(float value)
+    {
+        AudioManager.Instance.SetMusicVolume(value);
     }
 
     private void OnDisable()
     {
-        pauseAction.action.performed -= ToggleOptions;
-        pauseAction.action.Disable();
-    }
+        Debug.Log("OptionsMenu disabled.");
 
-    private void OnDestroy()
-    {
-        if (volumeSlider != null)
+        if (pauseAction != null)
         {
-            volumeSlider.onValueChanged.RemoveListener(OnVolumeChanged);
+            pauseAction.action.performed -= ToggleOptions;
+            pauseAction.action.Disable();
         }
     }
 }

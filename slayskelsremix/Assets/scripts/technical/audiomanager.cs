@@ -1,14 +1,22 @@
 using UnityEngine;
+using System;
 
 public class AudioManager : MonoBehaviour
 {
     public static AudioManager Instance { get; private set; }
 
+    // Events
+    public static event Action<float> OnSFXVolumeChanged;
+    public static event Action<float> OnMusicVolumeChanged;
+
     private AudioSource audioSource;
 
-    [Header("Audio Settings")]
+    [Header("Volume Settings")]
     [Range(0f, 1f)]
-    public float masterVolume = 1f;
+    [SerializeField] private float sfxVolume = 1f;
+
+    [Range(0f, 1f)]
+    [SerializeField] private float musicVolume = 1f;
 
     [Header("Pitch Randomization")]
     public bool randomizePitch = true;
@@ -17,7 +25,6 @@ public class AudioManager : MonoBehaviour
 
     private void Awake()
     {
-        // Singleton
         if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
@@ -27,91 +34,79 @@ public class AudioManager : MonoBehaviour
         Instance = this;
         DontDestroyOnLoad(gameObject);
 
-        // Load saved volume
-        masterVolume = PlayerPrefs.GetFloat("MasterVolume", 1f);
+        sfxVolume = PlayerPrefs.GetFloat("SFXVolume", 1f);
+        musicVolume = PlayerPrefs.GetFloat("MusicVolume", 1f);
 
-        // Audio source
         audioSource = GetComponent<AudioSource>();
-
         if (audioSource == null)
-        {
             audioSource = gameObject.AddComponent<AudioSource>();
-        }
 
-        // Recommended defaults
         audioSource.playOnAwake = false;
         audioSource.loop = false;
-        audioSource.spatialBlend = 0f; // 2D audio
+        audioSource.spatialBlend = 0f;
     }
 
-    // =====================================================
-    // VOLUME CONTROL
-    // =====================================================
+    //========================
+    // SFX
+    //========================
 
-    public void SetMasterVolume(float volume)
+    public void SetSFXVolume(float volume)
     {
-        masterVolume = Mathf.Clamp01(volume);
+        sfxVolume = Mathf.Clamp01(volume);
 
-        PlayerPrefs.SetFloat("MasterVolume", masterVolume);
+        PlayerPrefs.SetFloat("SFXVolume", sfxVolume);
         PlayerPrefs.Save();
+
+        OnSFXVolumeChanged?.Invoke(sfxVolume);
     }
 
-    public float GetMasterVolume()
+    public float GetSFXVolume()
     {
-        return masterVolume;
+        return sfxVolume;
     }
 
-    // =====================================================
-    // MAIN SOUND METHOD
-    // =====================================================
+    //========================
+    // Music
+    //========================
+
+    public void SetMusicVolume(float volume)
+    {
+        musicVolume = Mathf.Clamp01(volume);
+
+        PlayerPrefs.SetFloat("MusicVolume", musicVolume);
+        PlayerPrefs.Save();
+
+        OnMusicVolumeChanged?.Invoke(musicVolume);
+    }
+
+    public float GetMusicVolume()
+    {
+        return musicVolume;
+    }
+
+    //========================
+    // Sound Effects
+    //========================
 
     public void PlaySound(AudioClip clip, float volume = 1f)
     {
-        if (clip == null)
-        {
-            Debug.LogWarning("[AudioManager] Tried to play NULL clip.");
-            return;
-        }
+        if (clip == null) return;
 
-        if (randomizePitch)
-        {
-            audioSource.pitch = Random.Range(minPitch, maxPitch);
-        }
-        else
-        {
-            audioSource.pitch = 1f;
-        }
+        audioSource.pitch = randomizePitch
+            ? UnityEngine.Random.Range(minPitch, maxPitch)
+            : 1f;
 
-        audioSource.PlayOneShot(
-            clip,
-            volume * masterVolume
-        );
+        audioSource.PlayOneShot(clip, volume * sfxVolume);
     }
-
-    // =====================================================
-    // UI SOUND
-    // =====================================================
 
     public void PlayUISound(AudioClip clip, float volume = 1f, bool useRandomPitch = false)
     {
-        if (clip == null)
-        {
-            Debug.LogWarning("[AudioManager] Tried to play NULL UI clip.");
-            return;
-        }
+        if (clip == null) return;
 
-        if (useRandomPitch && randomizePitch)
-        {
-            audioSource.pitch = Random.Range(minPitch, maxPitch);
-        }
-        else
-        {
-            audioSource.pitch = 1f;
-        }
+        audioSource.pitch = (useRandomPitch && randomizePitch)
+            ? UnityEngine.Random.Range(minPitch, maxPitch)
+            : 1f;
 
-        audioSource.PlayOneShot(
-            clip,
-            volume * masterVolume
-        );
+        audioSource.PlayOneShot(clip, volume * sfxVolume);
     }
 }

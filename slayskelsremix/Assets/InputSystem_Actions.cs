@@ -280,6 +280,24 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""NextSong"",
+                    ""type"": ""Button"",
+                    ""id"": ""0153df68-78a0-4db5-8ab0-b4098fa8c4ce"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""PrevSong"",
+                    ""type"": ""Button"",
+                    ""id"": ""2e1b9ef1-ae31-430c-9cfd-05e98ac967b7"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -775,6 +793,28 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""ToggleGrid"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""81cd9d6d-1c13-4597-bd69-79043fd291b6"",
+                    ""path"": ""<Keyboard>/rightArrow"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""NextSong"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""939ad3ab-5f9b-4c12-b56b-07ccf5f07cd3"",
+                    ""path"": ""<Keyboard>/leftArrow"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""PrevSong"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -1403,6 +1443,8 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         m_Player_RemoveSoil = m_Player.FindAction("RemoveSoil", throwIfNotFound: true);
         m_Player_Cancelbuild = m_Player.FindAction("Cancelbuild", throwIfNotFound: true);
         m_Player_ToggleGrid = m_Player.FindAction("ToggleGrid", throwIfNotFound: true);
+        m_Player_NextSong = m_Player.FindAction("NextSong", throwIfNotFound: true);
+        m_Player_PrevSong = m_Player.FindAction("PrevSong", throwIfNotFound: true);
         // UI
         m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
         m_UI_Navigate = m_UI.FindAction("Navigate", throwIfNotFound: true);
@@ -1518,6 +1560,8 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_RemoveSoil;
     private readonly InputAction m_Player_Cancelbuild;
     private readonly InputAction m_Player_ToggleGrid;
+    private readonly InputAction m_Player_NextSong;
+    private readonly InputAction m_Player_PrevSong;
     /// <summary>
     /// Provides access to input actions defined in input action map "Player".
     /// </summary>
@@ -1614,6 +1658,14 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         /// </summary>
         public InputAction @ToggleGrid => m_Wrapper.m_Player_ToggleGrid;
         /// <summary>
+        /// Provides access to the underlying input action "Player/NextSong".
+        /// </summary>
+        public InputAction @NextSong => m_Wrapper.m_Player_NextSong;
+        /// <summary>
+        /// Provides access to the underlying input action "Player/PrevSong".
+        /// </summary>
+        public InputAction @PrevSong => m_Wrapper.m_Player_PrevSong;
+        /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
         public InputActionMap Get() { return m_Wrapper.m_Player; }
@@ -1702,6 +1754,12 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
             @ToggleGrid.started += instance.OnToggleGrid;
             @ToggleGrid.performed += instance.OnToggleGrid;
             @ToggleGrid.canceled += instance.OnToggleGrid;
+            @NextSong.started += instance.OnNextSong;
+            @NextSong.performed += instance.OnNextSong;
+            @NextSong.canceled += instance.OnNextSong;
+            @PrevSong.started += instance.OnPrevSong;
+            @PrevSong.performed += instance.OnPrevSong;
+            @PrevSong.canceled += instance.OnPrevSong;
         }
 
         /// <summary>
@@ -1776,6 +1834,12 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
             @ToggleGrid.started -= instance.OnToggleGrid;
             @ToggleGrid.performed -= instance.OnToggleGrid;
             @ToggleGrid.canceled -= instance.OnToggleGrid;
+            @NextSong.started -= instance.OnNextSong;
+            @NextSong.performed -= instance.OnNextSong;
+            @NextSong.canceled -= instance.OnNextSong;
+            @PrevSong.started -= instance.OnPrevSong;
+            @PrevSong.performed -= instance.OnPrevSong;
+            @PrevSong.canceled -= instance.OnPrevSong;
         }
 
         /// <summary>
@@ -2234,6 +2298,20 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnToggleGrid(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "NextSong" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnNextSong(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "PrevSong" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnPrevSong(InputAction.CallbackContext context);
     }
     /// <summary>
     /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "UI" which allows adding and removing callbacks.

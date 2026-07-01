@@ -194,6 +194,24 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "NextSong",
+                    "type": "Button",
+                    "id": "0153df68-78a0-4db5-8ab0-b4098fa8c4ce",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "PrevSong",
+                    "type": "Button",
+                    "id": "2e1b9ef1-ae31-430c-9cfd-05e98ac967b7",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -689,6 +707,28 @@
                     "processors": "",
                     "groups": "",
                     "action": "ToggleGrid",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "81cd9d6d-1c13-4597-bd69-79043fd291b6",
+                    "path": "<Keyboard>/rightArrow",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "NextSong",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "939ad3ab-5f9b-4c12-b56b-07ccf5f07cd3",
+                    "path": "<Keyboard>/leftArrow",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "PrevSong",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

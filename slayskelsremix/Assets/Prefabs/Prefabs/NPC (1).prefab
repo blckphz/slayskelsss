@@ -104,8 +104,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CircleAnim
   playerScript: {fileID: 0}
+  tiltManager: {fileID: 0}
   stepAudioSource: {fileID: 0}
-  stepClip: {fileID: 0}
+  defaultStepClip: {fileID: 0}
+  soilStepClip: {fileID: 0}
   stepParticlePrefab: {fileID: 0}
   particleSpawnPoint: {fileID: 0}
   pulseSpeed: 9
@@ -126,10 +128,8 @@ GameObject:
   - component: {fileID: 9114291123375792801}
   - component: {fileID: 6593685905677258667}
   - component: {fileID: 7331526271096843312}
-  - component: {fileID: 8802841011327608955}
   - component: {fileID: 3874133939572215982}
   - component: {fileID: 8442703433919779620}
-  - component: {fileID: 4573692379244824283}
   - component: {fileID: 3966021581244072405}
   - component: {fileID: 508923507783663121}
   m_Layer: 0
@@ -168,7 +168,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5ae86de85266c7f41ac8516f6e920ad1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  woodItemID: 1
   interactDistance: 1.2
   actionCooldown: 1
   wanderRadius: 5
@@ -344,21 +343,6 @@ MonoBehaviour:
   slowWhenNotFacingTarget: 1
   whenCloseToDestination: 0
   constrainInsideGraph: 0
---- !u!114 &8802841011327608955
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1260139162946927276}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 53079a9d954345c47ac76690b8049f81, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: '::'
-  currentAbility: {fileID: 11400000, guid: 926c66018d0b056498826a3d6154559d, type: 2}
-  attackAnchor: {fileID: 5091922913764416537}
-  globalAttackCooldown: 0.2
 --- !u!70 &3874133939572215982
 CapsuleCollider2D:
   m_ObjectHideFlags: 0
@@ -410,18 +394,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: '::'
   npcId: npcid1
   inventory: []
---- !u!114 &4573692379244824283
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1260139162946927276}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b99501b809c10a7449c5dded50f908dd, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: '::'
 --- !u!114 &3966021581244072405
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -434,9 +406,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 78661267de8a09e47ae15b889179b1a1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LevelManager
-  currentXP: 0
   level: 1
+  currentXP: 0
   xpToNextLevel: 100
+  skillPoints: 0
+  saveID: 
 --- !u!114 &508923507783663121
 MonoBehaviour:
   m_ObjectHideFlags: 0
