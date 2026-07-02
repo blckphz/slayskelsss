@@ -46,7 +46,6 @@ public class BuildingSaveManager : MonoBehaviour
 
     private void Start()
     {
-        Debug.Log("[SAVE MANAGER] LoadEverything() called");
         LoadEverything();
     }
 
@@ -470,7 +469,6 @@ public class BuildingSaveManager : MonoBehaviour
         HasLoadedWorld = true;
         OnWorldLoaded?.Invoke();
 
-        Debug.Log("========== LOAD END ==========");
     }
 
     public void SaveAfterChange() => SaveNow();

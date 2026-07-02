@@ -10,13 +10,11 @@ public class LootBonusManager : MonoBehaviour
     private void Awake()
     {
         Instance = this;
-        Debug.Log("[LootBonusManager] Initialized.");
     }
 
     public void SetLootBonus(int value)
     {
         extraLoot = value;
-        Debug.Log($"[LootBonusManager] Loot bonus set to: {extraLoot}");
     }
 
     public int GetBonusLoot()
