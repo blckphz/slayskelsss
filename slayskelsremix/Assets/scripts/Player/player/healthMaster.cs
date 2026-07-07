@@ -25,8 +25,12 @@ public class healthMaster : MonoBehaviour
         currentHealth -= amount;
         currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
 
+        Debug.Log($"Health: {currentHealth}");
+
         if (currentHealth <= 0)
+        {
             Die();
+        }
     }
 
     protected virtual void Die()
@@ -39,6 +43,6 @@ public class healthMaster : MonoBehaviour
             }
         }
 
-        Destroy(gameObject);
+        //Destroy(gameObject);
     }
 }

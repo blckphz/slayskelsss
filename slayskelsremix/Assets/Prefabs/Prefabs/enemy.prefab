@@ -102,7 +102,7 @@ Transform:
   m_GameObject: {fileID: 3616076381934659554}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.002, y: -0.698, z: 0}
+  m_LocalPosition: {x: 0.002, y: 0.006, z: 0}
   m_LocalScale: {x: 0.874517, y: 0.1933899, z: 0.7671914}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -371,7 +371,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: 96fba1ade03749441b6073bd6bd0cb31, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -516,8 +516,8 @@ CircleCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: -0.016046366, y: -0.057283696}
-  m_Radius: 0.74762833
+  m_Offset: {x: -0.016046366, y: 0.06909525}
+  m_Radius: 0.8740073
 --- !u!114 &4836947065617300172
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -532,6 +532,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: '::'
   maxHealth: 100
   currentHealth: 0
+  xpReward: 20
+  givesXP: 1
   enemyID: basiocskeleton
   goldPrefab: {fileID: 2937630582518109097, guid: a755f204c17557043a5d74ed21066738, type: 3}
   minGold: 1
@@ -612,7 +614,7 @@ MonoBehaviour:
   endReachedDistance: 0.2
   alwaysDrawGizmos: 0
   slowWhenNotFacingTarget: 1
-  whenCloseToDestination: 1
+  whenCloseToDestination: 0
   constrainInsideGraph: 0
 --- !u!114 &1891087227774690975
 MonoBehaviour:
@@ -640,7 +642,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3a2bbd70c2436c740a9344ee83b1141c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  detectionRefreshRate: 0.5
+  currentTarget: {fileID: 0}
+  detectionRange: 5
+  loseTargetRange: 7
+  wanderRadius: 3
+  wanderInterval: 3
   attackRange: 1.2
   attackCooldown: 1.5
   damageAmount: 10
@@ -707,7 +713,7 @@ BoxCollider2D:
   m_Offset: {x: 0.0039426684, y: -0.6452787}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.489, y: 0.5}
+    pivot: {x: 0.5, y: 0}
     oldSize: {x: 1.3333334, y: 1.4545455}
     newSize: {x: 0.2, y: 0.2}
     adaptiveTilingThreshold: 0.5

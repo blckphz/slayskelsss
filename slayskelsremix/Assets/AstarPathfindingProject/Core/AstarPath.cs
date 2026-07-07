@@ -1949,7 +1949,7 @@ public class AstarPath : VersionedMonoBehaviour {
 		}
 
 		if (astar.graphs == null || astar.graphs.Length == 0) {
-			Debug.LogError("There are no graphs in the scene");
+			//Debug.LogError("There are no graphs in the scene");
 			path.FailWithError("There are no graphs in the scene");
 			Debug.LogError(path.errorLog);
 			return;

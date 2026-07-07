@@ -205,17 +205,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::treeItemBehav
   UniqOverworldItemID: 09460a46-e670-49ff-b53d-4be54a082169
+  ReservedBy: {fileID: 0}
   health: 50
   effectiveTool: 2
+  correctToolDamageMultiplier: 2
   durabilityPerHit: 1
   givesXP: 1
   xpReward: 15
   lootPrefab: {fileID: 8504423254273432661, guid: 22af6c420dc2b11488f396c164eab3b4, type: 3}
   dropAmount: 3
   correctToolUsageBonus: 50
-  correctToolDamageMultiplier: 2
-  noDurabilityLossChance: 0.459
-  extraDropChance: 0.632
   hitDropChance: 0.2
   hitDropAmount: 1
   damageTextPrefab: {fileID: 9146332368269871989, guid: e2da221bf74f11340b439450cb25f81e, type: 3}
@@ -365,7 +364,7 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: -0.027425438, y: 0.42529684}
+  m_Offset: {x: -0.052260756, y: 0.315312}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.05}
@@ -375,7 +374,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 0.64817494, y: 0.5469254}
+  m_Size: {x: 0.6978456, y: 0.7668951}
   m_EdgeRadius: 0
 --- !u!114 &3056067628925120947
 MonoBehaviour:

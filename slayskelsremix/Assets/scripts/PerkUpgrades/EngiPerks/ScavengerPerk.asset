@@ -17,7 +17,7 @@ MonoBehaviour:
   perkdescription: 
   upgradeName: 
   description: 
-  currentLevel: 5
+  currentLevel: 0
   maxLevel: 5
   givesNewAbility: 0
   newAbility: {fileID: 0}

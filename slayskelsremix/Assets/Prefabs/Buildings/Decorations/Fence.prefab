@@ -130,7 +130,7 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: -0.014687613, y: -0.18309167}
+  m_Offset: {x: -0.012497976, y: -0.18747096}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
@@ -140,7 +140,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 0.22326925, y: 0.26688486}
+  m_Size: {x: 0.2364071, y: 0.28878126}
   m_EdgeRadius: 0
 --- !u!114 &899922030006313703
 MonoBehaviour:
@@ -155,6 +155,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: '::'
   maxHealth: 50
+  currentHealth: 0
+  xpReward: 20
+  givesXP: 1
   interactionRange: 3
 --- !u!114 &1058140804578759783
 MonoBehaviour:
@@ -198,8 +201,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: de912e1aea8edeb4fb61180ff9475330, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BuildIdentity
+  GetsDestroyedByPlayer: 0
   item: {fileID: 11400000, guid: ca5deb8da18e7564c9e7df2e8013b74a, type: 2}
   recipeUsed: {fileID: 11400000, guid: ba73be5ff07896e4b99764dc98f37366, type: 2}
+  cell: {x: 0, y: 0, z: 0}
 --- !u!70 &8186763485698527207
 CapsuleCollider2D:
   m_ObjectHideFlags: 0

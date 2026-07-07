@@ -12,8 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6e54c4f0e5e1b3046aa765b6a0169f3a, type: 3}
   m_Name: ChargesMelee
   m_EditorClassIdentifier: Assembly-CSharp::ChainDamagePerk
+  perkType: 0
+  perkName: 
+  perkdescription: 
   upgradeName: melee charges
   description: builds up charges that do bonus dmg
-  currentLevel: 3
+  currentLevel: 0
   maxLevel: 5
+  givesNewAbility: 0
+  newAbility: {fileID: 0}
   bonusPerLevel: 5
