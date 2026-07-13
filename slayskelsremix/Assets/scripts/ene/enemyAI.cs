@@ -142,6 +142,17 @@ public class EnemyAI : MonoBehaviour
         anim.SetBool("isattacking", false);
     }
 
+    // Public method called by enemyHealth when damage is taken
+    public void CancelAttack()
+    {
+        if (anim != null)
+        {
+            anim.SetBool("isattacking", false);
+            // If your animator relies on a trigger or state override to break out immediately:
+            // anim.Play("Idle"); // Optional fallback line if your transitions aren't instant
+        }
+    }
+
     private bool IsTargetInWeaponTrigger()
     {
         if (weaponTrigger == null)
@@ -205,7 +216,7 @@ public class EnemyAI : MonoBehaviour
 
         if (!didHitSomething)
         {
-            slowmoManager.TriggerSlowmo(0.5f, 0.2f);
+            slowmoManager.TriggerSlowmo(0.5f, 0.2f); // Example: 0.5x speed for 0.2 seconds
         }
     }
 
@@ -229,6 +240,11 @@ public class EnemyAI : MonoBehaviour
             Application.isPlaying ? spawnPosition : transform.position,
             wanderRadius
         );
+
+        if (anim != null)
+            anim.SetBool("isattacking", false);
+
+
 
         if (weaponTrigger != null)
         {

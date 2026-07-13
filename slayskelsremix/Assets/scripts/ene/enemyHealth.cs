@@ -19,6 +19,10 @@ public class enemyHealth : healthMaster, IDamageable
     public GameObject damageTextPrefab;
     public float flashDuration = 0.2f;
 
+    [Header("Camera Shake")]
+    public float cameraShakeIntensity = 1.5f;
+    public float cameraShakeDuration = 0.15f;
+
     [Header("Shader Property Names")]
     public string hitIntensityName = "_Intensity";
     public string stunIntensityName = "_StunIntensity";
@@ -33,6 +37,7 @@ public class enemyHealth : healthMaster, IDamageable
     private SpriteRenderer spriteRenderer;
     private MaterialPropertyBlock propertyBlock;
     private comboScript comboSys;
+    private EnemyAI enemyAI; // Reference to the AI script to cancel attacks
 
     private float originalSpeed;
     private Coroutine _flashCoroutine;
@@ -74,6 +79,7 @@ public class enemyHealth : healthMaster, IDamageable
     {
         if (ai != null) originalSpeed = ai.maxSpeed;
         comboSys = Object.FindAnyObjectByType<comboScript>();
+        enemyAI = GetComponent<EnemyAI>(); // Cache the EnemyAI component
         UpdateHealthUI();
     }
 
@@ -90,6 +96,15 @@ public class enemyHealth : healthMaster, IDamageable
         UpdateHealthUI();
         ShowDamageText(damage);
 
+        // Trigger camera shake on impact
+        CameraShaker.Instance?.Shake(cameraShakeIntensity, cameraShakeDuration);
+
+        // Cancel attack animation if hit while attacking
+        if (enemyAI != null)
+        {
+            enemyAI.CancelAttack();
+        }
+
         if (_flashCoroutine != null) StopCoroutine(_flashCoroutine);
         _flashCoroutine = StartCoroutine(FlashEffect());
     }
@@ -98,7 +113,6 @@ public class enemyHealth : healthMaster, IDamageable
     public void TakeDamage(int damage, ToolType toolType, ItemData toolItem)
     {
         // Redirects to our main TakeDamage logic. Tool payloads are ignored for standard combat units.
-        // If you ever want tools to deal extra damage to specific enemies, you can check 'toolType' here!
         TakeDamage(damage, null);
     }
 
@@ -167,6 +181,9 @@ public class enemyHealth : healthMaster, IDamageable
         UpdateShaderFloat(berrySmearIntensityName, 0f);
 
         if (comboSys != null) comboSys.RegisterKill();
+
+        // Optional: Trigger a slightly heavier shake on death if desired
+        CameraShaker.Instance?.Shake(cameraShakeIntensity * 1.5f, cameraShakeDuration * 2f);
 
         SpawnLoot();
 

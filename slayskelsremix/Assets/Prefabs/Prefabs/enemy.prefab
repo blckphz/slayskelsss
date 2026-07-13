@@ -34,7 +34,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -1926.55, y: -1083.8687}
+  m_AnchoredPosition: {x: -1926.55, y: -1082.7355}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &356966653098141884
@@ -264,7 +264,7 @@ Canvas:
   m_AdditionalShaderChannelsFlag: 0
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 10
   m_TargetDisplay: 0
 --- !u!114 &5512528146320483011
 MonoBehaviour:
@@ -340,7 +340,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -1926.5507, y: -1083.8688}
+  m_AnchoredPosition: {x: -1926.5507, y: -1082.7356}
   m_SizeDelta: {x: 123.11446, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &9071371977681043010
@@ -546,6 +546,7 @@ MonoBehaviour:
   stunIntensityName: _StunIntensity
   berrySmearIntensityName: _BerrySmearIntensity
   smearDecaySpeed: 0.5
+  anim: {fileID: 4465085120264246810}
 --- !u!114 &5654009883178532623
 MonoBehaviour:
   m_ObjectHideFlags: 0
