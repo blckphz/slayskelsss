@@ -247,8 +247,8 @@ MonoBehaviour:
   ReservedBy: {fileID: 0}
   health: 70
   effectiveTool: 1
-  correctToolDamageMultiplier: 1.5
-  durabilityPerHit: 3
+  correctToolDamageMultiplier: 2
+  durabilityPerHit: 2
   givesXP: 1
   xpReward: 15
   lootPrefab: {fileID: 7419506218884482566, guid: 785514fc593b4044e91b9b6f017dbe2f, type: 3}
