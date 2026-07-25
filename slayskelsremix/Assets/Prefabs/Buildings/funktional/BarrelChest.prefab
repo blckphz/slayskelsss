@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &497834360038440889
+--- !u!1 &9025261536078696287
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,40 +8,42 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 2528806724287980564}
-  - component: {fileID: 696740600269461913}
-  - component: {fileID: 3521712899297651443}
-  - component: {fileID: 269444901188624760}
-  - component: {fileID: 3504163744361751598}
+  - component: {fileID: 5863452481326423877}
+  - component: {fileID: 4519433527155997990}
+  - component: {fileID: 4341230075570501429}
+  - component: {fileID: 4818032154472768839}
+  - component: {fileID: 7932603497448992946}
+  - component: {fileID: 267176400226981609}
+  - component: {fileID: 7424524677314100200}
   m_Layer: 8
-  m_Name: Stuff
+  m_Name: BarrelChest
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &2528806724287980564
+--- !u!4 &5863452481326423877
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 497834360038440889}
+  m_GameObject: {fileID: 9025261536078696287}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1.2213565, y: 1.2213565, z: 1.2213565}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0.72673, y: 6.67161, z: 0}
+  m_LocalScale: {x: 1.1768, y: 1.1768, z: 1.1768}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!212 &696740600269461913
+--- !u!212 &4519433527155997990
 SpriteRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 497834360038440889}
+  m_GameObject: {fileID: 9025261536078696287}
   m_Enabled: 1
   m_CastShadows: 0
   m_ReceiveShadows: 0
@@ -82,7 +84,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: 31432ea5260036b4dab18f020388f3bb, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 7b31780a9e014ea4e8f76fc295b1f3e4, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -93,13 +95,13 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!61 &3521712899297651443
-BoxCollider2D:
+--- !u!70 &4341230075570501429
+CapsuleCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 497834360038440889}
+  m_GameObject: {fileID: 9025261536078696287}
   m_Enabled: 1
   serializedVersion: 3
   m_Density: 1
@@ -128,42 +130,70 @@ BoxCollider2D:
   m_CompositeOperation: 0
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
-  m_SpriteTilingProperty:
-    border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 0.90909094, y: 1.2121212}
-    newSize: {x: 0.90909094, y: 1.2121212}
-    adaptiveTilingThreshold: 0.5
-    drawMode: 0
-    adaptiveTiling: 0
-  m_AutoTiling: 0
   m_Size: {x: 0.90909094, y: 1.2121212}
-  m_EdgeRadius: 0
---- !u!114 &269444901188624760
+  m_Direction: 0
+--- !u!114 &4818032154472768839
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 497834360038440889}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 480bf6f5b63fd37448bfb150bbe29e4f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: '::'
-  maxHealth: 50
-  interactionRange: 3
---- !u!114 &3504163744361751598
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 497834360038440889}
+  m_GameObject: {fileID: 9025261536078696287}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: de912e1aea8edeb4fb61180ff9475330, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: '::'
-  item: {fileID: 11400000, guid: f7404efa0ffa6f942a16ba06fe608c14, type: 2}
-  recipeUsed: {fileID: 11400000, guid: 6a505873a99a0dd46ad71e18f2025ff5, type: 2}
+  m_EditorClassIdentifier: Assembly-CSharp::BuildIdentity
+  GetsDestroyedByPlayer: 0
+  item: {fileID: 11400000, guid: 4909735c119e37e44b4232da4ae18c1b, type: 2}
+  recipeUsed: {fileID: 11400000, guid: 4e02bca10d8fc834e82fd75ded938dc0, type: 2}
+  cell: {x: 0, y: 0, z: 0}
+--- !u!114 &7932603497448992946
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9025261536078696287}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: adc99a8c95fe02147bf6f0b44179a0a0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ghostBuildPreview
+  footprint: {x: 1, y: 1}
+  gridSize: 1
+  placementMask:
+    serializedVersion: 2
+    m_Bits: 256
+--- !u!114 &267176400226981609
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9025261536078696287}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 480bf6f5b63fd37448bfb150bbe29e4f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::objectHealth
+  maxHealth: 50
+  currentHealth: 0
+  xpReward: 20
+  givesXP: 1
+  interactionRange: 3
+--- !u!114 &7424524677314100200
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9025261536078696287}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7bdcc4d0b3444f543b0e887335adb64f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ChestInventory
+  chestID: 
+  chestItems: []
+  maxSlots: 20

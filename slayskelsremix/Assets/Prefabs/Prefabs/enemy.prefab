@@ -542,11 +542,12 @@ MonoBehaviour:
   healthBarFill: {fileID: 4075190892320438791}
   damageTextPrefab: {fileID: 9146332368269871989, guid: e2da221bf74f11340b439450cb25f81e, type: 3}
   flashDuration: 0.2
+  cameraShakeIntensity: 1.5
+  cameraShakeDuration: 0.15
   hitIntensityName: _Intensity
   stunIntensityName: _StunIntensity
   berrySmearIntensityName: _BerrySmearIntensity
   smearDecaySpeed: 0.5
-  anim: {fileID: 4465085120264246810}
 --- !u!114 &5654009883178532623
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -604,14 +605,14 @@ MonoBehaviour:
   autoRepath:
     mode: 2
     interval: 0.5
-    sensitivity: 10
-    maximumInterval: 0.4
+    sensitivity: 8.96
+    maximumInterval: 2
     visualizeSensitivity: 0
   targetCompatibility: {fileID: 0}
   maxAcceleration: -2.5
   rotationSpeed: 360
   slowdownDistance: 0.6
-  pickNextWaypointDist: 2
+  pickNextWaypointDist: 3
   endReachedDistance: 0.2
   alwaysDrawGizmos: 0
   slowWhenNotFacingTarget: 1
@@ -647,7 +648,7 @@ MonoBehaviour:
   detectionRange: 5
   loseTargetRange: 7
   wanderRadius: 3
-  wanderInterval: 3
+  wanderInterval: 10
   attackRange: 1.2
   attackCooldown: 1.5
   damageAmount: 10

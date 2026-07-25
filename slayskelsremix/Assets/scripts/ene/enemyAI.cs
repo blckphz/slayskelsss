@@ -5,6 +5,7 @@ public class EnemyAI : MonoBehaviour
 {
     private IAstarAI ai;
     private Animator anim;
+    private Transform tr;
 
     [Header("Target")]
     [SerializeField] private Transform currentTarget;
@@ -32,15 +33,40 @@ public class EnemyAI : MonoBehaviour
     [SerializeField] private CircleCollider2D weaponTrigger;
     [SerializeField] private LayerMask targetLayers;
 
+    // Cached
+    private ContactFilter2D contactFilter;
+    private readonly Collider2D[] overlapSingle = new Collider2D[1];
+    private readonly Collider2D[] overlapMultiple = new Collider2D[10];
+
+    private float detectionRangeSqr;
+    private float loseTargetRangeSqr;
+    private float attackRangeSqr;
+
+    private static readonly int IsAttackingHash = Animator.StringToHash("isattacking");
+    private static readonly int XHash = Animator.StringToHash("x");
+    private static readonly int YHash = Animator.StringToHash("y");
+
     private void Start()
     {
+        tr = transform;
         ai = GetComponent<IAstarAI>();
         anim = GetComponent<Animator>();
 
         if (weaponTrigger == null)
             weaponTrigger = GetComponent<CircleCollider2D>();
 
-        spawnPosition = transform.position;
+        spawnPosition = tr.position;
+
+        detectionRangeSqr = detectionRange * detectionRange;
+        loseTargetRangeSqr = loseTargetRange * loseTargetRange;
+        attackRangeSqr = attackRange * attackRange;
+
+        contactFilter = new ContactFilter2D
+        {
+            useLayerMask = true,
+            useTriggers = true
+        };
+        contactFilter.SetLayerMask(targetLayers);
 
         FindPlayer();
     }
@@ -65,50 +91,41 @@ public class EnemyAI : MonoBehaviour
             return;
         }
 
-        float distanceToTarget =
-            Vector2.Distance(transform.position, currentTarget.position);
+        float distanceSqr = (currentTarget.position - tr.position).sqrMagnitude;
 
-        // Start chasing when player enters detection range
-        if (!isChasing && distanceToTarget <= detectionRange)
-        {
+        if (!isChasing && distanceSqr <= detectionRangeSqr)
             isChasing = true;
-        }
 
-        // Stop chasing when player gets too far away
-        if (isChasing && distanceToTarget > loseTargetRange)
+        if (isChasing && distanceSqr > loseTargetRangeSqr)
         {
             isChasing = false;
-            anim.SetBool("isattacking", false);
+            anim.SetBool(IsAttackingHash, false);
         }
 
         if (isChasing)
-        {
-            ChaseAndAttack(distanceToTarget);
-        }
+            ChaseAndAttack(distanceSqr);
         else
-        {
             Wander();
-        }
 
         UpdateAnimator();
     }
 
-    private void ChaseAndAttack(float distanceToTarget)
+    private void ChaseAndAttack(float distanceSqr)
     {
-        if (distanceToTarget <= attackRange)
+        if (distanceSqr <= attackRangeSqr)
         {
             ai.isStopped = true;
 
             if (Time.time >= lastAttackTime + attackCooldown &&
                 IsTargetInWeaponTrigger())
             {
-                anim.SetBool("isattacking", true);
+                anim.SetBool(IsAttackingHash, true);
                 lastAttackTime = Time.time;
             }
         }
         else
         {
-            anim.SetBool("isattacking", false);
+            anim.SetBool(IsAttackingHash, false);
 
             ai.isStopped = false;
             ai.destination = currentTarget.position;
@@ -117,21 +134,17 @@ public class EnemyAI : MonoBehaviour
 
     private void Wander()
     {
-        anim.SetBool("isattacking", false);
+        anim.SetBool(IsAttackingHash, false);
 
         if (Time.time < nextWanderTime)
             return;
 
         nextWanderTime = Time.time + wanderInterval;
 
-        Vector2 randomPoint =
-            Random.insideUnitCircle * wanderRadius;
-
-        Vector3 destination =
-            spawnPosition + new Vector3(randomPoint.x, randomPoint.y, 0);
+        Vector2 randomPoint = Random.insideUnitCircle * wanderRadius;
 
         ai.isStopped = false;
-        ai.destination = destination;
+        ai.destination = spawnPosition + new Vector3(randomPoint.x, randomPoint.y, 0f);
     }
 
     private void StopMovement()
@@ -139,17 +152,15 @@ public class EnemyAI : MonoBehaviour
         if (ai != null)
             ai.isStopped = true;
 
-        anim.SetBool("isattacking", false);
+        anim.SetBool(IsAttackingHash, false);
     }
 
-    // Public method called by enemyHealth when damage is taken
     public void CancelAttack()
     {
         if (anim != null)
         {
-            anim.SetBool("isattacking", false);
-            // If your animator relies on a trigger or state override to break out immediately:
-            // anim.Play("Idle"); // Optional fallback line if your transitions aren't instant
+            anim.SetBool(IsAttackingHash, false);
+            // anim.Play("Idle");
         }
     }
 
@@ -158,15 +169,7 @@ public class EnemyAI : MonoBehaviour
         if (weaponTrigger == null)
             return false;
 
-        ContactFilter2D filter = new ContactFilter2D();
-        filter.SetLayerMask(targetLayers);
-        filter.useLayerMask = true;
-        filter.useTriggers = true;
-
-        Collider2D[] results = new Collider2D[1];
-        int hitCount = weaponTrigger.Overlap(filter, results);
-
-        return hitCount > 0;
+        return weaponTrigger.Overlap(contactFilter, overlapSingle) > 0;
     }
 
     private void UpdateAnimator()
@@ -176,13 +179,12 @@ public class EnemyAI : MonoBehaviour
 
         Vector3 velocity = ai.velocity;
 
-        if (velocity.magnitude > 0.1f)
+        if (velocity.sqrMagnitude > 0.01f)
         {
-            Vector2 movementVector =
-                new Vector2(velocity.x, velocity.y).normalized;
+            Vector2 movementVector = new Vector2(velocity.x, velocity.y).normalized;
 
-            anim.SetFloat("x", movementVector.x);
-            anim.SetFloat("y", movementVector.y);
+            anim.SetFloat(XHash, movementVector.x);
+            anim.SetFloat(YHash, movementVector.y);
         }
     }
 
@@ -191,50 +193,42 @@ public class EnemyAI : MonoBehaviour
         if (weaponTrigger == null)
             return;
 
-        ContactFilter2D filter = new ContactFilter2D();
-        filter.SetLayerMask(targetLayers);
-        filter.useLayerMask = true;
-        filter.useTriggers = true;
-
-        Collider2D[] results = new Collider2D[10];
-        int hitCount = weaponTrigger.Overlap(filter, results);
+        int hitCount = weaponTrigger.Overlap(contactFilter, overlapMultiple);
 
         bool didHitSomething = false;
 
         for (int i = 0; i < hitCount; i++)
         {
-            healthMaster h = results[i].GetComponent<healthMaster>();
+            healthMaster h = overlapMultiple[i].GetComponent<healthMaster>();
 
             if (h != null)
             {
                 h.TakeDamage(damageAmount);
                 didHitSomething = true;
             }
+
+            overlapMultiple[i] = null;
         }
 
-        anim.SetBool("isattacking", false);
+        anim.SetBool(IsAttackingHash, false);
 
         if (!didHitSomething)
         {
-            slowmoManager.TriggerSlowmo(0.5f, 0.2f); // Example: 0.5x speed for 0.2 seconds
+            slowmoManager.TriggerSlowmo(0.5f, 0.2f);
         }
     }
 
     private void OnDrawGizmosSelected()
     {
-        // Attack Range
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, attackRange);
 
-        // Detection Range
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(transform.position, detectionRange);
 
-        // Lose Target Range
         Gizmos.color = Color.magenta;
         Gizmos.DrawWireSphere(transform.position, loseTargetRange);
 
-        // Wander Area
         Gizmos.color = Color.green;
         Gizmos.DrawWireSphere(
             Application.isPlaying ? spawnPosition : transform.position,
@@ -242,14 +236,11 @@ public class EnemyAI : MonoBehaviour
         );
 
         if (anim != null)
-            anim.SetBool("isattacking", false);
-
-
+            anim.SetBool(IsAttackingHash, false);
 
         if (weaponTrigger != null)
         {
             Gizmos.color = Color.cyan;
-
             Gizmos.DrawWireSphere(
                 transform.position + (Vector3)weaponTrigger.offset,
                 weaponTrigger.radius

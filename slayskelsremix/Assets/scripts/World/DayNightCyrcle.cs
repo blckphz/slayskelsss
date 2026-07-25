@@ -20,6 +20,12 @@ public class DayNightCycle : MonoBehaviour
     public Color bloodMoonTint = new Color(1f, 0.3f, 0.3f);
     public float bloodMoonIntensityMultiplier = 1.2f;
 
+    [Header("Blood Moon Transition")]
+    [Tooltip("How fast the Blood Moon fades in/out.")]
+    public float bloodMoonFadeSpeed = 0.5f;
+
+    private float bloodMoonBlend = 0f;
+
     public float TotalTime { get; private set; }
     public float RawTime { get; private set; }
     public int DaysPassed { get; private set; }
@@ -53,18 +59,23 @@ public class DayNightCycle : MonoBehaviour
         if (globalLight == null) return;
 
         float hour = RawTime * 24f;
-
         bool isNight = hour >= 18f || hour < 6f;
 
         Color baseColor = nightDayColor.Evaluate(RawTime);
         float baseIntensity = intensityCurve.Evaluate(RawTime);
 
-        // 🌙 Only apply Blood Moon during NIGHT
-        if (IsBloodMoon && isNight)
-        {
-            baseColor = Color.Lerp(baseColor, bloodMoonTint, 0.5f);
-            baseIntensity *= bloodMoonIntensityMultiplier;
-        }
+        // Fade Blood Moon in/out smoothly
+        float targetBlend = (IsBloodMoon && isNight) ? 1f : 0f;
+
+        bloodMoonBlend = Mathf.MoveTowards(
+            bloodMoonBlend,
+            targetBlend,
+            bloodMoonFadeSpeed * Time.deltaTime
+        );
+
+        // Blend color and intensity
+        baseColor = Color.Lerp(baseColor, bloodMoonTint, bloodMoonBlend * 0.5f);
+        baseIntensity *= Mathf.Lerp(1f, bloodMoonIntensityMultiplier, bloodMoonBlend);
 
         globalLight.color = baseColor;
         globalLight.intensity = baseIntensity;
@@ -77,21 +88,19 @@ public class DayNightCycle : MonoBehaviour
         int totalHours = Mathf.FloorToInt(RawTime * 24f);
 
         int hour12 = totalHours % 12;
-        if (hour12 == 0) hour12 = 12;
+        if (hour12 == 0)
+            hour12 = 12;
 
         string period = totalHours >= 12 ? "PM" : "AM";
 
         timeText.text = $"Day {DaysPassed + 1} {hour12:00} {period}";
 
-        // 🌙 Blood Moon text tint
-        if (IsBloodMoon)
-        {
-            timeText.color = Color.Lerp(Color.white, new Color(1f, 0.3f, 0.3f), 0.5f);
-        }
-        else
-        {
-            timeText.color = Color.white;
-        }
+        // Smoothly tint the UI during Blood Moon
+        timeText.color = Color.Lerp(
+            Color.white,
+            bloodMoonTint,
+            bloodMoonBlend * 0.5f
+        );
     }
 
     public void LoadTime(float total, float raw, int days)
