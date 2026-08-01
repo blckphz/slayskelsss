@@ -5,8 +5,14 @@ public class berrySO : offensiveRanged, IItemDescriptionProvider
 {
     [Header("Eat Settings")]
     public int healAmount = 5;
+    public int hungerAmount = 20;
+
+    [Header("Inventory")]
+    public ItemData berryItem;
+
     [Header("Planting Settings")]
     public GameObject plantPrefab;
+
 
     public string GetDetailedDescription()
     {
@@ -17,35 +23,91 @@ public class berrySO : offensiveRanged, IItemDescriptionProvider
                "• Plant: Place in dug holes to grow crops.\n" +
                "• Throw: Ranged attack projectile.\n\n" +
                "<color=#FFA500><b>[SECONDARY ACTION]</b></color>\n" +
-               $"• Eat: Restores +{healAmount} HP.";
+               $"• Eat: Restores +{healAmount} HP and +{hungerAmount} Hunger.";
     }
 
-    public override bool Execute(Transform caster, Transform targetAnchor, bool isHolding)
+
+
+    public override bool Execute(
+        Transform caster,
+        Transform targetAnchor,
+        bool isHolding)
     {
-        GameObject currentTarget = Object.FindFirstObjectByType<PlayerInteraction2D>()?.CurrentTarget;
+        GameObject currentTarget =
+            Object.FindFirstObjectByType<PlayerInteraction2D>()
+            ?.CurrentTarget;
 
-        if (currentTarget != null && currentTarget.TryGetComponent(out EarthHoleDigBehav hole))
+
+        if (currentTarget != null &&
+            currentTarget.TryGetComponent(out EarthHoleDigBehav hole))
+        {
             return hole.PlantSeed(plantPrefab);
+        }
 
-        if (prefab == null) return false;
 
-        Vector2 direction = (targetAnchor.position - caster.position).normalized;
-        GameObject berry = ObjectPooler.Instance.GetPooledObject(prefab, caster.position, Quaternion.identity);
+        if (prefab == null)
+            return false;
 
-        if (berry != null && berry.TryGetComponent<berryBehaviour>(out var behavior))
-            behavior.Setup(damage, projectileSpeed, direction);
+
+        Vector2 direction =
+            (targetAnchor.position - caster.position).normalized;
+
+
+        GameObject berry =
+            ObjectPooler.Instance.GetPooledObject(
+                prefab,
+                caster.position,
+                Quaternion.identity
+            );
+
+
+        if (berry != null &&
+            berry.TryGetComponent<berryBehaviour>(out var behavior))
+        {
+            behavior.Setup(
+                damage,
+                projectileSpeed,
+                direction
+            );
+        }
+
 
         return true;
     }
 
+
+
     public override bool ExecuteSecondary(Transform caster)
     {
-        if (caster.TryGetComponent<playerHealth>(out playerHealth pHealth))
+        playerHealth pHealth = caster.GetComponent<playerHealth>();
+        PlayerNeeds needs = caster.GetComponent<PlayerNeeds>();
+
+        bool ate = false;
+
+
+        // Heal health
+        if (pHealth != null && pHealth.currentHealth < pHealth.maxHealth)
         {
-            if (pHealth.currentHealth >= pHealth.maxHealth) return false;
             pHealth.Heal(healAmount);
-            return true;
+            ate = true;
         }
-        return false;
+
+
+        // Restore hunger
+        if (needs != null && needs.saturation < needs.maxSaturation)
+        {
+            needs.AddFood(hungerAmount);
+            ate = true;
+        }
+
+
+        // Consume from hotbar
+        if (ate && PlayerHotbarManager.Instance != null)
+        {
+            PlayerHotbarManager.Instance.UseSelectedStack(1);
+        }
+
+
+        return ate;
     }
 }

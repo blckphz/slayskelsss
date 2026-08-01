@@ -4,8 +4,8 @@ using UnityEngine.UI;
 public class PlayerNeeds : MonoBehaviour
 {
     [Header("Hunger Settings")]
-    public int maxSaturation = 100;
-    public int saturation = 100;
+    public int maxSaturation = 110;
+    public int saturation = 110;
 
     [Tooltip("How many seconds between each hunger loss while moving.")]
     public float hungerInterval = 5f;
@@ -56,7 +56,7 @@ public class PlayerNeeds : MonoBehaviour
 
     private void UpdateHungerUI()
     {
-        // Each icon represents 20 saturation
+        // Each icon represents 20 hunger
         int remaining = saturation;
 
         for (int i = 0; i < hungerIcons.Length; i++)
@@ -73,12 +73,7 @@ public class PlayerNeeds : MonoBehaviour
             }
             else
             {
-                // Hide the icon completely when empty
                 hungerIcons[i].enabled = false;
-
-                // If you have an empty sprite instead, use:
-                // hungerIcons[i].enabled = true;
-                // hungerIcons[i].sprite = emptyChicken;
             }
 
             remaining -= 20;
