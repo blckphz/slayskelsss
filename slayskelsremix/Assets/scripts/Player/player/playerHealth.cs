@@ -7,6 +7,10 @@ public class playerHealth : healthMaster
     public float healthRegenRate = 5f;
     public float healthRegenDelay = 3f;
 
+    [Header("Starvation")]
+    public int starvationDamage = 1;
+    public float starvationInterval = 2f;
+
     [Header("UI")]
     public Slider healthSlider;
 
@@ -14,6 +18,9 @@ public class playerHealth : healthMaster
     [SerializeField] private GameObject gameOverCanvas;
 
     private float lastDamageTime;
+    private float starvationTimer;
+
+    private PlayerNeeds playerNeeds;
 
     protected override void Awake()
     {
@@ -22,6 +29,8 @@ public class playerHealth : healthMaster
 
     void Start()
     {
+        playerNeeds = GetComponent<PlayerNeeds>();
+
         if (healthSlider != null)
         {
             healthSlider.maxValue = maxHealth;
@@ -40,6 +49,7 @@ public class playerHealth : healthMaster
 
     void Update()
     {
+        // Health regeneration
         if (currentHealth < maxHealth &&
             Time.time >= lastDamageTime + healthRegenDelay)
         {
@@ -47,6 +57,22 @@ public class playerHealth : healthMaster
             currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
 
             UpdateUI();
+        }
+
+        // Starvation damage
+        if (playerNeeds != null && playerNeeds.saturation <= 0)
+        {
+            starvationTimer += Time.deltaTime;
+
+            if (starvationTimer >= starvationInterval)
+            {
+                starvationTimer = 0f;
+                TakeDamage(starvationDamage);
+            }
+        }
+        else
+        {
+            starvationTimer = 0f;
         }
 
         if (healthSlider != null)
@@ -108,8 +134,5 @@ public class playerHealth : healthMaster
             rb.linearVelocity = Vector3.zero;
             rb.angularVelocity = Vector3.zero;
         }
-
-        // Uncomment if you want to destroy the player after showing the UI
-        // Destroy(gameObject);
     }
 }
