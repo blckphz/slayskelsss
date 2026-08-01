@@ -227,6 +227,7 @@ MonoBehaviour:
   hitSound: {fileID: 8300000, guid: c868435d4fc6ae240bab799a6c39d3e3, type: 3}
   deathSFX: {fileID: 0}
   hitVolume: 1
+  hitParticlePrefab: {fileID: 5296584292342054272, guid: bf809404cc35c1740bda3d6484d01fb3, type: 3}
   isCut: 0
   cutTime: 0
   bottomPrefab: {fileID: 4272399698899235473, guid: f46bc3955377181479d8e75aaf364860, type: 3}

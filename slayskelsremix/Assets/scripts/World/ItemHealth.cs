@@ -57,6 +57,9 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
     public AudioClip deathSFX;
     [Range(0f, 1f)] public float hitVolume = 1f;
 
+    [Header("Hit Particle")]
+    public GameObject hitParticlePrefab; // <-- Add this line
+
     protected SpriteRenderer spriteRenderer;
     private MaterialPropertyBlock propertyBlock;
 
@@ -94,7 +97,6 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
     // =====================================================
     // DAMAGE
     // =====================================================
-
 
     public virtual void TakeDamage(int damage, ToolType toolType, ItemData toolItem)
     {
@@ -149,6 +151,12 @@ public abstract class ItemHealth : MonoBehaviour, IDamageable
         ShowDamageText(damage);
         TriggerFlash();
         TriggerShake();
+
+        // Spawn hit particle effect
+        if (hitParticlePrefab != null)
+        {
+            Instantiate(hitParticlePrefab, transform.position, Quaternion.identity);
+        }
 
         if (UnityEngine.Random.value <= hitDropChance)
             SpawnHitLoot();
