@@ -33,7 +33,6 @@ public class EnemyAI : MonoBehaviour
     [SerializeField] private CircleCollider2D weaponTrigger;
     [SerializeField] private LayerMask targetLayers;
 
-    // Cached
     private ContactFilter2D contactFilter;
     private readonly Collider2D[] overlapSingle = new Collider2D[1];
     private readonly Collider2D[] overlapMultiple = new Collider2D[10];
@@ -42,9 +41,13 @@ public class EnemyAI : MonoBehaviour
     private float loseTargetRangeSqr;
     private float attackRangeSqr;
 
+    // Keeps last facing direction while idle
+    private Vector2 lastDirection = Vector2.down;
+
     private static readonly int IsAttackingHash = Animator.StringToHash("isattacking");
     private static readonly int XHash = Animator.StringToHash("x");
     private static readonly int YHash = Animator.StringToHash("y");
+    private static readonly int SpeedHash = Animator.StringToHash("Speed");
 
     private void Start()
     {
@@ -66,6 +69,7 @@ public class EnemyAI : MonoBehaviour
             useLayerMask = true,
             useTriggers = true
         };
+
         contactFilter.SetLayerMask(targetLayers);
 
         FindPlayer();
@@ -144,7 +148,8 @@ public class EnemyAI : MonoBehaviour
         Vector2 randomPoint = Random.insideUnitCircle * wanderRadius;
 
         ai.isStopped = false;
-        ai.destination = spawnPosition + new Vector3(randomPoint.x, randomPoint.y, 0f);
+        ai.destination = spawnPosition +
+                         new Vector3(randomPoint.x, randomPoint.y, 0f);
     }
 
     private void StopMovement()
@@ -152,7 +157,11 @@ public class EnemyAI : MonoBehaviour
         if (ai != null)
             ai.isStopped = true;
 
-        anim.SetBool(IsAttackingHash, false);
+        if (anim != null)
+        {
+            anim.SetBool(IsAttackingHash, false);
+            anim.SetFloat(SpeedHash, 0f);
+        }
     }
 
     public void CancelAttack()
@@ -160,7 +169,6 @@ public class EnemyAI : MonoBehaviour
         if (anim != null)
         {
             anim.SetBool(IsAttackingHash, false);
-            // anim.Play("Idle");
         }
     }
 
@@ -174,18 +182,41 @@ public class EnemyAI : MonoBehaviour
 
     private void UpdateAnimator()
     {
-        if (ai == null)
+        if (ai == null || anim == null)
             return;
 
         Vector3 velocity = ai.velocity;
+        float speed = velocity.magnitude;
 
-        if (velocity.sqrMagnitude > 0.01f)
+        anim.SetFloat(SpeedHash, speed);
+
+        if (speed > 0.05f)
         {
-            Vector2 movementVector = new Vector2(velocity.x, velocity.y).normalized;
+            lastDirection = new Vector2(velocity.x, velocity.y).normalized;
 
-            anim.SetFloat(XHash, movementVector.x);
-            anim.SetFloat(YHash, movementVector.y);
+            Debug.Log(
+                gameObject.name +
+                " MOVING | Velocity: " + velocity +
+                " | Last Direction: " + lastDirection
+            );
         }
+        else
+        {
+            Debug.Log(
+                gameObject.name +
+                " IDLE | Keeping Direction: " + lastDirection
+            );
+        }
+
+        anim.SetFloat(XHash, lastDirection.x);
+        anim.SetFloat(YHash, lastDirection.y);
+
+        Debug.Log(
+            gameObject.name +
+            " Animator Params | Speed: " + speed +
+            " X: " + anim.GetFloat(XHash) +
+            " Y: " + anim.GetFloat(YHash)
+        );
     }
 
     public void checkforplayerdmg()
@@ -234,9 +265,6 @@ public class EnemyAI : MonoBehaviour
             Application.isPlaying ? spawnPosition : transform.position,
             wanderRadius
         );
-
-        if (anim != null)
-            anim.SetBool(IsAttackingHash, false);
 
         if (weaponTrigger != null)
         {
