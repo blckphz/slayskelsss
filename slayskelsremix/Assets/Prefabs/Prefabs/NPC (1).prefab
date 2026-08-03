@@ -168,12 +168,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5ae86de85266c7f41ac8516f6e920ad1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: '::'
-  interactDistance: 1.2
-  actionCooldown: 1
-  wanderRadius: 5
-  maintenanceThreshold: 0.6
+  interactDistance: 1.76
+  actionCooldown: 0.38
+  wanderRadius: 4
   currentState: 0
   jobDescription: Idle
+  dayNightCycle: {fileID: 0}
+  myHouse: {fileID: 0}
 --- !u!212 &7450443348552350561
 SpriteRenderer:
   m_ObjectHideFlags: 0

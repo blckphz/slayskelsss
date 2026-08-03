@@ -211,12 +211,6 @@ public class EnemyAI : MonoBehaviour
         anim.SetFloat(XHash, lastDirection.x);
         anim.SetFloat(YHash, lastDirection.y);
 
-        Debug.Log(
-            gameObject.name +
-            " Animator Params | Speed: " + speed +
-            " X: " + anim.GetFloat(XHash) +
-            " Y: " + anim.GetFloat(YHash)
-        );
     }
 
     public void checkforplayerdmg()

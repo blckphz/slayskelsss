@@ -90,6 +90,15 @@ public class BuildManager : MonoBehaviour
 
         MovePreview();
 
+        if (UnityEngine.InputSystem.Keyboard.current.rKey.wasPressedThisFrame)
+        {
+            RotateBuildables rot = previewObject.GetComponent<RotateBuildables>();
+
+            if (rot != null)
+                rot.ToggleSprite();
+        }
+
+
         bool isUI =
             EventSystem.current != null &&
             EventSystem.current.IsPointerOverGameObject();
@@ -221,6 +230,14 @@ public class BuildManager : MonoBehaviour
             pos,
             Quaternion.identity
         );
+
+        RotateBuildables previewRot = previewObject.GetComponent<RotateBuildables>();
+        RotateBuildables placedRot = obj.GetComponent<RotateBuildables>();
+
+        if (previewRot != null && placedRot != null)
+        {
+            placedRot.ApplyState(previewRot.UsingSecondSprite);
+        }
 
         BuildIdentity id = obj.GetComponent<BuildIdentity>();
         if (id == null)

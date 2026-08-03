@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2e0351e2672834f42bfde66072954537, type: 3}
+  m_Name: StrawBed
+  m_EditorClassIdentifier: Assembly-CSharp::buildSO
+  itemID: 8733312
+  itemName: Bed
+  ItemDescription: sleep tight
+  icon: {fileID: -3730267592108814503, guid: 5ad5fd59c0680b547b95cfa1515667d6, type: 3}
+  DragStartSound: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
+  DragEndSound: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
+  itemType: 1
+  maxStackSize: 99
+  usesDurability: 0
+  maxDurability: 0
+  isUsable: 1
+  consumeAmount: 1
+  placeablePrefab: {fileID: 4037584178031556699, guid: bbf0c71eaef6e814eaa85c57a151277d, type: 3}
+  size: {x: 0, y: 0}
+  placementSound: {fileID: 8300000, guid: 516a69b0c85ebbf48b7eba6994cbebd1, type: 3}
