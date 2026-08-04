@@ -5,7 +5,10 @@ public class RotateBuildables : MonoBehaviour
     [SerializeField] private Sprite spriteA;
     [SerializeField] private Sprite spriteB;
 
+    [SerializeField] private Transform colliderTransform;
+
     private SpriteRenderer spriteRenderer;
+    private Quaternion originalColliderRotation;
 
     public bool UsingSecondSprite { get; private set; }
 
@@ -15,18 +18,14 @@ public class RotateBuildables : MonoBehaviour
 
         if (spriteRenderer != null && spriteA != null)
             spriteRenderer.sprite = spriteA;
+
+        if (colliderTransform != null)
+            originalColliderRotation = colliderTransform.localRotation;
     }
 
     public void ToggleSprite()
     {
-        if (spriteRenderer == null)
-            return;
-
-        UsingSecondSprite = !UsingSecondSprite;
-
-        spriteRenderer.sprite = UsingSecondSprite
-            ? spriteB
-            : spriteA;
+        ApplyState(!UsingSecondSprite);
     }
 
     public void ApplyState(bool second)
@@ -38,6 +37,13 @@ public class RotateBuildables : MonoBehaviour
             spriteRenderer.sprite = second
                 ? spriteB
                 : spriteA;
+        }
+
+        if (colliderTransform != null)
+        {
+            colliderTransform.localRotation = second
+                ? Quaternion.Euler(0, 0, 90f)
+                : originalColliderRotation;
         }
     }
 }

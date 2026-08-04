@@ -298,6 +298,15 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Sleep"",
+                    ""type"": ""Button"",
+                    ""id"": ""121e1b77-520e-43fe-9ef8-ea41b7d3199a"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -815,6 +824,17 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""PrevSong"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""984095c5-c2c7-4707-8a15-589517afaa49"",
+                    ""path"": ""<Keyboard>/z"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Sleep"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -1445,6 +1465,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         m_Player_ToggleGrid = m_Player.FindAction("ToggleGrid", throwIfNotFound: true);
         m_Player_NextSong = m_Player.FindAction("NextSong", throwIfNotFound: true);
         m_Player_PrevSong = m_Player.FindAction("PrevSong", throwIfNotFound: true);
+        m_Player_Sleep = m_Player.FindAction("Sleep", throwIfNotFound: true);
         // UI
         m_UI = asset.FindActionMap("UI", throwIfNotFound: true);
         m_UI_Navigate = m_UI.FindAction("Navigate", throwIfNotFound: true);
@@ -1562,6 +1583,7 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
     private readonly InputAction m_Player_ToggleGrid;
     private readonly InputAction m_Player_NextSong;
     private readonly InputAction m_Player_PrevSong;
+    private readonly InputAction m_Player_Sleep;
     /// <summary>
     /// Provides access to input actions defined in input action map "Player".
     /// </summary>
@@ -1666,6 +1688,10 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         /// </summary>
         public InputAction @PrevSong => m_Wrapper.m_Player_PrevSong;
         /// <summary>
+        /// Provides access to the underlying input action "Player/Sleep".
+        /// </summary>
+        public InputAction @Sleep => m_Wrapper.m_Player_Sleep;
+        /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
         public InputActionMap Get() { return m_Wrapper.m_Player; }
@@ -1760,6 +1786,9 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
             @PrevSong.started += instance.OnPrevSong;
             @PrevSong.performed += instance.OnPrevSong;
             @PrevSong.canceled += instance.OnPrevSong;
+            @Sleep.started += instance.OnSleep;
+            @Sleep.performed += instance.OnSleep;
+            @Sleep.canceled += instance.OnSleep;
         }
 
         /// <summary>
@@ -1840,6 +1869,9 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
             @PrevSong.started -= instance.OnPrevSong;
             @PrevSong.performed -= instance.OnPrevSong;
             @PrevSong.canceled -= instance.OnPrevSong;
+            @Sleep.started -= instance.OnSleep;
+            @Sleep.performed -= instance.OnSleep;
+            @Sleep.canceled -= instance.OnSleep;
         }
 
         /// <summary>
@@ -2312,6 +2344,13 @@ public partial class @InputSystem_Actions: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnPrevSong(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Sleep" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnSleep(InputAction.CallbackContext context);
     }
     /// <summary>
     /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "UI" which allows adding and removing callbacks.

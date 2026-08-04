@@ -25,5 +25,5 @@ MonoBehaviour:
   isUsable: 1
   consumeAmount: 1
   placeablePrefab: {fileID: 4037584178031556699, guid: bbf0c71eaef6e814eaa85c57a151277d, type: 3}
-  size: {x: 0, y: 0}
+  size: {x: 1, y: 1}
   placementSound: {fileID: 8300000, guid: 516a69b0c85ebbf48b7eba6994cbebd1, type: 3}

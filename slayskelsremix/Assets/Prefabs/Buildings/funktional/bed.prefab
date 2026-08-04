@@ -17,6 +17,7 @@ GameObject:
   - component: {fileID: 3140798836733129393}
   - component: {fileID: 3851376065744362534}
   - component: {fileID: 286243937139481616}
+  - component: {fileID: 5670874933300989097}
   m_Layer: 8
   m_Name: bed
   m_TagString: Untagged
@@ -86,7 +87,7 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: -1
   m_Sprite: {fileID: -3730267592108814503, guid: 5ad5fd59c0680b547b95cfa1515667d6, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -135,7 +136,7 @@ BoxCollider2D:
   m_Offset: {x: 0.011075556, y: -1.2224666}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.5, y: 0.92}
+    pivot: {x: 0.5, y: 0.5}
     oldSize: {x: 1.5151515, y: 2.8484848}
     newSize: {x: 0.90909094, y: 1.2121212}
     adaptiveTilingThreshold: 0.5
@@ -231,7 +232,7 @@ BoxCollider2D:
   m_Offset: {x: -0.011835039, y: -1.1198151}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
-    pivot: {x: 0.5, y: 0.92}
+    pivot: {x: 0.5, y: 0.5}
     oldSize: {x: 1.5151515, y: 2.8484848}
     newSize: {x: 0.90909094, y: 1.2121212}
     adaptiveTilingThreshold: 0.5
@@ -266,7 +267,21 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RotateBuildables
   spriteA: {fileID: -3730267592108814503, guid: 5ad5fd59c0680b547b95cfa1515667d6, type: 3}
-  spriteB: {fileID: -9150336114816994176, guid: 5ad5fd59c0680b547b95cfa1515667d6, type: 3}
+  spriteB: {fileID: -3730267592108814503, guid: 5ad5fd59c0680b547b95cfa1515667d6, type: 3}
+  colliderTransform: {fileID: 3772519534384953114}
+--- !u!114 &5670874933300989097
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4037584178031556699}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3b50d5de908082c42ac2dc6cc6b15ca5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerSleep
+  dayNight: {fileID: 0}
 --- !u!1 &4071428928299410687
 GameObject:
   m_ObjectHideFlags: 0

@@ -7,6 +7,12 @@ public class DayNightCycle : MonoBehaviour
     [Header("Time Settings")]
     public float dayDuration = 60f;
 
+    [Header("Time Speed")]
+    public float normalSpeed = 1f;
+    public float sleepSpeed = 20f;
+
+    private float currentSpeed = 1f;
+
     [Header("References")]
     public Light2D globalLight;
     public Gradient nightDayColor;
@@ -21,7 +27,6 @@ public class DayNightCycle : MonoBehaviour
     public float bloodMoonIntensityMultiplier = 1.2f;
 
     [Header("Blood Moon Transition")]
-    [Tooltip("How fast the Blood Moon fades in/out.")]
     public float bloodMoonFadeSpeed = 0.5f;
 
     private float bloodMoonBlend = 0f;
@@ -31,7 +36,13 @@ public class DayNightCycle : MonoBehaviour
     public int DaysPassed { get; private set; }
 
     public bool IsBloodMoon =>
-        DaysPassed > 0 && (DaysPassed % bloodMoonEveryNDays == 0);
+        DaysPassed > 0 &&
+        DaysPassed % bloodMoonEveryNDays == 0;
+
+    void Start()
+    {
+        currentSpeed = normalSpeed;
+    }
 
     void Update()
     {
@@ -42,7 +53,7 @@ public class DayNightCycle : MonoBehaviour
 
     private void UpdateTime()
     {
-        float delta = Time.deltaTime / dayDuration;
+        float delta = (Time.deltaTime * currentSpeed) / dayDuration;
 
         RawTime += delta;
         TotalTime += delta;
@@ -54,17 +65,45 @@ public class DayNightCycle : MonoBehaviour
         }
     }
 
+    public void StartSleeping()
+    {
+        currentSpeed = sleepSpeed;
+    }
+
+    public void StopSleeping()
+    {
+        currentSpeed = normalSpeed;
+    }
+
+    public float GetHour()
+    {
+        return RawTime * 24f;
+    }
+
+    public bool IsMorning()
+    {
+        float hour = GetHour();
+        // Strictly between 6:00 AM (06:00) and 12:00 PM (Noon)
+        return hour >= 6f && hour < 12f;
+    }
+
+    public bool IsNight()
+    {
+        float hour = GetHour();
+        // Between 6:00 PM (18:00) and 6:00 AM (06:00)
+        return hour >= 18f || hour < 6f;
+    }
+
     private void ApplyLighting()
     {
-        if (globalLight == null) return;
+        if (globalLight == null)
+            return;
 
-        float hour = RawTime * 24f;
-        bool isNight = hour >= 18f || hour < 6f;
+        bool isNight = IsNight();
 
         Color baseColor = nightDayColor.Evaluate(RawTime);
         float baseIntensity = intensityCurve.Evaluate(RawTime);
 
-        // Fade Blood Moon in/out smoothly
         float targetBlend = (IsBloodMoon && isNight) ? 1f : 0f;
 
         bloodMoonBlend = Mathf.MoveTowards(
@@ -73,9 +112,17 @@ public class DayNightCycle : MonoBehaviour
             bloodMoonFadeSpeed * Time.deltaTime
         );
 
-        // Blend color and intensity
-        baseColor = Color.Lerp(baseColor, bloodMoonTint, bloodMoonBlend * 0.5f);
-        baseIntensity *= Mathf.Lerp(1f, bloodMoonIntensityMultiplier, bloodMoonBlend);
+        baseColor = Color.Lerp(
+            baseColor,
+            bloodMoonTint,
+            bloodMoonBlend * 0.5f
+        );
+
+        baseIntensity *= Mathf.Lerp(
+            1f,
+            bloodMoonIntensityMultiplier,
+            bloodMoonBlend
+        );
 
         globalLight.color = baseColor;
         globalLight.intensity = baseIntensity;
@@ -83,11 +130,12 @@ public class DayNightCycle : MonoBehaviour
 
     private void UpdateUI()
     {
-        if (timeText == null) return;
+        if (timeText == null)
+            return;
 
         int totalHours = Mathf.FloorToInt(RawTime * 24f);
-
         int hour12 = totalHours % 12;
+
         if (hour12 == 0)
             hour12 = 12;
 
@@ -95,7 +143,6 @@ public class DayNightCycle : MonoBehaviour
 
         timeText.text = $"Day {DaysPassed + 1} {hour12:00} {period}";
 
-        // Smoothly tint the UI during Blood Moon
         timeText.color = Color.Lerp(
             Color.white,
             bloodMoonTint,

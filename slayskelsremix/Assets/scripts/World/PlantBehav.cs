@@ -50,6 +50,10 @@ public class PlantBehav : ItemHealth, IInteractable
     private bool isHarvestedState = false;
     private bool hasPlayedPlantSfx = false;
 
+    private DayNightCycle dayNight;
+    private float lastGameTime;
+
+
     // ================= UNITY =================
 
     private void Awake()
@@ -64,6 +68,13 @@ public class PlantBehav : ItemHealth, IInteractable
 
         if (audioSource == null)
             audioSource = GetComponent<AudioSource>();
+
+
+        dayNight = FindFirstObjectByType<DayNightCycle>();
+
+        if (dayNight != null)
+            lastGameTime = dayNight.TotalTime;
+
 
         UpdateVisuals();
         UpdateWaterUI();
@@ -87,33 +98,65 @@ public class PlantBehav : ItemHealth, IInteractable
 
     private void Update()
     {
-        if (!harvestable)
+        if (harvestable)
+            return;
+
+
+        if (dayNight == null)
+            return;
+
+
+        float currentGameTime = dayNight.TotalTime;
+
+
+        float timePassed =
+            currentGameTime - lastGameTime;
+
+
+        lastGameTime = currentGameTime;
+
+
+
+        // ================= WATER DRAIN =================
+
+        dryTimer += timePassed;
+
+
+        if (dryTimer >= dryInterval)
         {
-            // 💧 WATER DRAIN
-            dryTimer += Time.deltaTime;
+            dryTimer = 0f;
 
-            if (dryTimer >= dryInterval)
-            {
-                dryTimer = 0f;
 
-                if (waterLevel > 0)
-                    waterLevel--;
-            }
-
-            // 🚫 BLOCK GROWTH IF DRY
             if (waterLevel > 0)
             {
-                growthTimer += Time.deltaTime;
+                waterLevel--;
 
-                if (growthTimer >= growTimePerStage)
-                {
-                    growthTimer = 0f;
-                    GrowOneStage();
-                }
+                Debug.Log(
+                    "[Plant] Water decreased: "
+                    + waterLevel
+                );
             }
-
-            UpdateWaterUI();
         }
+
+
+
+        // ================= GROWTH =================
+
+        if (waterLevel > 0)
+        {
+            growthTimer += timePassed;
+
+
+            if (growthTimer >= growTimePerStage)
+            {
+                growthTimer = 0f;
+
+                GrowOneStage();
+            }
+        }
+
+
+        UpdateWaterUI();
     }
 
     // ================= WATER SYSTEM =================
@@ -282,22 +325,40 @@ public class PlantBehav : ItemHealth, IInteractable
             plantID = UniqOverworldItemID,
             position = transform.position,
             growthStage = growthStage,
-            waterLevel = waterLevel
+            growthProgress = growthTimer,
+            waterLevel = waterLevel,
         };
     }
 
     public void LoadPlantSaveData(PlantSaveData data)
     {
         plantPrefabName = data.plantPrefabName;
+
         UniqOverworldItemID = data.plantID;
 
-        transform.position = data.position;
 
-        growthStage = data.growthStage;
-        waterLevel = data.waterLevel;
+        transform.position =
+            data.position;
 
-        harvestable = (growthStage >= maxGrowthStage);
+
+        growthStage =
+            data.growthStage;
+
+
+        growthTimer =
+            data.growthProgress;
+
+
+        waterLevel =
+            data.waterLevel;
+
+
+        harvestable =
+            growthStage >= maxGrowthStage;
+
+
         isHarvestedState = false;
+
 
         UpdateVisuals();
         UpdateWaterUI();

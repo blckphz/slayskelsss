@@ -41,6 +41,14 @@ public class InteractionManager : MonoBehaviour
             return;
         }
 
+        // Disable interaction while placing a building
+        if (BuildManager.Instance != null && BuildManager.Instance.IsPlacing)
+        {
+            ClearHighlight();
+            IsBlockingBuildPreview = false;
+            return;
+        }
+
         MasterRestriction = restrictToInventory;
 
         if (MasterRestriction && !invUIToggle.IsInventoryOpen)
@@ -54,7 +62,6 @@ public class InteractionManager : MonoBehaviour
         HandleHoldDelete();
 
         IsBlockingBuildPreview = currentHoverObj != null;
-
     }
 
     private Vector2 GetMouseWorldPos()

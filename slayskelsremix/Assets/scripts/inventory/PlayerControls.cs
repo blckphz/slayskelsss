@@ -172,6 +172,15 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Sleep"",
+                    ""type"": ""Button"",
+                    ""id"": ""2a58114e-f2e4-4422-856e-1d1c3d5fcafb"",
+                    ""expectedControlType"": """",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": false
                 }
             ],
             ""bindings"": [
@@ -271,6 +280,17 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""Cancelbuild"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""3bf8b69c-278f-461f-b27e-4e7b90113b23"",
+                    ""path"": ""<Keyboard>/z"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Sleep"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 }
@@ -506,6 +526,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         m_Gameplay_LayerTogglePressed = m_Gameplay.FindAction("LayerTogglePressed", throwIfNotFound: true);
         m_Gameplay_TriggerFishingNote = m_Gameplay.FindAction("TriggerFishingNote", throwIfNotFound: true);
         m_Gameplay_Cancelbuild = m_Gameplay.FindAction("Cancelbuild", throwIfNotFound: true);
+        m_Gameplay_Sleep = m_Gameplay.FindAction("Sleep", throwIfNotFound: true);
         // Player
         m_Player = asset.FindActionMap("Player", throwIfNotFound: true);
         m_Player_Hotbar = m_Player.FindAction("Hotbar", throwIfNotFound: true);
@@ -604,6 +625,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
     private readonly InputAction m_Gameplay_LayerTogglePressed;
     private readonly InputAction m_Gameplay_TriggerFishingNote;
     private readonly InputAction m_Gameplay_Cancelbuild;
+    private readonly InputAction m_Gameplay_Sleep;
     /// <summary>
     /// Provides access to input actions defined in input action map "Gameplay".
     /// </summary>
@@ -651,6 +673,10 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         /// Provides access to the underlying input action "Gameplay/Cancelbuild".
         /// </summary>
         public InputAction @Cancelbuild => m_Wrapper.m_Gameplay_Cancelbuild;
+        /// <summary>
+        /// Provides access to the underlying input action "Gameplay/Sleep".
+        /// </summary>
+        public InputAction @Sleep => m_Wrapper.m_Gameplay_Sleep;
         /// <summary>
         /// Provides access to the underlying input action map instance.
         /// </summary>
@@ -704,6 +730,9 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @Cancelbuild.started += instance.OnCancelbuild;
             @Cancelbuild.performed += instance.OnCancelbuild;
             @Cancelbuild.canceled += instance.OnCancelbuild;
+            @Sleep.started += instance.OnSleep;
+            @Sleep.performed += instance.OnSleep;
+            @Sleep.canceled += instance.OnSleep;
         }
 
         /// <summary>
@@ -742,6 +771,9 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @Cancelbuild.started -= instance.OnCancelbuild;
             @Cancelbuild.performed -= instance.OnCancelbuild;
             @Cancelbuild.canceled -= instance.OnCancelbuild;
+            @Sleep.started -= instance.OnSleep;
+            @Sleep.performed -= instance.OnSleep;
+            @Sleep.canceled -= instance.OnSleep;
         }
 
         /// <summary>
@@ -996,6 +1028,13 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
         /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
         void OnCancelbuild(InputAction.CallbackContext context);
+        /// <summary>
+        /// Method invoked when associated input action "Sleep" is either <see cref="UnityEngine.InputSystem.InputAction.started" />, <see cref="UnityEngine.InputSystem.InputAction.performed" /> or <see cref="UnityEngine.InputSystem.InputAction.canceled" />.
+        /// </summary>
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.started" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.performed" />
+        /// <seealso cref="UnityEngine.InputSystem.InputAction.canceled" />
+        void OnSleep(InputAction.CallbackContext context);
     }
     /// <summary>
     /// Interface to implement callback methods for all input action callbacks associated with input actions defined by "Player" which allows adding and removing callbacks.
