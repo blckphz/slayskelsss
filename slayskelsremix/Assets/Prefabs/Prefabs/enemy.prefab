@@ -400,6 +400,7 @@ GameObject:
   - component: {fileID: 4465085120264246810}
   - component: {fileID: 5357664787887366197}
   - component: {fileID: 6844965953533414813}
+  - component: {fileID: 8027730221899444701}
   m_Layer: 0
   m_Name: enemy
   m_TagString: Untagged
@@ -645,10 +646,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: '::'
   currentTarget: {fileID: 0}
+  passiveEnemy: 0
   detectionRange: 5
   loseTargetRange: 7
-  wanderRadius: 3
-  wanderInterval: 10
   attackRange: 1.2
   attackCooldown: 1.5
   damageAmount: 10
@@ -751,3 +751,17 @@ Rigidbody2D:
   m_SleepingMode: 0
   m_CollisionDetection: 1
   m_Constraints: 4
+--- !u!114 &8027730221899444701
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9033061364032880971}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: acf53df35ab622443bb21a33db34055a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: '::'
+  wanderRadius: 3
+  wanderInterval: 3

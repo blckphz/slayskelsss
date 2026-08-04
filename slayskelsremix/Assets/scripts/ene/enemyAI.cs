@@ -1,39 +1,37 @@
 ﻿using UnityEngine;
-using Pathfinding;
 
+[RequireComponent(typeof(Animator))]
+[RequireComponent(typeof(enemyWalkAI))]
 public class EnemyAI : MonoBehaviour
 {
-    private IAstarAI ai;
     private Animator anim;
-    private Transform tr;
+    private enemyWalkAI movement;
 
     [Header("Target")]
     [SerializeField] private Transform currentTarget;
+
+    [Header("Behavior")]
+    public bool passiveEnemy = false;
+    private bool hasBeenAttacked;
+    private bool isChasing;
 
     [Header("Detection")]
     public float detectionRange = 5f;
     public float loseTargetRange = 7f;
 
-    [Header("Wandering")]
-    public float wanderRadius = 3f;
-    public float wanderInterval = 3f;
-
-    private float nextWanderTime;
-    private bool isChasing;
-    private Vector3 spawnPosition;
-
-    [Header("Combat Settings")]
+    [Header("Combat")]
     public float attackRange = 1.2f;
     public float attackCooldown = 1.5f;
     public int damageAmount = 10;
 
     private float lastAttackTime;
 
-    [Header("Trigger Setup")]
+    [Header("Weapon Trigger")]
     [SerializeField] private CircleCollider2D weaponTrigger;
     [SerializeField] private LayerMask targetLayers;
 
     private ContactFilter2D contactFilter;
+
     private readonly Collider2D[] overlapSingle = new Collider2D[1];
     private readonly Collider2D[] overlapMultiple = new Collider2D[10];
 
@@ -41,25 +39,22 @@ public class EnemyAI : MonoBehaviour
     private float loseTargetRangeSqr;
     private float attackRangeSqr;
 
-    // Keeps last facing direction while idle
-    private Vector2 lastDirection = Vector2.down;
-
     private static readonly int IsAttackingHash = Animator.StringToHash("isattacking");
-    private static readonly int XHash = Animator.StringToHash("x");
-    private static readonly int YHash = Animator.StringToHash("y");
-    private static readonly int SpeedHash = Animator.StringToHash("Speed");
 
     private void Start()
     {
-        tr = transform;
-        ai = GetComponent<IAstarAI>();
         anim = GetComponent<Animator>();
+        movement = GetComponent<enemyWalkAI>();
+
+        if (movement == null)
+        {
+            Debug.LogError($"[EnemyAI] Missing 'enemyWalkAI' component on {gameObject.name}!", this);
+        }
 
         if (weaponTrigger == null)
             weaponTrigger = GetComponent<CircleCollider2D>();
 
-        spawnPosition = tr.position;
-
+        // Cache squared distances for performant distance checks
         detectionRangeSqr = detectionRange * detectionRange;
         loseTargetRangeSqr = loseTargetRange * loseTargetRange;
         attackRangeSqr = attackRange * attackRange;
@@ -69,7 +64,6 @@ public class EnemyAI : MonoBehaviour
             useLayerMask = true,
             useTriggers = true
         };
-
         contactFilter.SetLayerMask(targetLayers);
 
         FindPlayer();
@@ -78,195 +72,124 @@ public class EnemyAI : MonoBehaviour
     private void FindPlayer()
     {
         GameObject player = GameObject.FindGameObjectWithTag("Player");
-
         if (player != null)
             currentTarget = player.transform;
     }
 
     private void Update()
     {
-        if (ai == null)
-            return;
-
         if (currentTarget == null)
         {
-            Wander();
-            UpdateAnimator();
-            return;
+            FindPlayer(); // Re-check if player was instantiated late
+            if (currentTarget == null) return;
         }
 
-        float distanceSqr = (currentTarget.position - tr.position).sqrMagnitude;
+        float distanceSqr = (currentTarget.position - transform.position).sqrMagnitude;
 
-        if (!isChasing && distanceSqr <= detectionRangeSqr)
-            isChasing = true;
+        // Evaluate Chasing State
+        if (!isChasing)
+        {
+            if (passiveEnemy)
+            {
+                if (hasBeenAttacked) isChasing = true;
+            }
+            else
+            {
+                if (distanceSqr <= detectionRangeSqr) isChasing = true;
+            }
+        }
 
+        // Stop Chasing if target gets too far
         if (isChasing && distanceSqr > loseTargetRangeSqr)
         {
             isChasing = false;
             anim.SetBool(IsAttackingHash, false);
         }
 
+        // Behavior Execution
         if (isChasing)
-            ChaseAndAttack(distanceSqr);
-        else
-            Wander();
+        {
+            Chase(distanceSqr);
+        }
+        else if (movement != null)
+        {
+            movement.Wander(); // Perform idle wandering when not chasing
+        }
 
-        UpdateAnimator();
+        // Drive Blend Tree Parameters
+        if (movement != null)
+        {
+            movement.UpdateMovementAnimation();
+        }
     }
 
-    private void ChaseAndAttack(float distanceSqr)
+    private void Chase(float distanceSqr)
     {
         if (distanceSqr <= attackRangeSqr)
         {
-            ai.isStopped = true;
+            movement.StopMovement();
 
-            if (Time.time >= lastAttackTime + attackCooldown &&
-                IsTargetInWeaponTrigger())
+            if (Time.time >= lastAttackTime + attackCooldown)
             {
-                anim.SetBool(IsAttackingHash, true);
-                lastAttackTime = Time.time;
+                if (IsTargetInWeaponTrigger())
+                {
+                    anim.SetBool(IsAttackingHash, true);
+                    lastAttackTime = Time.time;
+                }
             }
         }
         else
         {
             anim.SetBool(IsAttackingHash, false);
-
-            ai.isStopped = false;
-            ai.destination = currentTarget.position;
+            movement.MoveTo(currentTarget.position);
         }
     }
 
-    private void Wander()
+    public void BecomeAggressive()
     {
-        anim.SetBool(IsAttackingHash, false);
-
-        if (Time.time < nextWanderTime)
-            return;
-
-        nextWanderTime = Time.time + wanderInterval;
-
-        Vector2 randomPoint = Random.insideUnitCircle * wanderRadius;
-
-        ai.isStopped = false;
-        ai.destination = spawnPosition +
-                         new Vector3(randomPoint.x, randomPoint.y, 0f);
-    }
-
-    private void StopMovement()
-    {
-        if (ai != null)
-            ai.isStopped = true;
-
-        if (anim != null)
-        {
-            anim.SetBool(IsAttackingHash, false);
-            anim.SetFloat(SpeedHash, 0f);
-        }
+        hasBeenAttacked = true;
+        isChasing = true;
     }
 
     public void CancelAttack()
     {
-        if (anim != null)
-        {
-            anim.SetBool(IsAttackingHash, false);
-        }
+        anim.SetBool(IsAttackingHash, false);
     }
 
     private bool IsTargetInWeaponTrigger()
     {
-        if (weaponTrigger == null)
-            return false;
+        if (weaponTrigger == null) return false;
 
         return weaponTrigger.Overlap(contactFilter, overlapSingle) > 0;
     }
 
-    private void UpdateAnimator()
-    {
-        if (ai == null || anim == null)
-            return;
-
-        Vector3 velocity = ai.velocity;
-        float speed = velocity.magnitude;
-
-        anim.SetFloat(SpeedHash, speed);
-
-        if (speed > 0.05f)
-        {
-            lastDirection = new Vector2(velocity.x, velocity.y).normalized;
-
-            Debug.Log(
-                gameObject.name +
-                " MOVING | Velocity: " + velocity +
-                " | Last Direction: " + lastDirection
-            );
-        }
-        else
-        {
-            Debug.Log(
-                gameObject.name +
-                " IDLE | Keeping Direction: " + lastDirection
-            );
-        }
-
-        anim.SetFloat(XHash, lastDirection.x);
-        anim.SetFloat(YHash, lastDirection.y);
-
-    }
-
+    // Called via Animation Event mid-swing
     public void checkforplayerdmg()
     {
-        if (weaponTrigger == null)
-            return;
+        if (weaponTrigger == null) return;
 
         int hitCount = weaponTrigger.Overlap(contactFilter, overlapMultiple);
-
-        bool didHitSomething = false;
+        bool hitSomething = false;
 
         for (int i = 0; i < hitCount; i++)
         {
-            healthMaster h = overlapMultiple[i].GetComponent<healthMaster>();
-
-            if (h != null)
+            if (overlapMultiple[i] != null)
             {
-                h.TakeDamage(damageAmount);
-                didHitSomething = true;
-            }
+                healthMaster h = overlapMultiple[i].GetComponent<healthMaster>();
+                if (h != null)
+                {
+                    h.TakeDamage(damageAmount);
+                    hitSomething = true;
+                }
 
-            overlapMultiple[i] = null;
+                overlapMultiple[i] = null; // Clean array slot
+            }
         }
 
-        anim.SetBool(IsAttackingHash, false);
-
-        if (!didHitSomething)
+        // Slowmo feedback if attack missed
+        if (!hitSomething && hitCount == 0)
         {
             slowmoManager.TriggerSlowmo(0.5f, 0.2f);
-        }
-    }
-
-    private void OnDrawGizmosSelected()
-    {
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, attackRange);
-
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(transform.position, detectionRange);
-
-        Gizmos.color = Color.magenta;
-        Gizmos.DrawWireSphere(transform.position, loseTargetRange);
-
-        Gizmos.color = Color.green;
-        Gizmos.DrawWireSphere(
-            Application.isPlaying ? spawnPosition : transform.position,
-            wanderRadius
-        );
-
-        if (weaponTrigger != null)
-        {
-            Gizmos.color = Color.cyan;
-            Gizmos.DrawWireSphere(
-                transform.position + (Vector3)weaponTrigger.offset,
-                weaponTrigger.radius
-            );
         }
     }
 }

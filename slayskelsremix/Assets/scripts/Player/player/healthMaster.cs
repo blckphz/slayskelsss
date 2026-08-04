@@ -22,9 +22,15 @@ public class healthMaster : MonoBehaviour
         if (attacker != null)
             lastAttacker = attacker;
 
+        // If this object has an EnemyAI, make it aggro when hit.
+        EnemyAI enemyAI = GetComponent<EnemyAI>();
+        if (enemyAI != null)
+        {
+            enemyAI.BecomeAggressive();
+        }
+
         currentHealth -= amount;
         currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
-
 
         if (currentHealth <= 0)
         {
