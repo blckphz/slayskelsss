@@ -7,14 +7,17 @@ public class PlayerMovement : MonoBehaviour
 {
     [Header("Movement")]
     public float moveSpeed = 5f;
-    public float dashSpeed = 12f;
     public Rigidbody2D rb;
+
+    [Header("Dash Settings")]
+    public float dashSpeed = 12f;
+    public float dashDuration = 0.15f;
+    public float dashCooldown = 0.3f;
+    public float dashStaminaCost = 0.4f;
 
     [Header("Stamina Settings")]
     public float maxStamina = 1.5f;
     public float rechargeRate = 0.5f;
-    public float consumptionRate = 1.0f;
-    public float emptyPenaltyTime = 1f;
 
     [Header("UI Components")]
     public Slider staminaSlider;
@@ -31,15 +34,21 @@ public class PlayerMovement : MonoBehaviour
     public GameObject dashClonePrefab;
     public float cloneSpawnRate = 0.05f;
 
+    [Header("Dash Effects")]
+    public ParticleSystem dashParticles;
+
     private Vector2 fillOriginalPos;
     private Vector2 bgOriginalPos;
 
     [HideInInspector]
     public Vector2 moveInput;
 
-    private bool isDashButtonHeld;
     private float currentStamina;
     private bool isExhausted;
+
+    private bool isDashing;
+    private bool canDash = true;
+    private Vector2 dashDirection;
     private float cloneTimer;
 
     void Awake()
@@ -57,6 +66,9 @@ public class PlayerMovement : MonoBehaviour
 
         if (backgroundImage != null)
             bgOriginalPos = backgroundImage.rectTransform.anchoredPosition;
+
+        if (dashParticles != null)
+            dashParticles.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
     }
 
     void OnMove(InputValue value)
@@ -66,7 +78,8 @@ public class PlayerMovement : MonoBehaviour
 
     void OnDash(InputValue value)
     {
-        isDashButtonHeld = value.isPressed;
+        if (value.isPressed)
+            TryDash();
     }
 
     void Update()
@@ -82,14 +95,12 @@ public class PlayerMovement : MonoBehaviour
     {
         HandleStamina();
 
-        bool isMoving = moveInput != Vector2.zero;
-        bool canDash = isDashButtonHeld && isMoving && !isExhausted && currentStamina > 0;
+        float speed = isDashing ? dashSpeed : moveSpeed;
+        Vector2 direction = isDashing ? dashDirection : moveInput;
 
-        float currentSpeed = canDash ? dashSpeed : moveSpeed;
+        rb.MovePosition(rb.position + direction * speed * Time.fixedDeltaTime);
 
-        rb.MovePosition(rb.position + moveInput * currentSpeed * Time.fixedDeltaTime);
-
-        if (canDash)
+        if (isDashing)
         {
             cloneTimer -= Time.fixedDeltaTime;
 
@@ -105,36 +116,76 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
+    private void TryDash()
+    {
+        if (!canDash)
+            return;
+
+        if (isDashing)
+            return;
+
+        if (moveInput == Vector2.zero)
+            return;
+
+        if (!TryUseStamina(dashStaminaCost))
+        {
+            if (!isExhausted)
+            {
+                isExhausted = true;
+                StartCoroutine(ShakeStaminaUI());
+            }
+            return;
+        }
+
+        StartCoroutine(DashCoroutine());
+    }
+
+    private IEnumerator DashCoroutine()
+    {
+        canDash = false;
+        isDashing = true;
+
+        // Small camera shake when dash starts
+        CameraShaker.Instance?.Shake(0.8f, 0.08f);
+
+        dashDirection = moveInput.normalized;
+
+        // Start dash particles
+        if (dashParticles != null)
+        {
+            dashParticles.Clear();
+            dashParticles.Play();
+        }
+
+        float timer = dashDuration;
+
+        while (timer > 0f)
+        {
+            timer -= Time.fixedDeltaTime;
+            yield return new WaitForFixedUpdate();
+        }
+
+        isDashing = false;
+
+        // Stop emitting new particles but let existing ones fade naturally
+        if (dashParticles != null)
+            dashParticles.Stop(true, ParticleSystemStopBehavior.StopEmitting);
+
+        yield return new WaitForSeconds(dashCooldown);
+
+        canDash = true;
+    }
+
     private void HandleStamina()
     {
-        bool isMoving = moveInput != Vector2.zero;
-
-        if (isDashButtonHeld && isMoving && !isExhausted)
+        if (!isDashing && currentStamina < maxStamina)
         {
-            currentStamina -= consumptionRate * Time.fixedDeltaTime;
-
-            if (currentStamina <= 0)
-            {
-                currentStamina = 0;
-
-                if (!isExhausted)
-                {
-                    isExhausted = true;
-                    Invoke(nameof(ResetExhaustion), emptyPenaltyTime);
-                    StartCoroutine(ShakeStaminaUI());
-                }
-            }
-        }
-        else
-        {
-            if (currentStamina < maxStamina)
-                currentStamina += rechargeRate * Time.fixedDeltaTime;
-
+            currentStamina += rechargeRate * Time.fixedDeltaTime;
             currentStamina = Mathf.Clamp(currentStamina, 0, maxStamina);
-
-            if (isExhausted && currentStamina >= maxStamina * 0.2f)
-                isExhausted = false;
         }
+
+        if (isExhausted && currentStamina >= dashStaminaCost)
+            isExhausted = false;
     }
 
     public bool HasEnoughStamina(float amount)
@@ -151,11 +202,6 @@ public class PlayerMovement : MonoBehaviour
         currentStamina = Mathf.Clamp(currentStamina, 0, maxStamina);
 
         return true;
-    }
-
-    private void ResetExhaustion()
-    {
-        // (optional future logic)
     }
 
     private void SpawnDashClone()
@@ -192,6 +238,5 @@ public class PlayerMovement : MonoBehaviour
             backgroundImage.rectTransform.anchoredPosition = bgOriginalPos;
     }
 
-    // ✅ NEW: used by PlayerNeeds
     public bool IsMoving => moveInput != Vector2.zero;
 }

@@ -165,7 +165,7 @@ GameObject:
   - component: {fileID: 3365394450542658093}
   - component: {fileID: 6896833497799181211}
   - component: {fileID: 696859030482221376}
-  - component: {fileID: 3056067628925120947}
+  - component: {fileID: 909485761962702216}
   m_Layer: 8
   m_Name: Trees
   m_TagString: Untagged
@@ -377,7 +377,7 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 0.6978456, y: 0.7668951}
   m_EdgeRadius: 0
---- !u!114 &3056067628925120947
+--- !u!114 &909485761962702216
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -399,30 +399,11 @@ MonoBehaviour:
   m_AlphaCutoff: 0.1
   m_ApplyToSortingLayers: 00000000174d2d27
   m_ShapePath:
-  - {x: 0.3654597, y: 0.14003466, z: 0}
-  - {x: -0.48246416, y: 0.089652255, z: 0}
-  - {x: -0.4800106, y: 0.41373828, z: 0}
-  - {x: -0.7902666, y: 0.8297629, z: 0}
-  - {x: -1.0441124, y: 0.92848116, z: 0}
-  - {x: -1.1710354, y: 1.0130961, z: 0}
-  - {x: -1.2768046, y: 1.2669419, z: 0}
-  - {x: -1.4389838, y: 1.5913011, z: 0}
-  - {x: -1.3050097, y: 2.247069, z: 0}
-  - {x: -1.1851379, y: 2.6630943, z: 0}
-  - {x: -1.0229586, y: 2.9169402, z: 0}
-  - {x: -0.76911277, y: 3.0156577, z: 0}
-  - {x: -0.62144613, y: 3.1636944, z: 0}
-  - {x: -0.36719018, y: 3.3611703, z: 0}
-  - {x: 0.034732413, y: 3.3611703, z: 0}
-  - {x: 0.514219, y: 3.227196, z: 0}
-  - {x: 0.8470868, y: 3.0720282, z: 0}
-  - {x: 1.233449, y: 2.684248, z: 0}
-  - {x: 1.4449873, y: 1.7393773, z: 0}
-  - {x: 1.3321668, y: 1.2810445, z: 0}
-  - {x: 1.1855482, y: 0.9438797, z: 0}
-  - {x: 0.8680399, y: 0.75362736, z: 0}
-  - {x: 0.44327903, y: 0.42572019, z: 0}
-  m_ShapePathHash: -1996090031
+  - {x: -0.43032178, y: 0.17625757, z: 0}
+  - {x: -0.4122207, y: 0.385271, z: 0}
+  - {x: 0.2971772, y: 0.39348784, z: 0}
+  - {x: 0.30013734, y: 0.1641629, z: 0}
+  m_ShapePathHash: 1951047061
   m_InstanceId: 0
   m_ShadowShape2DComponent: {fileID: 0}
   m_ShadowShape2DProvider:
@@ -431,13 +412,13 @@ MonoBehaviour:
   m_ShadowMesh:
     m_Mesh: {fileID: 0}
     m_LocalBounds:
-      m_Center: {x: 0.0030018091, y: 1.7254113, z: 0}
-      m_Extent: {x: 1.4419856, y: 1.635759, z: 0}
+      m_Center: {x: -0.065092236, y: 0.27882537, z: 0}
+      m_Extent: {x: 0.36522955, y: 0.11466247, z: 0}
     m_EdgeProcessing: 1
     m_TrimEdge: 0.2
     m_FlipX: 0
     m_FlipY: 0
-    m_InitialTrim: 0
+    m_InitialTrim: 0.2
   m_CastingOption: 1
   m_PreviousTrimEdge: 0.2
   m_PreviousEdgeProcessing: 1
