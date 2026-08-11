@@ -10,22 +10,22 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 2e0351e2672834f42bfde66072954537, type: 3}
-  m_Name: Gate
+  m_Name: SmallRoom
   m_EditorClassIdentifier: Assembly-CSharp::buildSO
-  itemID: 45
-  itemName: Wooden Gate
-  ItemDescription: what a gate craft!
-  icon: {fileID: -5246620192179784051, guid: 1df3246f48365a0499a822802d75ad76, type: 3}
-  DragStartSound: {fileID: 8300000, guid: 32d65619b06cc2743887176fbcb9ecb7, type: 3}
-  DragEndSound: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
+  itemID: 2147483647
+  itemName: Small Room
+  ItemDescription: 
+  icon: {fileID: 21300000, guid: 8152add850cba6646a0bbcc811ab751c, type: 3}
+  DragStartSound: {fileID: 0}
+  DragEndSound: {fileID: 0}
   itemType: 1
   maxStackSize: 99
   usesDurability: 0
   maxDurability: 0
   isUsable: 1
   consumeAmount: 1
-  placeablePrefab: {fileID: 3325891049385681051, guid: 5a27aac857b14944cb7025be01003f8a, type: 3}
-  size: {x: 0, y: 0}
+  placeablePrefab: {fileID: 9145681577706369362, guid: cdabbc572f8da02419556d2b8d521dce, type: 3}
+  size: {x: 5, y: 5}
   placementSound: {fileID: 0}
   supportsFreePlacement: 1
   baseTile: 0

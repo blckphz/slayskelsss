@@ -135,7 +135,6 @@ public class InteractionManager : MonoBehaviour
             return;
 
         GameObject target = currentHoverObj;
-
         BuildIdentity build = target.GetComponent<BuildIdentity>();
         if (build != null)
         {
@@ -144,13 +143,22 @@ public class InteractionManager : MonoBehaviour
                 InventoryManager.Instance.AddItem(build.item, 1);
             }
 
+
             if (BuildingSaveManager.Instance != null)
             {
                 BuildingSaveManager.Instance.UnregisterBuilding(target);
                 BuildingSaveManager.Instance.SaveAfterChange();
             }
 
+
+            // Restore the tile underneath the building
+            tileReplaceManager.Instance?.RestoreTile(
+                build.cell
+            );
+
+
             Destroy(target);
+
             deconstructCooldown = deconstructInterval;
 
             return;

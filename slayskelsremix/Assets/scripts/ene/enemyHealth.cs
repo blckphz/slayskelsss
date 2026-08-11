@@ -82,7 +82,6 @@ public class enemyHealth : healthMaster, IDamageable
         comboSys = Object.FindAnyObjectByType<comboScript>();
         enemyAI = GetComponent<EnemyAI>();
 
-        Debug.Log($"[{name}] Start() Max Health={maxHealth}, Current={currentHealth}");
 
         UpdateHealthUI();
     }
@@ -309,7 +308,6 @@ public class enemyHealth : healthMaster, IDamageable
 
             healthBarObject.SetActive(show);
 
-            Debug.Log($"HealthBar Active = {show}");
         }
     }
 

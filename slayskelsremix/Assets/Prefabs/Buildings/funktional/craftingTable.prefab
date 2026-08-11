@@ -161,7 +161,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ghostBuildPreview
   footprint: {x: 1, y: 1}
-  gridSize: 1
+  grid: {fileID: 0}
   placementMask:
     serializedVersion: 2
     m_Bits: 256
@@ -203,4 +203,5 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 6e7a4da5026ceba4b80c3cc5e48d7604, type: 2}
   - {fileID: 11400000, guid: 8082fe180bc8ca748b97176d52d42337, type: 2}
   - {fileID: 11400000, guid: 2940cde346f7ec343aabcbfdba451e07, type: 2}
+  - {fileID: 11400000, guid: 7e67197a900800d44b37fceeb095293d, type: 2}
   prompt: Open Crafting Table

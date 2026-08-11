@@ -115,7 +115,6 @@ public class PerkManager : MonoBehaviour
             // 🔥 AUTO-APPLY PASSIVES ON LOAD
             if (slot.perk is PassivePerkSO passive && slot.perk.Level > 0)
             {
-                Debug.Log($"[PerkManager] Auto-applying passive: {passive.name} (Lv {slot.perk.Level})");
                 passive.ApplyPassive();
             }
 

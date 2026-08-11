@@ -18,7 +18,6 @@ public class PlayerSleep : MonoBehaviour
         dayNight = FindFirstObjectByType<DayNightCycle>();
         wakePoint = transform;
 
-        Debug.Log("[PlayerSleep] Initialized");
     }
 
     private void Update()

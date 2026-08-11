@@ -11,4 +11,7 @@ public class buildSO : ItemData
 
     public AudioClip placementSound;
 
+    [Header("Placement")]
+    public bool supportsFreePlacement = true;
+    public bool baseTile = false;
 }

@@ -10,7 +10,6 @@ public class PassivePerkManager : MonoBehaviour
     private void Awake()
     {
         Instance = this;
-        Debug.Log("[PassivePerkManager] Initialized singleton instance.");
     }
 
     public void AddPassive(PassivePerkSO perk)

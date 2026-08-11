@@ -27,3 +27,5 @@ MonoBehaviour:
   placeablePrefab: {fileID: 1161143433513852086, guid: 9ea2bdc9b15607f48b6fac3d71171359, type: 3}
   size: {x: 1, y: 2}
   placementSound: {fileID: 8300000, guid: 516a69b0c85ebbf48b7eba6994cbebd1, type: 3}
+  supportsFreePlacement: 1
+  baseTile: 0

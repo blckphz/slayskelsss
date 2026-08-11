@@ -20,9 +20,12 @@ MonoBehaviour:
   DragEndSound: {fileID: 8300000, guid: 3df29ff0eff3fcd4ca1ba87f50d36fa7, type: 3}
   itemType: 1
   maxStackSize: 99
+  usesDurability: 0
+  maxDurability: 0
   isUsable: 1
   consumeAmount: 1
-  maxDurability: 0
   placeablePrefab: {fileID: 713142446651820219, guid: e876140309cf1b944994658dc54841ba, type: 3}
   size: {x: 10, y: 10}
   placementSound: {fileID: 8300000, guid: 516a69b0c85ebbf48b7eba6994cbebd1, type: 3}
+  supportsFreePlacement: 1
+  baseTile: 0

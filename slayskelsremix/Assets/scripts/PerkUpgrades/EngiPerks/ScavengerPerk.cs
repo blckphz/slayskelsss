@@ -9,7 +9,6 @@ public class ScavengerPerk : PassivePerkSO
     {
         if (LootBonusManager.Instance == null)
         {
-            Debug.LogWarning("[ScavengerPerk] LootBonusManager missing!");
             return;
         }
 
@@ -17,7 +16,6 @@ public class ScavengerPerk : PassivePerkSO
 
         LootBonusManager.Instance.SetLootBonus(totalBonus);
 
-        Debug.Log($"[ScavengerPerk] Applied → Level {Level}, Bonus Loot {totalBonus}");
     }
 
     public override void RemovePassive()
