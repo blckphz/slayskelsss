@@ -15,25 +15,22 @@ public class PlayerAttack : MonoBehaviour
 
     private PlayerMovement movement;
 
-    void Awake()
+    private void Awake()
     {
         movement = GetComponent<PlayerMovement>();
-
     }
 
-    void Start()
+    private void Start()
     {
         cooldownEndTime.Clear();
-
     }
 
-    void OnEnable()
+    private void OnEnable()
     {
         cooldownEndTime.Clear();
-
     }
 
-    void Update()
+    private void Update()
     {
         if (AbilityLoadout.Instance == null)
         {
@@ -55,7 +52,9 @@ public class PlayerAttack : MonoBehaviour
         }
     }
 
-    private void HandleInput(InputActionReference actionRef, Ability ability)
+    private void HandleInput(
+        InputActionReference actionRef,
+        Ability ability)
     {
         if (actionRef == null)
         {
@@ -69,22 +68,33 @@ public class PlayerAttack : MonoBehaviour
             return;
         }
 
-        // BLOCK INPUT WHEN MOUSE OVER UI
+        // =====================================================
+        // BLOCK INPUT WHEN MOUSE IS OVER UI
+        // =====================================================
+
         if (IsPointerOverUI())
         {
             if (actionRef.action.IsPressed())
             {
-                Debug.Log("[PlayerAttack] Attack blocked because pointer is over UI");
+                Debug.Log(
+                    "[PlayerAttack] Attack blocked because pointer is over UI"
+                );
             }
 
             return;
         }
 
+        // =====================================================
+        // BLOCK INPUT IN BUILD MODE
+        // =====================================================
+
         if (BuildState.IsBuildMode)
         {
             if (actionRef.action.IsPressed())
             {
-                Debug.Log("[PlayerAttack] Attack blocked because build mode is active");
+                Debug.Log(
+                    "[PlayerAttack] Attack blocked because build mode is active"
+                );
             }
 
             return;
@@ -93,52 +103,118 @@ public class PlayerAttack : MonoBehaviour
         if (!actionRef.action.IsPressed())
             return;
 
-        float remaining = GetCooldownRemaining(ability);
+        // =====================================================
+        // MELEE HAS ITS OWN COOLDOWN SYSTEM
+        // =====================================================
 
-        if (remaining > 0f)
+        if (ability is not offensivemelee)
         {
-            Debug.Log($"[PlayerAttack] Ability {ability.name} on cooldown: {remaining:F2}s");
+            float remaining = GetCooldownRemaining(ability);
+
+            if (remaining > 0f)
+            {
+                Debug.Log(
+                    $"[PlayerAttack] Ability {ability.name} on cooldown: {remaining:F2}s"
+                );
+
+                return;
+            }
+        }
+
+        // =====================================================
+        // STAMINA CHECK
+        // =====================================================
+
+        if (movement != null &&
+            !movement.HasEnoughStamina(ability.staminaUsed))
+        {
+            Debug.Log(
+                $"[PlayerAttack] Not enough stamina for ability: {ability.name}"
+            );
+
             return;
         }
 
-        if (movement != null && !movement.HasEnoughStamina(ability.staminaUsed))
-        {
-            Debug.Log($"[PlayerAttack] Not enough stamina for ability: {ability.name}");
-            return;
-        }
+        // =====================================================
+        // EXECUTE ABILITY
+        // =====================================================
 
-        Debug.Log($"[PlayerAttack] Executing ability: {ability.name}");
+        Debug.Log(
+            $"[PlayerAttack] Executing ability: {ability.name}"
+        );
 
-        bool comboFinished = ability.Execute(transform, aimScript.anchor, true);
+        bool comboFinished = ability.Execute(
+            transform,
+            aimScript != null ? aimScript.anchor : null,
+            true
+        );
 
-        Debug.Log($"[PlayerAttack] Ability execute result: {comboFinished}");
+        Debug.Log(
+            $"[PlayerAttack] Ability execute result: {comboFinished}"
+        );
+
+        // =====================================================
+        // STAMINA
+        // =====================================================
 
         if (comboFinished && movement != null)
         {
             movement.TryUseStamina(ability.staminaUsed);
 
-            Debug.Log($"[PlayerAttack] Used stamina: {ability.staminaUsed}");
+            Debug.Log(
+                $"[PlayerAttack] Used stamina: {ability.staminaUsed}"
+            );
         }
 
-        cooldownEndTime[ability] =
-            Time.time + ability.fireRate;
+        // =====================================================
+        // NON-MELEE COOLDOWN
+        //
+        // Melee abilities handle their own cooldown.
+        // =====================================================
 
-        Debug.Log($"[PlayerAttack] Cooldown applied: {ability.fireRate}s");
+        if (ability is not offensivemelee)
+        {
+            cooldownEndTime[ability] =
+                Time.time + ability.fireRate;
+
+            Debug.Log(
+                $"[PlayerAttack] Cooldown applied: {ability.fireRate}s"
+            );
+        }
+
+        // =====================================================
+        // COSMETICS
+        // =====================================================
 
         TriggerCosmetics(ability);
     }
 
     public float GetCooldownRemaining(Ability ability)
     {
-        if (!cooldownEndTime.TryGetValue(ability, out float t))
+        if (ability == null)
             return 0f;
 
-        return Mathf.Max(0f, t - Time.time);
+        if (!cooldownEndTime.TryGetValue(
+                ability,
+                out float cooldownEnd))
+        {
+            return 0f;
+        }
+
+        return Mathf.Max(
+            0f,
+            cooldownEnd - Time.time
+        );
     }
 
     private void TriggerCosmetics(Ability ability)
     {
-        Debug.Log($"[PlayerAttack] Triggering cosmetics for: {ability.name}");
+        if (ability == null)
+            return;
+
+        Debug.Log(
+            $"[PlayerAttack] Triggering cosmetics for: {ability.name}"
+        );
 
         if (CameraShaker.Instance != null)
         {
@@ -147,14 +223,18 @@ public class PlayerAttack : MonoBehaviour
                 screenshakeDuration
             );
 
-            Debug.Log("[PlayerAttack] Camera shake triggered");
+            Debug.Log(
+                "[PlayerAttack] Camera shake triggered"
+            );
         }
 
         if (charsetter.Instance != null)
         {
             charsetter.Instance.TriggerAbilityUsed(ability);
 
-            Debug.Log("[PlayerAttack] Charsetter animation triggered");
+            Debug.Log(
+                "[PlayerAttack] Charsetter animation triggered"
+            );
         }
     }
 
@@ -163,7 +243,6 @@ public class PlayerAttack : MonoBehaviour
         bool overUI =
             EventSystem.current != null &&
             EventSystem.current.IsPointerOverGameObject();
-
 
         return overUI;
     }

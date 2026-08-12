@@ -9,7 +9,7 @@ public class ItemDatabase : ScriptableObject
     [SerializeField] private List<ItemData> resources = new List<ItemData>();
 
     // hidden master list used for lookup
-    private List<ItemData> allItems = new List<ItemData>();
+    public List<ItemData> allItems = new List<ItemData>();
 
     public IReadOnlyList<ItemData> Tools => tools;
     public IReadOnlyList<ItemData> Placeables => placeables;

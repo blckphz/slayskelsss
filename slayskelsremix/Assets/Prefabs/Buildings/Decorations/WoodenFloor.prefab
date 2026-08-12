@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 7245531570711916509}
   - component: {fileID: 1280589307464775433}
   - component: {fileID: 1051617318934594631}
+  - component: {fileID: 8094126418287892655}
   m_Layer: 8
   m_Name: WoodenFloor
   m_TagString: Untagged
@@ -172,3 +173,15 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 0.969697, y: 0.969697}
   m_EdgeRadius: 0
+--- !u!114 &8094126418287892655
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1984415571524434677}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c83a16da5c29fcd40b581513dd07bc2f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: '::'
