@@ -29,4 +29,4 @@ MonoBehaviour:
   placementSound: {fileID: 8300000, guid: 516a69b0c85ebbf48b7eba6994cbebd1, type: 3}
   supportsFreePlacement: 0
   baseTile: 1
-  baseTileAsset: {fileID: 11400000, guid: 080567921e3b57341a3b843f35a747c0, type: 2}
+  baseTileName: floortiles

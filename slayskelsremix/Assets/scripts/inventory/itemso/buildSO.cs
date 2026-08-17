@@ -17,7 +17,5 @@ public class buildSO : ItemData
     [Header("Placement")]
     public bool supportsFreePlacement = true;
     public bool baseTile = false;
-
-    [Header("Base Tile")]
-    public TileBase baseTileAsset;
+    public string baseTileName = "floorTiles";
 }

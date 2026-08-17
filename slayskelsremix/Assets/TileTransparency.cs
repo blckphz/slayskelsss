@@ -3,40 +3,95 @@ using UnityEngine.Tilemaps;
 
 public class TileTransparency : MonoBehaviour
 {
-    [Header("Settings")]
+    [Header("Player Collision")]
     [Range(0f, 1f)]
-    public float fadedOpacity = 0.5f;
+    public float playerOpacity = 0.5f;
 
+    [Header("Mouse Hover")]
     [Range(0f, 1f)]
-    public float fullOpacity = 1f;
+    public float mouseOpacity = 0.1f;
 
     [Header("Tilemaps")]
     public Tilemap tilemapRoof;
     public Tilemap tilemapWall;
 
-    // How many hitboxes the player is currently inside
+    // How many player hitboxes are currently inside
     private int playersInTriggers = 0;
+
+    // Is the mouse currently hovering this object?
+    private bool mouseHovering = false;
+
+
+    // =========================================================
+    // PLAYER COLLISION
+    // =========================================================
 
     public void PlayerEntered()
     {
         playersInTriggers++;
 
-        // Fade both tilemaps
-        SetOpacity(fadedOpacity);
+        UpdateOpacity();
     }
+
 
     public void PlayerExited()
     {
         playersInTriggers--;
 
-        // Only restore opacity when player
-        // has left BOTH hitboxes
-        if (playersInTriggers <= 0)
-        {
+        if (playersInTriggers < 0)
             playersInTriggers = 0;
-            SetOpacity(fullOpacity);
+
+        UpdateOpacity();
+    }
+
+
+    // =========================================================
+    // MOUSE HOVER
+    // =========================================================
+
+    public void MouseEntered()
+    {
+        mouseHovering = true;
+
+        UpdateOpacity();
+    }
+
+
+    public void MouseExited()
+    {
+        mouseHovering = false;
+
+        UpdateOpacity();
+    }
+
+
+    // =========================================================
+    // OPACITY LOGIC
+    // =========================================================
+
+    private void UpdateOpacity()
+    {
+        // Mouse hover has priority over player collision
+        if (mouseHovering)
+        {
+            SetOpacity(mouseOpacity);
+        }
+        // Player is inside
+        else if (playersInTriggers > 0)
+        {
+            SetOpacity(playerOpacity);
+        }
+        // Nothing is happening
+        else
+        {
+            SetOpacity(1f);
         }
     }
+
+
+    // =========================================================
+    // SET OPACITY
+    // =========================================================
 
     private void SetOpacity(float alpha)
     {

@@ -1,21 +1,17 @@
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.Tilemaps;
-using Pathfinding;
-
 
 public class BuildPlacer : MonoBehaviour
 {
     private BuildManager manager;
 
-
     private GameObject previewObject;
-
     private buildSO currentItem;
 
     private ghostBuildPreview ghost;
-
     private RotateBuildables previewRotation;
 
     private PlayerInputHandler input;
@@ -37,11 +33,9 @@ public class BuildPlacer : MonoBehaviour
     // INITIALIZE
     // =====================================================
 
-    public void Initialize(
-        BuildManager buildManager)
+    public void Initialize(BuildManager buildManager)
     {
-        manager =
-            buildManager;
+        manager = buildManager;
     }
 
 
@@ -49,11 +43,9 @@ public class BuildPlacer : MonoBehaviour
     // INPUT
     // =====================================================
 
-    public void SetInput(
-        PlayerInputHandler playerInput)
+    public void SetInput(PlayerInputHandler playerInput)
     {
-        input =
-            playerInput;
+        input = playerInput;
     }
 
 
@@ -61,32 +53,49 @@ public class BuildPlacer : MonoBehaviour
     // START PLACING
     // =====================================================
 
-    public void StartPlacing(
-        buildSO item)
+    public void StartPlacing(buildSO item)
     {
-        if (
-            item == null ||
-            manager == null)
-        {
+        if (item == null || manager == null)
             return;
+
+
+        // =================================================
+        // DESTROY PREVIOUS PREVIEW
+        // =================================================
+
+        if (previewObject != null)
+        {
+            Destroy(previewObject);
         }
 
 
-        currentItem =
-            item;
+        previewObject = null;
+        ghost = null;
+        previewRotation = null;
 
+
+        currentItem = item;
+
+
+        // =================================================
+        // PREFAB CHECK
+        // =================================================
 
         if (item.placeablePrefab == null)
         {
             Debug.LogError(
                 "[BuildPlacer] " +
                 item.name +
-                " has no placeablePrefab assigned."
+                " has no placeablePrefab."
             );
 
             return;
         }
 
+
+        // =================================================
+        // CREATE PREVIEW
+        // =================================================
 
         previewObject =
             Instantiate(
@@ -94,35 +103,61 @@ public class BuildPlacer : MonoBehaviour
             );
 
 
-        ghost =
-            previewObject.GetComponent<
-                ghostBuildPreview
-            >();
+        // =================================================
+        // GET GHOST
+        // =================================================
 
+        ghost =
+            previewObject.GetComponent<ghostBuildPreview>();
+
+
+        // =================================================
+        // GET ROTATION
+        // =================================================
 
         previewRotation =
-            previewObject.GetComponent<
-                RotateBuildables
-            >();
+            previewObject.GetComponent<RotateBuildables>();
 
+
+        // =================================================
+        // INITIALIZE GHOST
+        // =================================================
 
         if (ghost != null)
         {
             ghost.placementMask =
                 manager.placementMask;
 
-
             ghost.footprint =
                 item.size;
 
 
-            if (
-                item.baseTile &&
-                manager.baseTilemap != null)
+            // =================================================
+            // TILE ITEM
+            // =================================================
+
+            if (item.baseTile)
             {
-                ghost.grid =
-                    manager.baseTilemap.layoutGrid;
+                Tilemap targetTilemap =
+                    GetTilemapForItem(item);
+
+                if (targetTilemap != null)
+                {
+                    ghost.grid =
+                        targetTilemap.layoutGrid;
+                }
+                else
+                {
+                    ghost.grid =
+                        manager.buildGrid;
+                }
             }
+
+
+            // =================================================
+            // NORMAL BUILDING
+            // =================================================
+
             else
             {
                 ghost.grid =
@@ -145,8 +180,16 @@ public class BuildPlacer : MonoBehaviour
             return;
 
 
+        // =================================================
+        // MOVE
+        // =================================================
+
         MovePreview();
 
+
+        // =================================================
+        // ROTATE
+        // =================================================
 
         if (
             Keyboard.current != null &&
@@ -156,21 +199,37 @@ public class BuildPlacer : MonoBehaviour
         }
 
 
+        // =================================================
+        // UI CHECK
+        // =================================================
+
         bool isUI =
             EventSystem.current != null &&
             EventSystem.current.IsPointerOverGameObject();
 
+
+        // =================================================
+        // CAN PLACE
+        // =================================================
 
         lastCanPlace =
             !isUI &&
             CanPlace();
 
 
+        // =================================================
+        // COLOR
+        // =================================================
+
         UpdateColor(
             isUI,
             lastCanPlace
         );
 
+
+        // =================================================
+        // PLACE
+        // =================================================
 
         if (
             lastCanPlace &&
@@ -183,6 +242,104 @@ public class BuildPlacer : MonoBehaviour
 
 
     // =====================================================
+    // GET TILEMAP FOR ITEM
+    // =====================================================
+
+    private Tilemap GetTilemapForItem(
+        buildSO item)
+    {
+        if (item == null)
+            return null;
+
+
+        if (!item.baseTile)
+            return null;
+
+
+        string tilemapName =
+            item.baseTileName;
+
+
+        if (string.IsNullOrEmpty(tilemapName))
+            return null;
+
+
+        // =================================================
+        // USE TILE SAVER TILEMAP LIST
+        // =================================================
+
+        if (
+            TileSaver.Instance != null &&
+            TileSaver.Instance.tilemaps != null)
+        {
+            foreach (
+                Tilemap tilemap
+                in TileSaver.Instance.tilemaps)
+            {
+                if (tilemap == null)
+                    continue;
+
+
+                // Exact Tilemap name
+                if (
+                    tilemap.name ==
+                    tilemapName)
+                {
+                    return tilemap;
+                }
+
+
+                // GameObject name
+                if (
+                    tilemap.gameObject.name ==
+                    tilemapName)
+                {
+                    return tilemap;
+                }
+            }
+        }
+
+
+        // =================================================
+        // FALLBACK: SEARCH SCENE
+        // =================================================
+
+        Tilemap[] tilemaps =
+            FindObjectsByType<Tilemap>(
+                FindObjectsSortMode.None
+            );
+
+
+        foreach (
+            Tilemap tilemap
+            in tilemaps)
+        {
+            if (tilemap == null)
+                continue;
+
+
+            if (
+                tilemap.name ==
+                tilemapName)
+            {
+                return tilemap;
+            }
+
+
+            if (
+                tilemap.gameObject.name ==
+                tilemapName)
+            {
+                return tilemap;
+            }
+        }
+
+
+        return null;
+    }
+
+
+    // =====================================================
     // MOVE PREVIEW
     // =====================================================
 
@@ -191,7 +348,8 @@ public class BuildPlacer : MonoBehaviour
         if (
             input == null ||
             previewObject == null ||
-            manager == null)
+            manager == null ||
+            manager.playerCamera == null)
         {
             return;
         }
@@ -213,40 +371,52 @@ public class BuildPlacer : MonoBehaviour
             );
 
 
-        world.z =
-            0f;
+        world.z = 0f;
 
 
         Vector3 position;
 
 
         // =================================================
-        // BASE TILE
+        // TILE ITEM
         // =================================================
 
         if (
             currentItem != null &&
-            currentItem.baseTile &&
-            manager.baseTilemap != null)
+            currentItem.baseTile)
         {
-            Vector3Int cell =
-                manager.baseTilemap.WorldToCell(
-                    world
+            Tilemap targetTilemap =
+                GetTilemapForItem(
+                    currentItem
                 );
 
 
-            cell.z =
-                0;
+            if (targetTilemap != null)
+            {
+                Vector3Int cell =
+                    targetTilemap.WorldToCell(
+                        world
+                    );
 
 
-            position =
-                manager.baseTilemap.GetCellCenterWorld(
-                    cell
-                );
+                cell.z = 0;
 
 
-            position.z =
-                0f;
+                position =
+                    targetTilemap.GetCellCenterWorld(
+                        cell
+                    );
+
+
+                position.z = 0f;
+
+
+                previewObject.transform.position =
+                    position;
+
+
+                return;
+            }
         }
 
 
@@ -254,7 +424,7 @@ public class BuildPlacer : MonoBehaviour
         // NORMAL GRID
         // =================================================
 
-        else if (
+        if (
             BuildState.UseGridPlacement &&
             manager.buildGrid != null)
         {
@@ -264,8 +434,7 @@ public class BuildPlacer : MonoBehaviour
                 );
 
 
-            cell.z =
-                0;
+            cell.z = 0;
 
 
             position =
@@ -274,8 +443,7 @@ public class BuildPlacer : MonoBehaviour
                 );
 
 
-            position.z =
-                0f;
+            position.z = 0f;
         }
 
 
@@ -321,59 +489,44 @@ public class BuildPlacer : MonoBehaviour
 
 
         // =================================================
-        // BASE TILE CELL
-        // =================================================
-
-        if (
-            currentItem.baseTile &&
-            manager.baseTilemap != null)
-        {
-            cell =
-                manager.baseTilemap.WorldToCell(
-                    position
-                );
-        }
-
-
-        // =================================================
-        // NORMAL BUILDING CELL
-        // =================================================
-
-        else if (
-            manager.buildGrid != null)
-        {
-            cell =
-                manager.buildGrid.WorldToCell(
-                    position
-                );
-        }
-
-
-        // =================================================
-        // FALLBACK
-        // =================================================
-
-        else
-        {
-            cell =
-                Vector3Int.zero;
-        }
-
-
-        cell.z =
-            0;
-
-
-        // =================================================
-        // BASE TILE
+        // TILE ITEM
         // =================================================
 
         if (currentItem.baseTile)
         {
+            Tilemap targetTilemap =
+                GetTilemapForItem(
+                    currentItem
+                );
+
+
+            if (targetTilemap == null)
+            {
+                Debug.LogError(
+                    "[BuildPlacer] No Tilemap found for '" +
+                    currentItem.baseTileName +
+                    "'."
+                );
+
+                return;
+            }
+
+
+            cell =
+                targetTilemap.WorldToCell(
+                    position
+                );
+
+
+            cell.z = 0;
+
+
             PlaceBaseTile(
                 cell,
-                position
+                position,
+                targetTilemap
             );
+
 
             return;
         }
@@ -382,6 +535,23 @@ public class BuildPlacer : MonoBehaviour
         // =================================================
         // NORMAL BUILDING
         // =================================================
+
+        if (manager.buildGrid != null)
+        {
+            cell =
+                manager.buildGrid.WorldToCell(
+                    position
+                );
+        }
+        else
+        {
+            cell =
+                Vector3Int.zero;
+        }
+
+
+        cell.z = 0;
+
 
         PlacePrefab(
             position,
@@ -396,17 +566,27 @@ public class BuildPlacer : MonoBehaviour
 
     private void PlaceBaseTile(
         Vector3Int cell,
-        Vector3 position)
+        Vector3 position,
+        Tilemap targetTilemap)
     {
-        if (
-            manager == null ||
-            manager.baseTilemap == null ||
-            currentItem == null ||
-            currentItem.baseTileAsset == null)
+        if (manager == null)
+            return;
+
+
+        if (currentItem == null)
+            return;
+
+
+        if (targetTilemap == null)
+            return;
+
+
+        if (currentItem.placeablePrefab == null)
         {
             Debug.LogError(
                 "[BuildPlacer] " +
-                "Cannot place base tile."
+                currentItem.name +
+                " has no placeablePrefab."
             );
 
             return;
@@ -414,72 +594,165 @@ public class BuildPlacer : MonoBehaviour
 
 
         // =================================================
-        // DON'T OVERWRITE
+        // GET SOURCE TILEMAP FROM PREFAB
         // =================================================
 
-        if (
-            manager.baseTilemap.GetTile(cell) != null)
-        {
-            Debug.Log(
-                "[BuildPlacer] " +
-                "BASE TILE BLOCKED | " +
-                "Cell=" +
-                cell
-            );
-
-            return;
-        }
+        Tilemap sourceTilemap =
+            currentItem.placeablePrefab
+                .GetComponentInChildren<Tilemap>(
+                    true
+                );
 
 
-        // =================================================
-        // PAINT
-        // =================================================
-
-        manager.baseTilemap.SetTile(
-            cell,
-            currentItem.baseTileAsset
-        );
-
-
-        manager.baseTilemap.RefreshTile(
-            cell
-        );
-
-
-        // =================================================
-        // VERIFY
-        // =================================================
-
-        TileBase placedTile =
-            manager.baseTilemap.GetTile(
-                cell
-            );
-
-
-        if (placedTile == null)
+        if (sourceTilemap == null)
         {
             Debug.LogError(
                 "[BuildPlacer] " +
-                "BASE TILE FAILED | " +
-                "Cell=" +
-                cell
+                currentItem.placeablePrefab.name +
+                " has no Tilemap."
             );
 
             return;
         }
 
 
-        Debug.Log(
-            "[BuildPlacer] BASE TILE PLACED | " +
-            "Item=" +
-            currentItem.name +
-            " | ItemID=" +
-            currentItem.itemID +
-            " | Tile=" +
-            placedTile.name +
-            " | Cell=" +
-            cell
-        );
+        // =================================================
+        // SOURCE BOUNDS
+        // =================================================
+
+        BoundsInt bounds =
+            sourceTilemap.cellBounds;
+
+
+        Vector3Int sourceOrigin =
+            bounds.min;
+
+
+        // =================================================
+        // COLLECT CELLS
+        // =================================================
+
+        List<Vector3Int> placedCells =
+            new List<Vector3Int>();
+
+
+        foreach (
+            Vector3Int sourceCell
+            in bounds.allPositionsWithin)
+        {
+            TileBase tile =
+                sourceTilemap.GetTile(
+                    sourceCell
+                );
+
+
+            if (tile == null)
+                continue;
+
+
+            Vector3Int localCell =
+                sourceCell -
+                sourceOrigin;
+
+
+            Vector3Int targetCell =
+                cell +
+                localCell;
+
+
+            targetCell.z = 0;
+
+
+            // =================================================
+            // CHECK EXISTING TILE
+            // =================================================
+
+            if (
+                targetTilemap.GetTile(
+                    targetCell
+                ) != null)
+            {
+                return;
+            }
+
+
+            placedCells.Add(
+                targetCell
+            );
+        }
+
+
+        // =================================================
+        // NO TILES
+        // =================================================
+
+        if (placedCells.Count == 0)
+        {
+            Debug.LogError(
+                "[BuildPlacer] Prefab contains no tiles."
+            );
+
+            return;
+        }
+
+
+        // =================================================
+        // PLACE TILES
+        // =================================================
+
+        foreach (
+            Vector3Int sourceCell
+            in bounds.allPositionsWithin)
+        {
+            TileBase tile =
+                sourceTilemap.GetTile(
+                    sourceCell
+                );
+
+
+            if (tile == null)
+                continue;
+
+
+            Vector3Int localCell =
+                sourceCell -
+                sourceOrigin;
+
+
+            Vector3Int targetCell =
+                cell +
+                localCell;
+
+
+            targetCell.z = 0;
+
+
+            targetTilemap.SetTile(
+                targetCell,
+                tile
+            );
+        }
+
+
+        // =================================================
+        // REFRESH TARGET TILEMAP
+        // =================================================
+
+        targetTilemap.RefreshAllTiles();
+
+
+        // =================================================
+        // REGISTER
+        // =================================================
+
+        if (
+            BaseTilePlacementManager.Instance != null)
+        {
+            BaseTilePlacementManager.Instance.Register(
+                currentItem,
+                placedCells
+            );
+        }
 
 
         // =================================================
@@ -506,68 +779,46 @@ public class BuildPlacer : MonoBehaviour
 
 
         // =================================================
-        // SAVE IMMEDIATELY
+        // SAVE
         // =================================================
 
         if (
             BuildingSaveManager.Instance != null)
         {
-            Debug.Log(
-                "[BuildPlacer] " +
-                "BASE TILE PLACED -> " +
-                "CALLING SAVE"
-            );
-
-
             BuildingSaveManager.Instance.SaveAfterChange();
-        }
-        else
-        {
-            Debug.LogError(
-                "[BuildPlacer] " +
-                "BuildingSaveManager.Instance " +
-                "IS NULL!"
-            );
         }
 
 
         // =================================================
-        // SAVE ITEM BEFORE CONSUMING
+        // SAVE ITEM
         // =================================================
 
         buildSO placedItem =
             currentItem;
 
 
-        PlayerHotbarManager hotbar =
-            PlayerHotbarManager.Instance;
-
-
         // =================================================
         // CONSUME
         // =================================================
+
+        PlayerHotbarManager hotbar =
+            PlayerHotbarManager.Instance;
+
 
         if (hotbar != null)
         {
             hotbar.UseSelectedStack(
                 placedItem.consumeAmount
             );
-        }
 
 
-        // =================================================
-        // CHECK REMAINING
-        // =================================================
-
-        if (hotbar != null)
-        {
             ItemData selected =
                 hotbar.GetSelectedItem();
 
 
             if (selected == placedItem)
             {
-                StartNewBaseTilePreview(
+                StartNewPreview(
                     placedItem
                 );
 
@@ -577,7 +828,7 @@ public class BuildPlacer : MonoBehaviour
 
 
         // =================================================
-        // NO MORE
+        // NO MORE ITEMS
         // =================================================
 
         DestroyPreviewAfterPlacement();
@@ -585,40 +836,7 @@ public class BuildPlacer : MonoBehaviour
 
 
     // =====================================================
-    // NEW BASE TILE PREVIEW
-    // =====================================================
-
-    private void StartNewBaseTilePreview(
-        buildSO item)
-    {
-        if (previewObject != null)
-        {
-            Destroy(
-                previewObject
-            );
-        }
-
-
-        previewObject =
-            null;
-
-
-        ghost =
-            null;
-
-
-        previewRotation =
-            null;
-
-
-        StartPlacing(
-            item
-        );
-    }
-
-
-    // =====================================================
-    // PLACE PREFAB
+    // PLACE NORMAL PREFAB
     // =====================================================
 
     private void PlacePrefab(
@@ -629,18 +847,24 @@ public class BuildPlacer : MonoBehaviour
             return;
 
 
+        buildSO placedItem =
+            currentItem;
+
+
         GameObject obj =
             Instantiate(
-                currentItem.placeablePrefab,
+                placedItem.placeablePrefab,
                 position,
                 Quaternion.identity
             );
 
 
+        // =================================================
+        // ROTATION
+        // =================================================
+
         RotateBuildables placedRotation =
-            obj.GetComponent<
-                RotateBuildables
-            >();
+            obj.GetComponent<RotateBuildables>();
 
 
         if (
@@ -653,28 +877,32 @@ public class BuildPlacer : MonoBehaviour
         }
 
 
+        // =================================================
+        // BUILD IDENTITY
+        // =================================================
+
         BuildIdentity identity =
-            obj.GetComponent<
-                BuildIdentity
-            >();
+            obj.GetComponent<BuildIdentity>();
 
 
         if (identity == null)
         {
             identity =
-                obj.AddComponent<
-                    BuildIdentity
-                >();
+                obj.AddComponent<BuildIdentity>();
         }
 
 
         identity.item =
-            currentItem;
+            placedItem;
 
 
         identity.cell =
             cell;
 
+
+        // =================================================
+        // SOIL
+        // =================================================
 
         SoilOccupancyManager.Instance?.Register(
             cell,
@@ -682,14 +910,18 @@ public class BuildPlacer : MonoBehaviour
         );
 
 
+        // =================================================
+        // TILE REPLACEMENT
+        // =================================================
+
         tileReplaceManager.Instance?.ReplaceTile(
             position,
-            currentItem
+            placedItem
         );
 
 
         // =================================================
-        // SAVE BUILDING
+        // SAVE
         // =================================================
 
         if (
@@ -698,7 +930,6 @@ public class BuildPlacer : MonoBehaviour
             BuildingSaveManager.Instance.RegisterBuilding(
                 obj
             );
-
 
             BuildingSaveManager.Instance.SaveAfterChange();
         }
@@ -727,17 +958,17 @@ public class BuildPlacer : MonoBehaviour
         // =================================================
 
         if (
-            currentItem.placementSound != null &&
+            placedItem.placementSound != null &&
             AudioManager.Instance != null)
         {
             AudioManager.Instance.PlaySound(
-                currentItem.placementSound
+                placedItem.placementSound
             );
         }
 
 
         // =================================================
-        // HOTBAR
+        // CONSUME
         // =================================================
 
         PlayerHotbarManager hotbar =
@@ -747,16 +978,56 @@ public class BuildPlacer : MonoBehaviour
         if (hotbar != null)
         {
             hotbar.UseSelectedStack(
-                currentItem.consumeAmount
+                placedItem.consumeAmount
+            );
+
+
+            ItemData selected =
+                hotbar.GetSelectedItem();
+
+
+            if (selected == placedItem)
+            {
+                StartNewPreview(
+                    placedItem
+                );
+
+                return;
+            }
+        }
+
+
+        DestroyPreviewAfterPlacement();
+    }
+
+
+    // =====================================================
+    // START NEW PREVIEW
+    // =====================================================
+
+    private void StartNewPreview(
+        buildSO item)
+    {
+        if (item == null)
+            return;
+
+
+        if (previewObject != null)
+        {
+            Destroy(
+                previewObject
             );
         }
 
 
-        // =================================================
-        // DESTROY PREVIEW
-        // =================================================
+        previewObject = null;
+        ghost = null;
+        previewRotation = null;
 
-        DestroyPreviewAfterPlacement();
+
+        StartPlacing(
+            item
+        );
     }
 
 
@@ -767,8 +1038,13 @@ public class BuildPlacer : MonoBehaviour
     private void UpdatePathfinding(
         Vector3 position)
     {
-        if (manager.astar == null)
+        if (
+            manager == null ||
+            manager.astar == null ||
+            AstarPath.active == null)
+        {
             return;
+        }
 
 
         float size =
@@ -838,6 +1114,10 @@ public class BuildPlacer : MonoBehaviour
             return false;
 
 
+        // =================================================
+        // WATER
+        // =================================================
+
         Collider2D water =
             Physics2D.OverlapPoint(
                 previewObject.transform.position,
@@ -853,36 +1133,24 @@ public class BuildPlacer : MonoBehaviour
         }
 
 
+        // =================================================
+        // OBSTACLES
+        // =================================================
+
+        List<Collider2D> obstacles =
+            ghost.GetObstacles();
+
+
         foreach (
             Collider2D hit
-            in ghost.GetObstacles())
+            in obstacles)
         {
             if (hit == null)
                 continue;
 
 
-            int layer =
-                hit.gameObject.layer;
-
-
             if (hit.CompareTag("Player"))
                 continue;
-
-
-            if (
-                (manager.interactLayer.value &
-                (1 << layer)) != 0)
-            {
-                continue;
-            }
-
-
-            if (
-                (manager.largeStructureLayer.value &
-                (1 << layer)) != 0)
-            {
-                continue;
-            }
 
 
             return false;
@@ -890,26 +1158,121 @@ public class BuildPlacer : MonoBehaviour
 
 
         // =================================================
-        // BASE TILE ALREADY EXISTS
+        // TILE CHECK
         // =================================================
 
         if (
             currentItem != null &&
-            currentItem.baseTile &&
-            manager.baseTilemap != null)
+            currentItem.baseTile)
         {
-            Vector3Int cell =
-                manager.baseTilemap.WorldToCell(
-                    previewObject.transform.position
+            if (!CanPlaceBaseTile())
+                return false;
+        }
+
+
+        return true;
+    }
+
+
+    // =====================================================
+    // CAN PLACE BASE TILE
+    // =====================================================
+
+    private bool CanPlaceBaseTile()
+    {
+        if (currentItem == null)
+            return false;
+
+
+        if (currentItem.placeablePrefab == null)
+            return false;
+
+
+        Tilemap targetTilemap =
+            GetTilemapForItem(
+                currentItem
+            );
+
+
+        if (targetTilemap == null)
+            return false;
+
+
+        // =================================================
+        // SOURCE TILEMAP
+        // =================================================
+
+        Tilemap sourceTilemap =
+            currentItem.placeablePrefab
+                .GetComponentInChildren<Tilemap>(
+                    true
                 );
 
 
-            cell.z =
-                0;
+        if (sourceTilemap == null)
+            return false;
+
+
+        // =================================================
+        // ORIGIN
+        // =================================================
+
+        Vector3Int origin =
+            targetTilemap.WorldToCell(
+                previewObject.transform.position
+            );
+
+
+        origin.z = 0;
+
+
+        // =================================================
+        // BOUNDS
+        // =================================================
+
+        BoundsInt bounds =
+            sourceTilemap.cellBounds;
+
+
+        Vector3Int sourceOrigin =
+            bounds.min;
+
+
+        // =================================================
+        // CHECK TILES
+        // =================================================
+
+        foreach (
+            Vector3Int sourceCell
+            in bounds.allPositionsWithin)
+        {
+            TileBase tile =
+                sourceTilemap.GetTile(
+                    sourceCell
+                );
+
+
+            if (tile == null)
+                continue;
+
+
+            Vector3Int localCell =
+                sourceCell -
+                sourceOrigin;
+
+
+            Vector3Int targetCell =
+                origin +
+                localCell;
+
+
+            targetCell.z = 0;
 
 
             if (
-                manager.baseTilemap.GetTile(cell) != null)
+                targetTilemap.GetTile(
+                    targetCell
+                ) != null)
             {
                 return false;
             }
@@ -943,16 +1306,22 @@ public class BuildPlacer : MonoBehaviour
                 )
             );
 
-
             return;
         }
 
 
-        ghost.SetColor(
-            canPlace
-                ? Color.green
-                : Color.red
-        );
+        if (canPlace)
+        {
+            ghost.SetColor(
+                Color.green
+            );
+        }
+        else
+        {
+            ghost.SetColor(
+                Color.red
+            );
+        }
     }
 
 
@@ -970,24 +1339,11 @@ public class BuildPlacer : MonoBehaviour
         }
 
 
-        previewObject =
-            null;
-
-
-        ghost =
-            null;
-
-
-        previewRotation =
-            null;
-
-
-        currentItem =
-            null;
-
-
-        lastCanPlace =
-            false;
+        previewObject = null;
+        ghost = null;
+        previewRotation = null;
+        currentItem = null;
+        lastCanPlace = false;
     }
 
 
@@ -1005,23 +1361,10 @@ public class BuildPlacer : MonoBehaviour
         }
 
 
-        previewObject =
-            null;
-
-
-        ghost =
-            null;
-
-
-        previewRotation =
-            null;
-
-
-        currentItem =
-            null;
-
-
-        lastCanPlace =
-            false;
+        previewObject = null;
+        ghost = null;
+        previewRotation = null;
+        currentItem = null;
+        lastCanPlace = false;
     }
 }

@@ -24,8 +24,9 @@ MonoBehaviour:
   maxDurability: 0
   isUsable: 1
   consumeAmount: 1
-  placeablePrefab: {fileID: 9145681577706369362, guid: cdabbc572f8da02419556d2b8d521dce, type: 3}
+  placeablePrefab: {fileID: 7042864288960523209, guid: c34fe6d94ea5b2a4fb0f2dd921598fba, type: 3}
   size: {x: 5, y: 5}
   placementSound: {fileID: 0}
-  supportsFreePlacement: 1
+  supportsFreePlacement: 0
   baseTile: 0
+  baseTileName: 
