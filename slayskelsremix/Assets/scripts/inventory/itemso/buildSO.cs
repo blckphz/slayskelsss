@@ -18,4 +18,12 @@ public class buildSO : ItemData
     public bool supportsFreePlacement = true;
     public bool baseTile = false;
     public string baseTileName = "floorTiles";
+    public TileCategory category;
+}
+
+public enum TileCategory
+{
+    Floor,
+    Wall,
+    Door
 }

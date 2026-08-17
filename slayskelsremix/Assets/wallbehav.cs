@@ -16,7 +16,7 @@ public class WallBehav : MonoBehaviour
         4   5   6
         7   8   9
 
-        C# ARRAY
+        ARRAY
 
         wallTiles[0] = 1
         wallTiles[1] = 2
@@ -33,73 +33,328 @@ public class WallBehav : MonoBehaviour
 
     private Vector2Int gridPos;
 
+    private bool gridPositionInitialized = false;
+    private bool registeredWithManager = false;
+
+
+    // =========================================================
+    // AWAKE
+    // =========================================================
+
     private void Awake()
     {
         if (wallTilemap == null)
         {
-            wallTilemap = GetComponentInChildren<Tilemap>();
+            wallTilemap =
+                GetComponentInChildren<Tilemap>(true);
         }
 
-        gridPos = Vector2Int.RoundToInt(transform.position);
+        if (wallTilemap == null)
+        {
+            Debug.LogError(
+                "WallBehav: No Tilemap found on " +
+                gameObject.name +
+                ". Assign the Wall Tilemap in the Inspector."
+            );
+
+            return;
+        }
+
+        if (wallTiles == null)
+        {
+            Debug.LogError(
+                "WallBehav: wallTiles array is NULL on " +
+                gameObject.name
+            );
+        }
+        else if (wallTiles.Length < 9)
+        {
+            Debug.LogError(
+                "WallBehav: You need at least 9 wall tiles on " +
+                gameObject.name +
+                ". Current amount: " +
+                wallTiles.Length
+            );
+        }
     }
+
+
+    // =========================================================
+    // START
+    // =========================================================
 
     private void Start()
     {
-        if (wallManager.Instance != null)
+        /*
+            IMPORTANT:
+
+            For walls placed by BuildPlacer, the correct grid
+            position is supplied by BuildPlacer before Start()
+            executes.
+
+            Therefore we DO NOT calculate the position from
+            wallTilemap.WorldToCell(transform.position).
+
+            That was the source of the (0,0) problem.
+        */
+
+        if (!gridPositionInitialized)
         {
-            wallManager.Instance.RegisterWall(this);
+            /*
+                This is mainly for walls that already exist in
+                the scene rather than being spawned by BuildPlacer.
+
+                If you have a normal global Grid available, you
+                can use it as a fallback.
+            */
+
+            Grid grid =
+                GetComponentInParent<Grid>();
+
+            if (grid != null)
+            {
+                Vector3Int cell =
+                    grid.WorldToCell(
+                        transform.position
+                    );
+
+                SetGridPositionInternal(
+                    new Vector2Int(
+                        cell.x,
+                        cell.y
+                    ),
+                    true
+                );
+            }
+            else
+            {
+                Debug.LogWarning(
+                    "WallBehav: No grid position was assigned to " +
+                    gameObject.name +
+                    ". The wall will not register with wallManager."
+                );
+            }
         }
         else
         {
-            Debug.LogError("WallBehav: No wallManager found in scene!");
+            UpdateShape();
         }
     }
+
+
+    // =========================================================
+    // SET GRID POSITION
+    //
+    // CALLED BY BUILDER AFTER INSTANTIATING THE PREFAB
+    // =========================================================
+
+    public void SetGridPosition(
+        Vector3Int cell)
+    {
+        SetGridPositionInternal(
+            new Vector2Int(
+                cell.x,
+                cell.y
+            ),
+            true
+        );
+    }
+
+
+    // =========================================================
+    // SET GRID POSITION INTERNAL
+    // =========================================================
+
+    private void SetGridPositionInternal(
+        Vector2Int position,
+        bool register)
+    {
+        gridPos =
+            position;
+
+        gridPositionInitialized =
+            true;
+
+        if (
+            register &&
+            wallManager.Instance != null)
+        {
+            wallManager.Instance.RegisterWall(
+                this
+            );
+
+            registeredWithManager =
+                true;
+        }
+
+        UpdateShape();
+    }
+
+
+    // =========================================================
+    // GET GRID POSITION
+    // =========================================================
 
     public Vector2Int GetGridPosition()
     {
         return gridPos;
     }
 
+
+    // =========================================================
+    // IS INITIALIZED
+    // =========================================================
+
+    public bool HasGridPosition()
+    {
+        return gridPositionInitialized;
+    }
+
+
+    // =========================================================
+    // UPDATE SHAPE
+    // =========================================================
+
     public void UpdateShape()
     {
-        if (wallManager.Instance == null)
+        if (!gridPositionInitialized)
+        {
             return;
+        }
 
-        bool up = wallManager.Instance.HasWall(
-            gridPos + Vector2Int.up
-        );
+        if (wallManager.Instance == null)
+        {
+            return;
+        }
 
-        bool down = wallManager.Instance.HasWall(
-            gridPos + Vector2Int.down
-        );
+        if (wallTilemap == null)
+        {
+            Debug.LogError(
+                "WallBehav: wallTilemap is NULL on " +
+                gameObject.name
+            );
 
-        bool left = wallManager.Instance.HasWall(
-            gridPos + Vector2Int.left
-        );
+            return;
+        }
 
-        bool right = wallManager.Instance.HasWall(
-            gridPos + Vector2Int.right
-        );
+        if (
+            wallTiles == null ||
+            wallTiles.Length < 9)
+        {
+            Debug.LogError(
+                "WallBehav: You need at least 9 wall tiles assigned on " +
+                gameObject.name
+            );
 
-        TileBase correctTile = GetCorrectTile(
-            up,
-            down,
-            left,
-            right
-        );
+            return;
+        }
+
+
+        // =====================================================
+        // CHECK NEIGHBOURS
+        // =====================================================
+
+        bool up =
+            wallManager.Instance.HasWall(
+                gridPos + Vector2Int.up
+            );
+
+        bool down =
+            wallManager.Instance.HasWall(
+                gridPos + Vector2Int.down
+            );
+
+        bool left =
+            wallManager.Instance.HasWall(
+                gridPos + Vector2Int.left
+            );
+
+        bool right =
+            wallManager.Instance.HasWall(
+                gridPos + Vector2Int.right
+            );
+
+
+        // =====================================================
+        // GET TILE
+        // =====================================================
+
+        TileBase correctTile =
+            GetCorrectTile(
+                up,
+                down,
+                left,
+                right
+            );
 
         if (correctTile == null)
-            return;
+        {
+            Debug.LogError(
+                "WallBehav: GetCorrectTile returned NULL for " +
+                gameObject.name
+            );
 
-        // Remove the previous tile
+            return;
+        }
+
+
+        // =====================================================
+        // CLEAR
+        // =====================================================
+
         wallTilemap.ClearAllTiles();
 
-        // Put the correct tile in the center
+
+        // =====================================================
+        // PLACE TILE
+        // =====================================================
+
         wallTilemap.SetTile(
             Vector3Int.zero,
             correctTile
         );
+
+
+        // =====================================================
+        // REFRESH
+        // =====================================================
+
+        wallTilemap.RefreshAllTiles();
+
+
+        TilemapRenderer renderer =
+            wallTilemap.GetComponent<TilemapRenderer>();
+
+        if (renderer != null)
+        {
+            renderer.enabled = true;
+        }
+
+
+        // =====================================================
+        // DEBUG
+        // =====================================================
+
+        Debug.Log(
+            "WallBehav: Updated wall " +
+            gameObject.name +
+            " at " +
+            gridPos +
+            " | Up: " +
+            up +
+            " Down: " +
+            down +
+            " Left: " +
+            left +
+            " Right: " +
+            right
+        );
     }
+
+
+    // =========================================================
+    // GET CORRECT TILE
+    // =========================================================
 
     private TileBase GetCorrectTile(
         bool up,
@@ -107,24 +362,23 @@ public class WallBehav : MonoBehaviour
         bool left,
         bool right)
     {
-        if (wallTiles == null || wallTiles.Length < 9)
+        if (
+            wallTiles == null ||
+            wallTiles.Length < 9)
         {
-            Debug.LogError(
-                "WallBehav: You need exactly 9 wall tiles assigned!"
-            );
-
             return null;
         }
+
 
         // =====================================================
         // NO CONNECTIONS
         // =====================================================
 
-        // 5
-        //
-        //     X
-        //
-        if (!up && !down && !left && !right)
+        if (
+            !up &&
+            !down &&
+            !left &&
+            !right)
         {
             return wallTiles[4];
         }
@@ -134,46 +388,44 @@ public class WallBehav : MonoBehaviour
         // ONE CONNECTION
         // =====================================================
 
-        // Wall is ABOVE this wall.
-        //
-        //     2
-        //     8
-        //
-        // This wall is the bottom piece.
-        if (up && !down && !left && !right)
+        // UP
+        if (
+            up &&
+            !down &&
+            !left &&
+            !right)
         {
-            return wallTiles[7]; // 8
+            return wallTiles[7];
         }
 
-        // Wall is BELOW this wall.
-        //
-        //     2
-        //     8
-        //
-        // This wall is the top piece.
-        if (down && !up && !left && !right)
+        // DOWN
+        if (
+            down &&
+            !up &&
+            !left &&
+            !right)
         {
-            return wallTiles[1]; // 2
+            return wallTiles[1];
         }
 
-        // Wall is LEFT of this wall.
-        //
-        //     4  6
-        //
-        // This wall is the right piece.
-        if (left && !up && !down && !right)
+        // LEFT
+        if (
+            left &&
+            !up &&
+            !down &&
+            !right)
         {
-            return wallTiles[5]; // 6
+            return wallTiles[5];
         }
 
-        // Wall is RIGHT of this wall.
-        //
-        //     4  6
-        //
-        // This wall is the left piece.
-        if (right && !up && !down && !left)
+        // RIGHT
+        if (
+            right &&
+            !up &&
+            !down &&
+            !left)
         {
-            return wallTiles[3]; // 4
+            return wallTiles[3];
         }
 
 
@@ -181,57 +433,69 @@ public class WallBehav : MonoBehaviour
         // TWO CONNECTIONS - STRAIGHT
         // =====================================================
 
-        // Vertical
-        //
-        //     2
-        //     5
-        //     8
-        //
-        if (up && down && !left && !right)
+        // VERTICAL
+        if (
+            up &&
+            down &&
+            !left &&
+            !right)
         {
-            return wallTiles[4]; // 5
+            return wallTiles[4];
         }
 
-        // Horizontal
-        //
-        //     4  5  6
-        //
-        if (left && right && !up && !down)
+        // HORIZONTAL
+        if (
+            left &&
+            right &&
+            !up &&
+            !down)
         {
-            return wallTiles[4]; // 5
+            return wallTiles[4];
         }
 
 
         // =====================================================
-        // TWO CONNECTIONS - CORNERS
+        // CORNERS
         // =====================================================
 
         // UP + LEFT
-        //
-        //     9
-        //     8?
-        //
-        if (up && left && !down && !right)
+        if (
+            up &&
+            left &&
+            !down &&
+            !right)
         {
-            return wallTiles[8]; // 9
+            return wallTiles[8];
         }
 
         // UP + RIGHT
-        if (up && right && !down && !left)
+        if (
+            up &&
+            right &&
+            !down &&
+            !left)
         {
-            return wallTiles[6]; // 7
+            return wallTiles[6];
         }
 
         // DOWN + LEFT
-        if (down && left && !up && !right)
+        if (
+            down &&
+            left &&
+            !up &&
+            !right)
         {
-            return wallTiles[2]; // 3
+            return wallTiles[2];
         }
 
         // DOWN + RIGHT
-        if (down && right && !up && !left)
+        if (
+            down &&
+            right &&
+            !up &&
+            !left)
         {
-            return wallTiles[0]; // 1
+            return wallTiles[0];
         }
 
 
@@ -239,26 +503,38 @@ public class WallBehav : MonoBehaviour
         // THREE CONNECTIONS
         // =====================================================
 
-        // Your current 9-piece set does not have dedicated
-        // T-junction tiles.
-        //
-        // Use center piece for now.
-        if (up && down && left)
+        if (
+            up &&
+            down &&
+            left &&
+            !right)
         {
             return wallTiles[4];
         }
 
-        if (up && down && right)
+        if (
+            up &&
+            down &&
+            right &&
+            !left)
         {
             return wallTiles[4];
         }
 
-        if (up && left && right)
+        if (
+            up &&
+            left &&
+            right &&
+            !down)
         {
             return wallTiles[4];
         }
 
-        if (down && left && right)
+        if (
+            down &&
+            left &&
+            right &&
+            !up)
         {
             return wallTiles[4];
         }
@@ -268,21 +544,40 @@ public class WallBehav : MonoBehaviour
         // FOUR CONNECTIONS
         // =====================================================
 
-        if (up && down && left && right)
+        if (
+            up &&
+            down &&
+            left &&
+            right)
         {
             return wallTiles[4];
         }
 
 
-        // Fallback
+        // =====================================================
+        // FALLBACK
+        // =====================================================
+
         return wallTiles[4];
     }
 
+
+    // =========================================================
+    // DESTROY
+    // =========================================================
+
     private void OnDestroy()
     {
-        if (wallManager.Instance != null)
+        if (
+            registeredWithManager &&
+            wallManager.Instance != null)
         {
-            wallManager.Instance.UnregisterWall(this);
+            wallManager.Instance.UnregisterWall(
+                this
+            );
         }
+
+        registeredWithManager =
+            false;
     }
 }

@@ -29,4 +29,5 @@ MonoBehaviour:
   placementSound: {fileID: 0}
   supportsFreePlacement: 0
   baseTile: 0
-  baseTileName: 
+  baseTileName: WallTiles
+  category: 1

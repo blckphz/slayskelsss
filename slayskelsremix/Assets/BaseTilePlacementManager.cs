@@ -1,87 +1,850 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
-public class BaseTilePlacementManager : MonoBehaviour
+
+// =========================================================
+// BUILDING STRUCTURE
+// =========================================================
+
+[Serializable]
+public class BuildingStructure
+{
+    public string id =
+        Guid.NewGuid().ToString();
+
+    public buildSO itemType;
+
+    public HashSet<Vector3Int> cells =
+        new HashSet<Vector3Int>();
+
+    public bool isEnclosedRoom;
+
+    public int totalWallCount;
+
+    public int totalDoorCount;
+
+    public Action<BuildingStructure, bool>
+        OnEnclosureStatusChanged;
+
+
+    // =====================================================
+    // SET ENCLOSURE STATUS
+    // =====================================================
+
+    public void SetEnclosureStatus(
+        bool newStatus)
+    {
+        if (
+            isEnclosedRoom ==
+            newStatus)
+        {
+            return;
+        }
+
+
+        isEnclosedRoom =
+            newStatus;
+
+
+        if (isEnclosedRoom)
+        {
+            Debug.Log(
+                $"<color=green>" +
+                $"[ROOM CREATED]" +
+                $"</color> | " +
+                $"Structure: {id} | " +
+                $"Item: " +
+                $"{(itemType != null ? itemType.name : "NULL")} | " +
+                $"Floors: {cells.Count} | " +
+                $"Walls: {totalWallCount} | " +
+                $"Doors: {totalDoorCount}"
+            );
+        }
+        else
+        {
+            Debug.Log(
+                $"<color=red>" +
+                $"[ROOM OPENED]" +
+                $"</color> | " +
+                $"Structure: {id} | " +
+                $"Item: " +
+                $"{(itemType != null ? itemType.name : "NULL")}"
+            );
+        }
+
+
+        OnEnclosureStatusChanged?.Invoke(
+            this,
+            isEnclosedRoom
+        );
+    }
+}
+
+
+// =========================================================
+// BASE TILE PLACEMENT MANAGER
+// =========================================================
+
+public class BaseTilePlacementManager :
+    MonoBehaviour
 {
     public static BaseTilePlacementManager Instance;
 
-    [System.Serializable]
-    public class BaseTilePlacement
+
+    // =====================================================
+    // STRUCTURES
+    // =====================================================
+
+    [Header("Active Structures")]
+    public List<BuildingStructure> structures =
+        new List<BuildingStructure>();
+
+
+    // =====================================================
+    // CELL LOOKUP
+    // =====================================================
+
+    private Dictionary<
+        Vector3Int,
+        BuildingStructure>
+        cellToStructure =
+        new Dictionary<
+            Vector3Int,
+            BuildingStructure>();
+
+
+    // =====================================================
+    // DIRECTIONS
+    // =====================================================
+
+    private static readonly Vector3Int[] AdjacentDirections =
     {
-        public buildSO item;
-        public List<Vector3Int> cells = new List<Vector3Int>();
-    }
+        new Vector3Int(1, 0, 0),
+        new Vector3Int(-1, 0, 0),
+        new Vector3Int(0, 1, 0),
+        new Vector3Int(0, -1, 0)
+    };
 
-    public List<BaseTilePlacement> placements =
-        new List<BaseTilePlacement>();
 
+    // =====================================================
+    // AWAKE
+    // =====================================================
 
     private void Awake()
     {
-        Instance = this;
+        if (
+            Instance != null &&
+            Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
+        Instance =
+            this;
     }
 
 
     // =====================================================
-    // REGISTER PLACEMENT
+    // REGISTER
     // =====================================================
 
     public void Register(
         buildSO item,
-        List<Vector3Int> cells)
+        List<Vector3Int> newCells)
     {
         if (item == null)
+        {
+            Debug.LogWarning(
+                "[ROOM SYSTEM] Register called with NULL item."
+            );
+
             return;
+        }
 
-        if (cells == null ||
-            cells.Count == 0)
+
+        if (
+            newCells == null ||
+            newCells.Count == 0)
+        {
+            Debug.LogWarning(
+                "[ROOM SYSTEM] Register called with no cells."
+            );
+
             return;
+        }
 
 
-        BaseTilePlacement placement =
-            new BaseTilePlacement();
+        Debug.Log(
+            $"<color=cyan>" +
+            $"[ROOM SYSTEM] REGISTER" +
+            $"</color> | " +
+            $"Item: {item.name} | " +
+            $"Category: {item.category} | " +
+            $"Cells: {newCells.Count}"
+        );
 
 
-        placement.item =
-            item;
+        // =================================================
+        // FIND NEIGHBOUR STRUCTURES
+        // =================================================
+
+        HashSet<BuildingStructure>
+            neighborStructures =
+            new HashSet<BuildingStructure>();
 
 
-        placement.cells =
-            new List<Vector3Int>(cells);
+        foreach (
+            Vector3Int cell
+            in newCells)
+        {
+            foreach (
+                Vector3Int direction
+                in AdjacentDirections)
+            {
+                Vector3Int neighborCell =
+                    cell + direction;
 
 
-        placements.Add(
-            placement
+                if (
+                    cellToStructure.TryGetValue(
+                        neighborCell,
+                        out BuildingStructure neighbor
+                    ))
+                {
+                    if (
+                        neighbor != null &&
+                        neighbor.itemType == item)
+                    {
+                        neighborStructures.Add(
+                            neighbor
+                        );
+                    }
+                }
+            }
+        }
+
+
+        // =================================================
+        // CREATE OR MERGE
+        // =================================================
+
+        BuildingStructure targetStructure;
+
+
+        if (
+            neighborStructures.Count == 0)
+        {
+            targetStructure =
+                new BuildingStructure
+                {
+                    itemType = item
+                };
+
+
+            structures.Add(
+                targetStructure
+            );
+        }
+        else
+        {
+            var enumerator =
+                neighborStructures.GetEnumerator();
+
+
+            enumerator.MoveNext();
+
+
+            targetStructure =
+                enumerator.Current;
+
+
+            foreach (
+                BuildingStructure other
+                in neighborStructures)
+            {
+                if (
+                    other == null ||
+                    other == targetStructure)
+                {
+                    continue;
+                }
+
+
+                foreach (
+                    Vector3Int cell
+                    in other.cells)
+                {
+                    targetStructure.cells.Add(
+                        cell
+                    );
+
+                    cellToStructure[cell] =
+                        targetStructure;
+                }
+
+
+                structures.Remove(
+                    other
+                );
+            }
+        }
+
+
+        // =================================================
+        // ADD CELLS
+        // =================================================
+
+        foreach (
+            Vector3Int cell
+            in newCells)
+        {
+            targetStructure.cells.Add(
+                cell
+            );
+
+            cellToStructure[cell] =
+                targetStructure;
+        }
+
+
+        // =================================================
+        // ROOM VALIDATION
+        // =================================================
+
+        if (
+            item.category ==
+            TileCategory.Floor)
+        {
+            ValidateRoomEnclosure(
+                targetStructure
+            );
+        }
+
+
+        if (
+            item.category ==
+            TileCategory.Wall ||
+            item.category ==
+            TileCategory.Door)
+        {
+            ValidateNearbyFloorStructures(
+                newCells
+            );
+        }
+
+
+        // =================================================
+        // UPDATE WALL VISUALS
+        // =================================================
+
+        UpdateWallVisuals(
+            newCells
         );
     }
 
 
     // =====================================================
-    // FIND PLACEMENT AT CELL
+    // UPDATE WALL VISUALS
     // =====================================================
 
-    public BaseTilePlacement FindPlacement(
-        Vector3Int cell)
+    private void UpdateWallVisuals(
+        List<Vector3Int> changedCells)
     {
-        for (int i = placements.Count - 1; i >= 0; i--)
+        if (
+            wallManager.Instance == null ||
+            changedCells == null)
         {
-            BaseTilePlacement placement =
-                placements[i];
+            return;
+        }
 
 
-            if (placement == null)
+        foreach (
+            Vector3Int cell
+            in changedCells)
+        {
+            wallManager.Instance.UpdateWallsAround(
+                new Vector2Int(
+                    cell.x,
+                    cell.y
+                )
+            );
+        }
+    }
+
+
+    // =====================================================
+    // RESTORE
+    // =====================================================
+
+    public void RestoreSavedStructures(
+        List<BuildingStructureSaveData> savedStructures,
+        ItemDatabase database)
+    {
+        if (database == null)
+        {
+            Debug.LogError(
+                "[ROOM SYSTEM] Cannot restore structures. Database is NULL."
+            );
+
+            return;
+        }
+
+
+        structures.Clear();
+
+        cellToStructure.Clear();
+
+
+        if (
+            savedStructures == null ||
+            savedStructures.Count == 0)
+        {
+            Debug.Log(
+                "[ROOM SYSTEM] No saved structures to restore."
+            );
+
+            return;
+        }
+
+
+        int restoredCount = 0;
+
+
+        foreach (
+            BuildingStructureSaveData saved
+            in savedStructures)
+        {
+            if (saved == null)
                 continue;
 
 
-            if (placement.cells.Contains(cell))
+            ItemData item =
+                database.GetItemByID(
+                    saved.itemID
+                );
+
+
+            if (
+                item == null ||
+                item is not buildSO build)
             {
-                return placement;
+                Debug.LogWarning(
+                    "[ROOM SYSTEM] Could not restore structure item ID: " +
+                    saved.itemID
+                );
+
+                continue;
+            }
+
+
+            BuildingStructure structure =
+                new BuildingStructure();
+
+
+            if (
+                !string.IsNullOrEmpty(
+                    saved.id))
+            {
+                structure.id =
+                    saved.id;
+            }
+
+
+            structure.itemType =
+                build;
+
+
+            if (saved.cells != null)
+            {
+                foreach (
+                    Vector3Int cell
+                    in saved.cells)
+                {
+                    structure.cells.Add(
+                        cell
+                    );
+
+                    cellToStructure[cell] =
+                        structure;
+                }
+            }
+
+
+            structure.isEnclosedRoom =
+                saved.isEnclosedRoom;
+
+            structure.totalWallCount =
+                saved.totalWallCount;
+
+            structure.totalDoorCount =
+                saved.totalDoorCount;
+
+
+            structures.Add(
+                structure
+            );
+
+
+            restoredCount++;
+        }
+
+
+        foreach (
+            BuildingStructure structure
+            in structures)
+        {
+            if (
+                structure == null ||
+                structure.itemType == null ||
+                structure.cells == null ||
+                structure.cells.Count == 0)
+            {
+                continue;
+            }
+
+
+            if (
+                structure.itemType.category ==
+                TileCategory.Floor)
+            {
+                ValidateRoomEnclosure(
+                    structure
+                );
             }
         }
 
 
-        return null;
+        Debug.Log(
+            $"<color=green>" +
+            $"[ROOM SYSTEM] RESTORED STRUCTURES: " +
+            $"{restoredCount}" +
+            $"</color>"
+        );
+    }
+
+
+    // =====================================================
+    // VALIDATE NEARBY FLOORS
+    // =====================================================
+
+    private void ValidateNearbyFloorStructures(
+        List<Vector3Int> changedCells)
+    {
+        HashSet<BuildingStructure>
+            floorStructures =
+            new HashSet<BuildingStructure>();
+
+
+        foreach (
+            Vector3Int cell
+            in changedCells)
+        {
+            foreach (
+                Vector3Int direction
+                in AdjacentDirections)
+            {
+                Vector3Int neighborCell =
+                    cell + direction;
+
+
+                if (
+                    cellToStructure.TryGetValue(
+                        neighborCell,
+                        out BuildingStructure structure
+                    ))
+                {
+                    if (
+                        structure != null &&
+                        structure.itemType != null &&
+                        structure.itemType.category ==
+                        TileCategory.Floor)
+                    {
+                        floorStructures.Add(
+                            structure
+                        );
+                    }
+                }
+            }
+        }
+
+
+        foreach (
+            BuildingStructure floorStructure
+            in floorStructures)
+        {
+            ValidateRoomEnclosure(
+                floorStructure
+            );
+        }
+    }
+
+
+    // =====================================================
+    // ROOM ENCLOSURE
+    // =====================================================
+
+    public bool ValidateRoomEnclosure(
+        BuildingStructure structure)
+    {
+        if (
+            structure == null ||
+            structure.cells == null ||
+            structure.cells.Count == 0)
+        {
+            return false;
+        }
+
+
+        if (
+            structure.itemType == null ||
+            structure.itemType.category !=
+            TileCategory.Floor)
+        {
+            return false;
+        }
+
+
+        structure.totalWallCount = 0;
+
+        structure.totalDoorCount = 0;
+
+
+        int minX =
+            int.MaxValue;
+
+        int maxX =
+            int.MinValue;
+
+        int minY =
+            int.MaxValue;
+
+        int maxY =
+            int.MinValue;
+
+
+        foreach (
+            Vector3Int cell
+            in structure.cells)
+        {
+            if (cell.x < minX)
+                minX = cell.x;
+
+            if (cell.x > maxX)
+                maxX = cell.x;
+
+            if (cell.y < minY)
+                minY = cell.y;
+
+            if (cell.y > maxY)
+                maxY = cell.y;
+        }
+
+
+        Debug.Log(
+            $"<color=yellow>" +
+            $"[ROOM SYSTEM] CHECKING ROOM" +
+            $"</color> | " +
+            $"Floors: {structure.cells.Count} | " +
+            $"Bounds: X({minX} -> {maxX}) " +
+            $"Y({minY} -> {maxY})"
+        );
+
+
+        bool bottomClosed =
+            CheckBottomBoundary(
+                structure,
+                minX,
+                maxX,
+                minY
+            );
+
+
+        bool topClosed =
+            CheckTopBoundary(
+                structure,
+                minX,
+                maxX,
+                maxY
+            );
+
+
+        bool enclosed =
+            bottomClosed &&
+            topClosed;
+
+
+        Debug.Log(
+            $"<color=orange>" +
+            $"[ROOM SYSTEM] RESULT" +
+            $"</color> | " +
+            $"Bottom: {bottomClosed} | " +
+            $"Top: {topClosed} | " +
+            $"Walls: {structure.totalWallCount} | " +
+            $"Doors: {structure.totalDoorCount}"
+        );
+
+
+        structure.SetEnclosureStatus(
+            enclosed
+        );
+
+
+        return enclosed;
+    }
+
+
+    // =====================================================
+    // BOTTOM
+    // =====================================================
+
+    private bool CheckBottomBoundary(
+        BuildingStructure structure,
+        int minX,
+        int maxX,
+        int minY)
+    {
+        bool closed = true;
+
+
+        for (
+            int x = minX;
+            x <= maxX;
+            x++)
+        {
+            Vector3Int floorCell =
+                new Vector3Int(
+                    x,
+                    minY,
+                    0
+                );
+
+
+            if (
+                !structure.cells.Contains(
+                    floorCell))
+            {
+                continue;
+            }
+
+
+            if (
+                !CheckBoundaryCell(
+                    structure,
+                    floorCell
+                ))
+            {
+                closed = false;
+            }
+        }
+
+
+        return closed;
+    }
+
+
+    // =====================================================
+    // TOP
+    // =====================================================
+
+    private bool CheckTopBoundary(
+        BuildingStructure structure,
+        int minX,
+        int maxX,
+        int maxY)
+    {
+        bool closed = true;
+
+
+        for (
+            int x = minX;
+            x <= maxX;
+            x++)
+        {
+            Vector3Int floorCell =
+                new Vector3Int(
+                    x,
+                    maxY,
+                    0
+                );
+
+
+            if (
+                !structure.cells.Contains(
+                    floorCell))
+            {
+                continue;
+            }
+
+
+            if (
+                !CheckBoundaryCell(
+                    structure,
+                    floorCell
+                ))
+            {
+                closed = false;
+            }
+        }
+
+
+        return closed;
+    }
+
+
+    // =====================================================
+    // CHECK BOUNDARY
+    // =====================================================
+
+    private bool CheckBoundaryCell(
+        BuildingStructure floorStructure,
+        Vector3Int boundaryCell)
+    {
+        if (
+            !cellToStructure.TryGetValue(
+                boundaryCell,
+                out BuildingStructure boundary
+            ))
+        {
+            return false;
+        }
+
+
+        if (
+            boundary == null ||
+            boundary.itemType == null)
+        {
+            return false;
+        }
+
+
+        TileCategory category =
+            boundary.itemType.category;
+
+
+        if (
+            category ==
+            TileCategory.Wall)
+        {
+            floorStructure.totalWallCount++;
+
+            return true;
+        }
+
+
+        if (
+            category ==
+            TileCategory.Door)
+        {
+            floorStructure.totalDoorCount++;
+
+            return true;
+        }
+
+
+        return false;
     }
 
 
@@ -93,64 +856,344 @@ public class BaseTilePlacementManager : MonoBehaviour
         Tilemap tilemap,
         Vector3Int cell)
     {
-        if (tilemap == null)
-            return false;
-
-
-        BaseTilePlacement placement =
-            FindPlacement(cell);
-
-
-        if (placement == null)
-            return false;
-
-
-        // =================================================
-        // REMOVE ALL TILES
-        // =================================================
-
-        foreach (
-            Vector3Int placementCell
-            in placement.cells)
+        if (
+            tilemap == null ||
+            !cellToStructure.TryGetValue(
+                cell,
+                out BuildingStructure originalStructure
+            ))
         {
-            tilemap.SetTile(
-                placementCell,
-                null
-            );
+            return false;
         }
 
 
-        // =================================================
-        // RETURN ITEM
-        // =================================================
+        HashSet<BuildingStructure>
+            affectedRooms =
+            FindNearbyFloorStructures(
+                cell
+            );
+
+
+        tilemap.SetTile(
+            cell,
+            null
+        );
+
+
+        cellToStructure.Remove(
+            cell
+        );
+
+
+        originalStructure.cells.Remove(
+            cell
+        );
+
 
         if (
-            placement.item != null &&
+            originalStructure.itemType != null &&
             InventoryManager.Instance != null)
         {
             InventoryManager.Instance.AddItem(
-                placement.item,
+                originalStructure.itemType,
                 1
             );
         }
 
 
-        // =================================================
-        // REMOVE RECORD
-        // =================================================
-
-        placements.Remove(
-            placement
+        UpdateWallVisuals(
+            new List<Vector3Int>
+            {
+                cell
+            }
         );
 
 
-        // =================================================
-        // REFRESH
-        // =================================================
+        if (
+            originalStructure.cells.Count == 0)
+        {
+            structures.Remove(
+                originalStructure
+            );
+
+
+            foreach (
+                BuildingStructure room
+                in affectedRooms)
+            {
+                if (
+                    room != null &&
+                    room.cells.Count > 0)
+                {
+                    ValidateRoomEnclosure(
+                        room
+                    );
+                }
+            }
+
+
+            tilemap.RefreshAllTiles();
+
+            SaveWorldAfterChange();
+
+            return true;
+        }
+
+
+        RebuildAndSplitStructure(
+            originalStructure
+        );
+
+
+        foreach (
+            BuildingStructure room
+            in affectedRooms)
+        {
+            if (
+                room != null &&
+                room.cells.Count > 0)
+            {
+                ValidateRoomEnclosure(
+                    room
+                );
+            }
+        }
+
 
         tilemap.RefreshAllTiles();
 
 
+        SaveWorldAfterChange();
+
+
         return true;
+    }
+
+
+    // =====================================================
+    // SAVE
+    // =====================================================
+
+    private void SaveWorldAfterChange()
+    {
+        if (
+            BuildingSaveManager.Instance != null)
+        {
+            BuildingSaveManager.Instance
+                .SaveAfterChange();
+        }
+    }
+
+
+    // =====================================================
+    // FIND NEARBY FLOORS
+    // =====================================================
+
+    private HashSet<BuildingStructure>
+        FindNearbyFloorStructures(
+            Vector3Int cell)
+    {
+        HashSet<BuildingStructure>
+            result =
+            new HashSet<BuildingStructure>();
+
+
+        foreach (
+            Vector3Int direction
+            in AdjacentDirections)
+        {
+            Vector3Int neighborCell =
+                cell + direction;
+
+
+            if (
+                cellToStructure.TryGetValue(
+                    neighborCell,
+                    out BuildingStructure structure
+                ))
+            {
+                if (
+                    structure != null &&
+                    structure.itemType != null &&
+                    structure.itemType.category ==
+                    TileCategory.Floor)
+                {
+                    result.Add(
+                        structure
+                    );
+                }
+            }
+        }
+
+
+        return result;
+    }
+
+
+    // =====================================================
+    // SPLIT
+    // =====================================================
+
+    private void RebuildAndSplitStructure(
+        BuildingStructure originalStructure)
+    {
+        HashSet<Vector3Int>
+            unvisited =
+            new HashSet<Vector3Int>(
+                originalStructure.cells
+            );
+
+
+        structures.Remove(
+            originalStructure
+        );
+
+
+        while (
+            unvisited.Count > 0)
+        {
+            BuildingStructure
+                newStructure =
+                new BuildingStructure
+                {
+                    itemType =
+                        originalStructure.itemType
+                };
+
+
+            Queue<Vector3Int>
+                queue =
+                new Queue<Vector3Int>();
+
+
+            Vector3Int start =
+                default;
+
+
+            foreach (
+                Vector3Int first
+                in unvisited)
+            {
+                start = first;
+                break;
+            }
+
+
+            queue.Enqueue(
+                start
+            );
+
+
+            unvisited.Remove(
+                start
+            );
+
+
+            while (
+                queue.Count > 0)
+            {
+                Vector3Int current =
+                    queue.Dequeue();
+
+
+                newStructure.cells.Add(
+                    current
+                );
+
+
+                cellToStructure[current] =
+                    newStructure;
+
+
+                foreach (
+                    Vector3Int direction
+                    in AdjacentDirections)
+                {
+                    Vector3Int neighbor =
+                        current + direction;
+
+
+                    if (
+                        unvisited.Contains(
+                            neighbor))
+                    {
+                        unvisited.Remove(
+                            neighbor
+                        );
+
+                        queue.Enqueue(
+                            neighbor
+                        );
+                    }
+                }
+            }
+
+
+            structures.Add(
+                newStructure
+            );
+
+
+            ValidateRoomEnclosure(
+                newStructure
+            );
+        }
+    }
+
+
+    // =====================================================
+    // DEBUG
+    // =====================================================
+
+    [ContextMenu("Debug Room Structures")]
+    public void DebugRoomStructures()
+    {
+        Debug.Log(
+            "<color=cyan>" +
+            "========== ROOM STRUCTURES ==========" +
+            "</color>"
+        );
+
+
+        foreach (
+            BuildingStructure structure
+            in structures)
+        {
+            if (
+                structure == null ||
+                structure.itemType == null)
+            {
+                continue;
+            }
+
+
+            Debug.Log(
+                $"[STRUCTURE] | " +
+                $"ID: {structure.id} | " +
+                $"Item: {structure.itemType.name} | " +
+                $"Category: {structure.itemType.category} | " +
+                $"Cells: {structure.cells.Count} | " +
+                $"Room: {structure.isEnclosedRoom} | " +
+                $"Walls: {structure.totalWallCount} | " +
+                $"Doors: {structure.totalDoorCount}"
+            );
+
+
+            foreach (
+                Vector3Int cell
+                in structure.cells)
+            {
+                Debug.Log(
+                    $"    Cell: {cell}"
+                );
+            }
+        }
+
+
+        Debug.Log(
+            "<color=cyan>" +
+            "======================================" +
+            "</color>"
+        );
     }
 }

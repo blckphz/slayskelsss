@@ -308,17 +308,6 @@ public class TileSaver : MonoBehaviour
             return;
         }
 
-
-        if (saveData == null)
-        {
-            Debug.LogError(
-                "[TileSaver] Save data is NULL."
-            );
-
-            return;
-        }
-
-
         // =================================================
         // CLEAR CURRENT TILEMAPS
         // =================================================
@@ -374,18 +363,6 @@ public class TileSaver : MonoBehaviour
                         data.tileName
                     );
 
-
-                if (tile == null)
-                {
-                    Debug.LogWarning(
-                        "[TileSaver] Could not find tile: " +
-                        data.tileName
-                    );
-
-                    continue;
-                }
-
-
                 Vector3Int cell =
                     new Vector3Int(
                         data.x,
@@ -404,10 +381,6 @@ public class TileSaver : MonoBehaviour
             tilemap.RefreshAllTiles();
         }
 
-
-        Debug.Log(
-            "[TileSaver] Loaded tilemaps."
-        );
     }
 
 
@@ -467,11 +440,6 @@ public class TileSaver : MonoBehaviour
 
             tilemap.ClearAllTiles();
         }
-
-
-        Debug.Log(
-            "[TileSaver] Cleared tilemaps."
-        );
     }
 
 
@@ -497,11 +465,6 @@ public class TileSaver : MonoBehaviour
 
 
         PlayerPrefs.Save();
-
-
-        Debug.Log(
-            "[TileSaver] Tile save deleted."
-        );
     }
 
 
@@ -511,16 +474,10 @@ public class TileSaver : MonoBehaviour
 
     public void DebugTilemaps()
     {
-        Debug.Log(
-            "[TileSaver] ===== TILEMAP DEBUG ====="
-        );
-
 
         if (tilemaps == null)
         {
-            Debug.LogError(
-                "[TileSaver] tilemaps == NULL"
-            );
+           
 
             return;
         }
@@ -537,12 +494,6 @@ public class TileSaver : MonoBehaviour
 
             if (tilemap == null)
             {
-                Debug.LogError(
-                    "[TileSaver] Tilemap " +
-                    mapIndex +
-                    " is NULL"
-                );
-
                 continue;
             }
 
@@ -567,32 +518,12 @@ public class TileSaver : MonoBehaviour
 
 
                 count++;
-
-
-                Debug.Log(
-                    "[TileSaver] MAP " +
-                    mapIndex +
-                    " | " +
-                    tilemap.name +
-                    " | Cell=" +
-                    cell +
-                    " | Tile=" +
-                    tile.name
-                );
             }
 
 
-            Debug.Log(
-                "[TileSaver] MAP " +
-                mapIndex +
-                " TOTAL TILES = " +
-                count
-            );
+           
         }
 
 
-        Debug.Log(
-            "[TileSaver] ========================="
-        );
     }
 }

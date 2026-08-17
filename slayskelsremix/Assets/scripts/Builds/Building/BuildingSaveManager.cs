@@ -67,6 +67,15 @@ public class BuildingSaveManager : MonoBehaviour
 
 
     // =====================================================
+    // ROOM SYSTEM
+    // =====================================================
+
+    [Header("Room / Structure System")]
+    public BaseTilePlacementManager
+        baseTilePlacementManager;
+
+
+    // =====================================================
     // BUILDINGS
     // =====================================================
 
@@ -111,9 +120,22 @@ public class BuildingSaveManager : MonoBehaviour
             return;
         }
 
+
         savePath =
             Application.persistentDataPath +
             "/buildings.json";
+
+
+        // =================================================
+        // AUTO FIND ROOM SYSTEM
+        // =================================================
+
+        if (
+            baseTilePlacementManager == null)
+        {
+            baseTilePlacementManager =
+                BaseTilePlacementManager.Instance;
+        }
     }
 
 
@@ -131,10 +153,12 @@ public class BuildingSaveManager : MonoBehaviour
     // REGISTER BUILDING
     // =====================================================
 
-    public void RegisterBuilding(GameObject obj)
+    public void RegisterBuilding(
+        GameObject obj)
     {
         if (obj == null)
             return;
+
 
         if (!placedObjects.Contains(obj))
         {
@@ -147,10 +171,12 @@ public class BuildingSaveManager : MonoBehaviour
     // UNREGISTER BUILDING
     // =====================================================
 
-    public void UnregisterBuilding(GameObject obj)
+    public void UnregisterBuilding(
+        GameObject obj)
     {
         if (obj == null)
             return;
+
 
         placedObjects.Remove(obj);
     }
@@ -175,8 +201,10 @@ public class BuildingSaveManager : MonoBehaviour
             data.playerPosition =
                 player.position;
 
+
             PlayerNeeds needs =
                 player.GetComponent<PlayerNeeds>();
+
 
             if (needs != null)
             {
@@ -228,9 +256,9 @@ public class BuildingSaveManager : MonoBehaviour
             );
 
 
-            // =============================================
+            // =================================================
             // CAMPFIRE
-            // =============================================
+            // =================================================
 
             if (obj.TryGetComponent(
                 out CampfireBehav campfire))
@@ -238,14 +266,17 @@ public class BuildingSaveManager : MonoBehaviour
                 b.fuelAmount =
                     campfire.fuelAmount;
 
+
                 b.isBurning =
                     campfire.isBurning;
+
 
                 b.fuelItemIDs =
                     new List<int>();
 
 
-                if (campfire.validFuelItems != null)
+                if (
+                    campfire.validFuelItems != null)
                 {
                     foreach (
                         ItemData fuel
@@ -272,7 +303,9 @@ public class BuildingSaveManager : MonoBehaviour
             }
 
 
-            data.buildings.Add(b);
+            data.buildings.Add(
+                b
+            );
         }
 
 
@@ -287,6 +320,7 @@ public class BuildingSaveManager : MonoBehaviour
         {
             if (plant == null)
                 continue;
+
 
             data.plants.Add(
                 plant.GetPlantSaveData()
@@ -306,6 +340,7 @@ public class BuildingSaveManager : MonoBehaviour
             if (npc == null)
                 continue;
 
+
             data.npcInventories.Add(
                 npc.GetSaveData()
             );
@@ -323,6 +358,7 @@ public class BuildingSaveManager : MonoBehaviour
         {
             if (bush == null)
                 continue;
+
 
             data.bushes.Add(
                 bush.GetSaveData()
@@ -342,6 +378,7 @@ public class BuildingSaveManager : MonoBehaviour
             if (leaf == null)
                 continue;
 
+
             data.leafdata.Add(
                 leaf.GetSaveData()
             );
@@ -360,6 +397,7 @@ public class BuildingSaveManager : MonoBehaviour
         {
             if (stone == null)
                 continue;
+
 
             data.stonedata.Add(
                 stone.GetSaveData()
@@ -383,6 +421,7 @@ public class BuildingSaveManager : MonoBehaviour
         {
             if (tree == null)
                 continue;
+
 
             TreeSaveData treeData =
                 tree.GetSaveData();
@@ -452,7 +491,18 @@ public class BuildingSaveManager : MonoBehaviour
         // BASE TILEMAPS
         // =================================================
 
-        SaveBaseTiles(data);
+        SaveBaseTiles(
+            data
+        );
+
+
+        // =================================================
+        // STRUCTURES
+        // =================================================
+
+        SaveBuildingStructures(
+            data
+        );
 
 
         // =================================================
@@ -498,6 +548,17 @@ public class BuildingSaveManager : MonoBehaviour
                 savePath,
                 json
             );
+
+
+            Debug.Log(
+                $"<color=green>" +
+                $"[BuildingSaveManager] WORLD SAVED" +
+                $"</color> | " +
+                $"Structures: " +
+                $"{data.buildingStructures.Count} | " +
+                $"Base Tiles: " +
+                $"{data.baseTiles.Count}"
+            );
         }
         catch (Exception e)
         {
@@ -506,6 +567,118 @@ public class BuildingSaveManager : MonoBehaviour
                 e.Message
             );
         }
+    }
+
+
+    // =====================================================
+    // SAVE BUILDING STRUCTURES
+    // =====================================================
+
+    private void SaveBuildingStructures(
+        SaveData data)
+    {
+        data.buildingStructures.Clear();
+
+
+        if (
+            baseTilePlacementManager == null)
+        {
+            baseTilePlacementManager =
+                BaseTilePlacementManager.Instance;
+        }
+
+
+        if (baseTilePlacementManager == null)
+        {
+            Debug.LogWarning(
+                "[BuildingSaveManager] " +
+                "BaseTilePlacementManager missing. " +
+                "Structures were not saved."
+            );
+
+            return;
+        }
+
+
+        if (
+            baseTilePlacementManager.structures == null)
+        {
+            return;
+        }
+
+
+        foreach (
+            BuildingStructure structure
+            in baseTilePlacementManager.structures)
+        {
+            if (
+                structure == null ||
+                structure.itemType == null ||
+                structure.cells == null ||
+                structure.cells.Count == 0)
+            {
+                continue;
+            }
+
+
+            BuildingStructureSaveData save =
+                new BuildingStructureSaveData();
+
+
+            // =================================================
+            // ID
+            // =================================================
+
+            save.id =
+                structure.id;
+
+
+            // =================================================
+            // ITEM
+            // =================================================
+
+            save.itemID =
+                structure.itemType.itemID;
+
+
+            // =================================================
+            // CELLS
+            // =================================================
+
+            save.cells =
+                new List<Vector3Int>(
+                    structure.cells
+                );
+
+
+            // =================================================
+            // ROOM
+            // =================================================
+
+            save.isEnclosedRoom =
+                structure.isEnclosedRoom;
+
+
+            save.totalWallCount =
+                structure.totalWallCount;
+
+
+            save.totalDoorCount =
+                structure.totalDoorCount;
+
+
+            data.buildingStructures.Add(
+                save
+            );
+        }
+
+
+        Debug.Log(
+            $"<color=cyan>" +
+            $"[ROOM SYSTEM] SAVED STRUCTURES: " +
+            $"{data.buildingStructures.Count}" +
+            $"</color>"
+        );
     }
 
 
@@ -549,10 +722,6 @@ public class BuildingSaveManager : MonoBehaviour
         }
 
 
-        // =================================================
-        // LOOP TILEMAPS
-        // =================================================
-
         for (
             int mapIndex = 0;
             mapIndex < tileSaver.tilemaps.Length;
@@ -582,12 +751,10 @@ public class BuildingSaveManager : MonoBehaviour
                     continue;
 
 
-                // =========================================
-                // FIND BUILD ITEM
-                // =========================================
-
                 buildSO build =
-                    FindBuildItemForTile(tile);
+                    FindBuildItemForTile(
+                        tile
+                    );
 
 
                 if (build == null)
@@ -601,10 +768,6 @@ public class BuildingSaveManager : MonoBehaviour
                     continue;
                 }
 
-
-                // =========================================
-                // SAVE TILE
-                // =========================================
 
                 data.baseTiles.Add(
                     new BaseTileData
@@ -642,10 +805,6 @@ public class BuildingSaveManager : MonoBehaviour
             return null;
 
 
-        // =================================================
-        // TOOLS
-        // =================================================
-
         buildSO result =
             FindBuildItemInList(
                 database.Tools,
@@ -657,10 +816,6 @@ public class BuildingSaveManager : MonoBehaviour
             return result;
 
 
-        // =================================================
-        // PLACEABLES
-        // =================================================
-
         result =
             FindBuildItemInList(
                 database.Placeables,
@@ -671,10 +826,6 @@ public class BuildingSaveManager : MonoBehaviour
         if (result != null)
             return result;
 
-
-        // =================================================
-        // RESOURCES
-        // =================================================
 
         result =
             FindBuildItemInList(
@@ -794,6 +945,7 @@ public class BuildingSaveManager : MonoBehaviour
                 e.Message
             );
 
+
             cachedData =
                 new SaveData();
         }
@@ -818,6 +970,11 @@ public class BuildingSaveManager : MonoBehaviour
         if (cachedData.baseTiles == null)
             cachedData.baseTiles =
                 new List<BaseTileData>();
+
+
+        if (cachedData.buildingStructures == null)
+            cachedData.buildingStructures =
+                new List<BuildingStructureSaveData>();
 
 
         if (cachedData.plants == null)
@@ -911,7 +1068,6 @@ public class BuildingSaveManager : MonoBehaviour
             }
 
 
-            // Base tiles are loaded separately.
             if (build.baseTile)
                 continue;
 
@@ -939,9 +1095,9 @@ public class BuildingSaveManager : MonoBehaviour
             }
 
 
-            // =============================================
+            // =================================================
             // CAMPFIRE
-            // =============================================
+            // =================================================
 
             if (obj.TryGetComponent(
                 out CampfireBehav campfire))
@@ -949,8 +1105,10 @@ public class BuildingSaveManager : MonoBehaviour
                 campfire.fuelAmount =
                     b.fuelAmount;
 
+
                 campfire.isBurning =
                     b.isBurning;
+
 
                 campfire.validFuelItems =
                     new List<ItemData>();
@@ -976,7 +1134,8 @@ public class BuildingSaveManager : MonoBehaviour
                         }
                     }
                 }
-                else if (b.fuelItemID != -1)
+                else if (
+                    b.fuelItemID != -1)
                 {
                     ItemData fuel =
                         database.GetItemByID(
@@ -994,15 +1153,26 @@ public class BuildingSaveManager : MonoBehaviour
             }
 
 
-            RegisterBuilding(obj);
+            RegisterBuilding(
+                obj
+            );
         }
 
 
         // =================================================
         // BASE TILEMAPS
+        //
+        // MUST HAPPEN BEFORE STRUCTURES.
         // =================================================
 
         LoadBaseTiles();
+
+
+        // =================================================
+        // RESTORE STRUCTURES
+        // =================================================
+
+        LoadBuildingStructures();
 
 
         // =================================================
@@ -1248,6 +1418,7 @@ public class BuildingSaveManager : MonoBehaviour
                     out treeItemBehav tree))
                 {
                     tree.LoadData(t);
+
                     tree.OnSpawnFromWorld();
                 }
             }
@@ -1292,7 +1463,51 @@ public class BuildingSaveManager : MonoBehaviour
 
         HasLoadedWorld = true;
 
+
+        Debug.Log(
+            $"<color=green>" +
+            $"[BuildingSaveManager] WORLD LOADED" +
+            $"</color> | " +
+            $"Structures: " +
+            $"{cachedData.buildingStructures.Count}"
+        );
+
+
         OnWorldLoaded?.Invoke();
+    }
+
+
+    // =====================================================
+    // LOAD BUILDING STRUCTURES
+    // =====================================================
+
+    private void LoadBuildingStructures()
+    {
+        if (
+            baseTilePlacementManager == null)
+        {
+            baseTilePlacementManager =
+                BaseTilePlacementManager.Instance;
+        }
+
+
+        if (baseTilePlacementManager == null)
+        {
+            Debug.LogWarning(
+                "[BuildingSaveManager] " +
+                "BaseTilePlacementManager missing. " +
+                "Structures could not be loaded."
+            );
+
+            return;
+        }
+
+
+        baseTilePlacementManager
+            .RestoreSavedStructures(
+                cachedData.buildingStructures,
+                database
+            );
     }
 
 
@@ -1351,10 +1566,6 @@ public class BuildingSaveManager : MonoBehaviour
             BaseTileData savedTile
             in cachedData.baseTiles)
         {
-            // =============================================
-            // TILEMAP INDEX
-            // =============================================
-
             if (
                 savedTile.tilemapIndex < 0 ||
                 savedTile.tilemapIndex >=
@@ -1373,10 +1584,6 @@ public class BuildingSaveManager : MonoBehaviour
             if (targetTilemap == null)
                 continue;
 
-
-            // =============================================
-            // FIND BUILD ITEM
-            // =============================================
 
             ItemData item =
                 database.GetItemByID(
@@ -1400,10 +1607,6 @@ public class BuildingSaveManager : MonoBehaviour
                 continue;
 
 
-            // =============================================
-            // GET TILEMAP FROM PREFAB
-            // =============================================
-
             Tilemap sourceTilemap =
                 build.placeablePrefab
                     .GetComponentInChildren<Tilemap>(
@@ -1422,10 +1625,6 @@ public class BuildingSaveManager : MonoBehaviour
                 continue;
             }
 
-
-            // =============================================
-            // FIND TILE
-            // =============================================
 
             TileBase sourceTile = null;
 
@@ -1451,6 +1650,7 @@ public class BuildingSaveManager : MonoBehaviour
                 sourceTile =
                     tile;
 
+
                 break;
             }
 
@@ -1459,10 +1659,6 @@ public class BuildingSaveManager : MonoBehaviour
                 continue;
 
 
-            // =============================================
-            // TARGET CELL
-            // =============================================
-
             Vector3Int targetCell =
                 new Vector3Int(
                     savedTile.x,
@@ -1470,10 +1666,6 @@ public class BuildingSaveManager : MonoBehaviour
                     0
                 );
 
-
-            // =============================================
-            // PLACE TILE
-            // =============================================
 
             targetTilemap.SetTile(
                 targetCell,
@@ -1486,7 +1678,7 @@ public class BuildingSaveManager : MonoBehaviour
 
 
         // =================================================
-        // REFRESH TILEMAPS
+        // REFRESH
         // =================================================
 
         for (
@@ -1518,15 +1710,12 @@ public class BuildingSaveManager : MonoBehaviour
         }
 
 
-        if (loadedCount > 0)
-        {
-            Debug.Log(
-                "[BuildingSaveManager] " +
-                "Loaded " +
-                loadedCount +
-                " base tiles."
-            );
-        }
+        Debug.Log(
+            $"<color=cyan>" +
+            $"[BuildingSaveManager] " +
+            $"Loaded base tiles: {loadedCount}" +
+            $"</color>"
+        );
     }
 
 
