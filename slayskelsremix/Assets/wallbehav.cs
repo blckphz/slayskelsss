@@ -329,26 +329,6 @@ public class WallBehav : MonoBehaviour
         {
             renderer.enabled = true;
         }
-
-
-        // =====================================================
-        // DEBUG
-        // =====================================================
-
-        Debug.Log(
-            "WallBehav: Updated wall " +
-            gameObject.name +
-            " at " +
-            gridPos +
-            " | Up: " +
-            up +
-            " Down: " +
-            down +
-            " Left: " +
-            left +
-            " Right: " +
-            right
-        );
     }
 
 

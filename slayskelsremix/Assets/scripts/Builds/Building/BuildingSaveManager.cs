@@ -548,17 +548,6 @@ public class BuildingSaveManager : MonoBehaviour
                 savePath,
                 json
             );
-
-
-            Debug.Log(
-                $"<color=green>" +
-                $"[BuildingSaveManager] WORLD SAVED" +
-                $"</color> | " +
-                $"Structures: " +
-                $"{data.buildingStructures.Count} | " +
-                $"Base Tiles: " +
-                $"{data.baseTiles.Count}"
-            );
         }
         catch (Exception e)
         {
@@ -671,14 +660,6 @@ public class BuildingSaveManager : MonoBehaviour
                 save
             );
         }
-
-
-        Debug.Log(
-            $"<color=cyan>" +
-            $"[ROOM SYSTEM] SAVED STRUCTURES: " +
-            $"{data.buildingStructures.Count}" +
-            $"</color>"
-        );
     }
 
 

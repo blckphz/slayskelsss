@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-
 // =========================================================
 // WALL MANAGER
 // =========================================================
@@ -10,14 +9,19 @@ public class wallManager : MonoBehaviour
 {
     public static wallManager Instance { get; private set; }
 
-
     // =========================================================
     // WALL LOOKUP
     // =========================================================
 
-    private Dictionary<Vector2Int, WallBehav> walls =
-        new Dictionary<Vector2Int, WallBehav>();
+    private readonly Dictionary<Vector2Int, WallBehav> walls = new Dictionary<Vector2Int, WallBehav>();
 
+    private static readonly Vector2Int[] neighborOffsets = new Vector2Int[]
+    {
+        Vector2Int.up,
+        Vector2Int.down,
+        Vector2Int.left,
+        Vector2Int.right
+    };
 
     // =========================================================
     // AWAKE
@@ -25,9 +29,7 @@ public class wallManager : MonoBehaviour
 
     private void Awake()
     {
-        if (
-            Instance != null &&
-            Instance != this)
+        if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
             return;
@@ -36,270 +38,105 @@ public class wallManager : MonoBehaviour
         Instance = this;
     }
 
-
     // =========================================================
     // REGISTER WALL
     // =========================================================
 
-    public void RegisterWall(
-        WallBehav wall)
+    public void RegisterWall(WallBehav wall)
     {
-        if (wall == null)
-        {
-            return;
-        }
+        if (wall == null) return;
+        if (!wall.HasGridPosition()) return;
 
+        Vector2Int position = wall.GetGridPosition();
 
-        if (!wall.HasGridPosition())
-        {
-            Debug.LogWarning(
-                "[WALL MANAGER] Tried to register wall without grid position: " +
-                wall.name
-            );
+        walls[position] = wall;
 
-            return;
-        }
-
-
-        Vector2Int position =
-            wall.GetGridPosition();
-
-
-        Debug.Log(
-            $"<color=cyan>" +
-            $"[WALL MANAGER] REGISTER WALL" +
-            $"</color> | " +
-            $"Wall: {wall.name} | " +
-            $"Position: {position} | " +
-            $"World Position: {wall.transform.position}"
-        );
-
-
-        // =====================================================
-        // EXISTING WALL
-        // =====================================================
-
-        if (
-            walls.TryGetValue(
-                position,
-                out WallBehav existingWall
-            ))
-        {
-            if (
-                existingWall != null &&
-                existingWall != wall)
-            {
-                Debug.LogWarning(
-                    $"[WALL MANAGER] " +
-                    $"Another wall already exists at " +
-                    $"{position}. " +
-                    $"Replacing old wall."
-                );
-            }
-        }
-
-
-        // =====================================================
-        // REGISTER
-        // =====================================================
-
-        walls[position] =
-            wall;
-
-
-        // =====================================================
-        // UPDATE THIS WALL
-        // =====================================================
-
-        UpdateWall(
-            position
-        );
-
-
-        // =====================================================
-        // UPDATE NEIGHBOURS
-        // =====================================================
-
-        UpdateNeighbors(
-            position
-        );
+        UpdateWall(position);
+        UpdateNeighbors(position);
     }
-
 
     // =========================================================
     // UNREGISTER WALL
     // =========================================================
 
-    public void UnregisterWall(
-        WallBehav wall)
+    public void UnregisterWall(WallBehav wall)
     {
-        if (wall == null)
+        if (wall == null) return;
+
+        Vector2Int position = wall.GetGridPosition();
+
+        if (walls.TryGetValue(position, out WallBehav existingWall) && existingWall == wall)
         {
-            return;
+            walls.Remove(position);
         }
 
-
-        Vector2Int position =
-            wall.GetGridPosition();
-
-
-        Debug.Log(
-            $"<color=red>" +
-            $"[WALL MANAGER] UNREGISTER WALL" +
-            $"</color> | " +
-            $"Wall: {wall.name} | " +
-            $"Position: {position}"
-        );
-
-
-        // =====================================================
-        // ONLY REMOVE THE SAME INSTANCE
-        // =====================================================
-
-        if (
-            walls.TryGetValue(
-                position,
-                out WallBehav existingWall
-            ))
-        {
-            if (existingWall == wall)
-            {
-                walls.Remove(
-                    position
-                );
-            }
-        }
-
-
-        // =====================================================
-        // UPDATE NEIGHBOURS
-        // =====================================================
-
-        UpdateNeighbors(
-            position
-        );
+        UpdateNeighbors(position);
     }
-
 
     // =========================================================
     // HAS WALL
     // =========================================================
 
-    public bool HasWall(
-        Vector2Int position)
+    public bool HasWall(Vector2Int position)
     {
-        if (
-            walls.TryGetValue(
-                position,
-                out WallBehav wall
-            ))
+        if (walls.TryGetValue(position, out WallBehav wall))
         {
-            if (wall != null)
-            {
-                return true;
-            }
-
-            walls.Remove(
-                position
-            );
+            if (wall != null) return true;
+            walls.Remove(position);
         }
 
         return false;
     }
 
-
     // =========================================================
     // GET WALL
     // =========================================================
 
-    public WallBehav GetWall(
-        Vector2Int position)
+    public WallBehav GetWall(Vector2Int position)
     {
-        if (
-            walls.TryGetValue(
-                position,
-                out WallBehav wall
-            ))
+        if (walls.TryGetValue(position, out WallBehav wall))
         {
-            if (wall != null)
-            {
-                return wall;
-            }
-
-            walls.Remove(
-                position
-            );
+            if (wall != null) return wall;
+            walls.Remove(position);
         }
 
         return null;
     }
 
-
     // =========================================================
     // UPDATE WALL
     // =========================================================
 
-    public void UpdateWall(
-        Vector2Int position)
+    public void UpdateWall(Vector2Int position)
     {
-        WallBehav wall =
-            GetWall(position);
-
+        WallBehav wall = GetWall(position);
         if (wall != null)
         {
             wall.UpdateShape();
         }
     }
 
-
     // =========================================================
     // UPDATE NEIGHBOURS
     // =========================================================
 
-    private void UpdateNeighbors(
-        Vector2Int position)
+    private void UpdateNeighbors(Vector2Int position)
     {
-        UpdateWall(
-            position + Vector2Int.up
-        );
-
-        UpdateWall(
-            position + Vector2Int.down
-        );
-
-        UpdateWall(
-            position + Vector2Int.left
-        );
-
-        UpdateWall(
-            position + Vector2Int.right
-        );
+        for (int i = 0; i < neighborOffsets.Length; i++)
+        {
+            UpdateWall(position + neighborOffsets[i]);
+        }
     }
-
 
     // =========================================================
     // UPDATE WALLS AROUND CELL
     // =========================================================
 
-    public void UpdateWallsAround(
-        Vector2Int position)
+    public void UpdateWallsAround(Vector2Int position)
     {
-        Debug.Log(
-            $"[WALL MANAGER] Updating walls around: " +
-            position
-        );
-
-
-        UpdateWall(
-            position
-        );
-
-
-        UpdateNeighbors(
-            position
-        );
+        UpdateWall(position);
+        UpdateNeighbors(position);
     }
-
 
     // =========================================================
     // FORCE UPDATE ALL
@@ -307,30 +144,13 @@ public class wallManager : MonoBehaviour
 
     public void UpdateAllWalls()
     {
-        Debug.Log(
-            $"<color=yellow>" +
-            $"[WALL MANAGER] Updating ALL walls. " +
-            $"Count: {walls.Count}" +
-            $"</color>"
-        );
+        List<Vector2Int> positions = new List<Vector2Int>(walls.Keys);
 
-
-        List<Vector2Int> positions =
-            new List<Vector2Int>(
-                walls.Keys
-            );
-
-
-        foreach (
-            Vector2Int position
-            in positions)
+        for (int i = 0; i < positions.Count; i++)
         {
-            UpdateWall(
-                position
-            );
+            UpdateWall(positions[i]);
         }
     }
-
 
     // =========================================================
     // CLEAR
@@ -339,49 +159,5 @@ public class wallManager : MonoBehaviour
     public void ClearAllWalls()
     {
         walls.Clear();
-    }
-
-
-    // =========================================================
-    // DEBUG
-    // =========================================================
-
-    [ContextMenu("Debug Walls")]
-    public void DebugWalls()
-    {
-        Debug.Log(
-            "<color=cyan>" +
-            "========== WALL MANAGER ==========" +
-            "</color>"
-        );
-
-
-        foreach (
-            KeyValuePair<Vector2Int, WallBehav> pair
-            in walls)
-        {
-            if (pair.Value == null)
-            {
-                Debug.Log(
-                    $"Position: {pair.Key} | WALL NULL"
-                );
-
-                continue;
-            }
-
-
-            Debug.Log(
-                $"Position: {pair.Key} | " +
-                $"Wall: {pair.Value.name} | " +
-                $"World: {pair.Value.transform.position}"
-            );
-        }
-
-
-        Debug.Log(
-            "<color=cyan>" +
-            "==================================" +
-            "</color>"
-        );
     }
 }
