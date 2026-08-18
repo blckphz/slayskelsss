@@ -79,6 +79,23 @@ public class BaseTilePlacementManager : MonoBehaviour
 
 
     // =====================================================
+    // TILEMAP REFERENCES
+    // =====================================================
+
+    [Header("Room Collision")]
+
+    [Tooltip(
+        "The normal Tilemap containing your placed floor, wall and door tiles."
+    )]
+    public Tilemap sourceTilemap;
+
+    [Tooltip(
+        "Dedicated Tilemap used only for room collision."
+    )]
+    public Tilemap roomCollisionTilemap;
+
+
+    // =====================================================
     // STRUCTURES
     // =====================================================
 
@@ -229,6 +246,7 @@ public class BaseTilePlacementManager : MonoBehaviour
                 foreach (Vector3Int cell in other.cells)
                 {
                     targetStructure.cells.Add(cell);
+
                     cellToStructure[cell] =
                         targetStructure;
                 }
@@ -245,6 +263,7 @@ public class BaseTilePlacementManager : MonoBehaviour
         foreach (Vector3Int cell in newCells)
         {
             targetStructure.cells.Add(cell);
+
             cellToStructure[cell] =
                 targetStructure;
         }
@@ -326,6 +345,9 @@ public class BaseTilePlacementManager : MonoBehaviour
         structures.Clear();
         cellToStructure.Clear();
 
+        ClearAllRoomCollision();
+
+
         if (
             savedStructures == null ||
             savedStructures.Count == 0
@@ -382,6 +404,7 @@ public class BaseTilePlacementManager : MonoBehaviour
                 foreach (Vector3Int cell in saved.cells)
                 {
                     structure.cells.Add(cell);
+
                     cellToStructure[cell] =
                         structure;
                 }
@@ -428,6 +451,34 @@ public class BaseTilePlacementManager : MonoBehaviour
                 );
             }
         }
+
+
+        // =================================================
+        // REBUILD COLLISION
+        // =================================================
+
+        foreach (BuildingStructure structure in structures)
+        {
+            if (
+                structure == null ||
+                structure.itemType == null
+            )
+            {
+                continue;
+            }
+
+            if (
+                structure.itemType.category ==
+                TileCategory.Floor &&
+                structure.isEnclosedRoom
+            )
+            {
+                BuildRoomCollision(
+                    structure
+                );
+            }
+        }
+
 
         Debug.Log(
             $"<color=green>" +
@@ -582,9 +633,33 @@ public class BaseTilePlacementManager : MonoBehaviour
             bottomClosed &&
             topClosed;
 
+
+        // =================================================
+        // UPDATE STATUS
+        // =================================================
+
         structure.SetEnclosureStatus(
             enclosed
         );
+
+
+        // =================================================
+        // UPDATE COLLISION
+        // =================================================
+
+        if (enclosed)
+        {
+            BuildRoomCollision(
+                structure
+            );
+        }
+        else
+        {
+            RemoveRoomCollision(
+                structure
+            );
+        }
+
 
         return enclosed;
     }
@@ -701,16 +776,244 @@ public class BaseTilePlacementManager : MonoBehaviour
         if (category == TileCategory.Wall)
         {
             floorStructure.totalWallCount++;
+
             return true;
         }
 
         if (category == TileCategory.Door)
         {
             floorStructure.totalDoorCount++;
+
             return true;
         }
 
         return false;
+    }
+
+
+    // =====================================================
+    // BUILD ROOM COLLISION
+    // =====================================================
+
+    private void BuildRoomCollision(
+        BuildingStructure structure)
+    {
+        if (
+            structure == null ||
+            !structure.isEnclosedRoom
+        )
+        {
+            return;
+        }
+
+        if (roomCollisionTilemap == null)
+        {
+            Debug.LogWarning(
+                "[ROOM COLLISION] Room Collision Tilemap is not assigned."
+            );
+
+            return;
+        }
+
+        if (sourceTilemap == null)
+        {
+            Debug.LogWarning(
+                "[ROOM COLLISION] Source Tilemap is not assigned."
+            );
+
+            return;
+        }
+
+
+        // =================================================
+        // FLOOR COLLISION
+        // =================================================
+
+        foreach (Vector3Int floorCell in structure.cells)
+        {
+            TileBase floorTile =
+                sourceTilemap.GetTile(
+                    floorCell
+                );
+
+            if (floorTile != null)
+            {
+                roomCollisionTilemap.SetTile(
+                    floorCell,
+                    floorTile
+                );
+            }
+
+
+            // =================================================
+            // CHECK SURROUNDING WALLS / DOORS
+            // =================================================
+
+            foreach (
+                Vector3Int direction
+                in AdjacentDirections
+            )
+            {
+                Vector3Int boundaryCell =
+                    floorCell + direction;
+
+                if (
+                    !cellToStructure.TryGetValue(
+                        boundaryCell,
+                        out BuildingStructure boundaryStructure
+                    )
+                )
+                {
+                    continue;
+                }
+
+                if (
+                    boundaryStructure == null ||
+                    boundaryStructure.itemType == null
+                )
+                {
+                    continue;
+                }
+
+                TileCategory category =
+                    boundaryStructure.itemType.category;
+
+                if (
+                    category != TileCategory.Wall &&
+                    category != TileCategory.Door
+                )
+                {
+                    continue;
+                }
+
+                TileBase boundaryTile =
+                    sourceTilemap.GetTile(
+                        boundaryCell
+                    );
+
+                if (boundaryTile != null)
+                {
+                    roomCollisionTilemap.SetTile(
+                        boundaryCell,
+                        boundaryTile
+                    );
+                }
+            }
+        }
+
+
+        roomCollisionTilemap.RefreshAllTiles();
+
+
+        Debug.Log(
+            $"<color=cyan>" +
+            $"[ROOM COLLISION CREATED] " +
+            $"Structure: {structure.id} | " +
+            $"Collision Floors: {structure.cells.Count}" +
+            $"</color>"
+        );
+    }
+
+
+    // =====================================================
+    // REMOVE ROOM COLLISION
+    // =====================================================
+
+    private void RemoveRoomCollision(
+        BuildingStructure structure)
+    {
+        if (
+            structure == null ||
+            roomCollisionTilemap == null
+        )
+        {
+            return;
+        }
+
+
+        // =================================================
+        // REMOVE FLOOR COLLISION
+        // =================================================
+
+        foreach (Vector3Int floorCell in structure.cells)
+        {
+            roomCollisionTilemap.SetTile(
+                floorCell,
+                null
+            );
+
+
+            // =================================================
+            // REMOVE ADJACENT WALL / DOOR COLLISION
+            // =================================================
+
+            foreach (
+                Vector3Int direction
+                in AdjacentDirections
+            )
+            {
+                Vector3Int boundaryCell =
+                    floorCell + direction;
+
+                if (
+                    !cellToStructure.TryGetValue(
+                        boundaryCell,
+                        out BuildingStructure boundary
+                    )
+                )
+                {
+                    continue;
+                }
+
+                if (
+                    boundary == null ||
+                    boundary.itemType == null
+                )
+                {
+                    continue;
+                }
+
+                TileCategory category =
+                    boundary.itemType.category;
+
+                if (
+                    category == TileCategory.Wall ||
+                    category == TileCategory.Door
+                )
+                {
+                    roomCollisionTilemap.SetTile(
+                        boundaryCell,
+                        null
+                    );
+                }
+            }
+        }
+
+
+        roomCollisionTilemap.RefreshAllTiles();
+
+
+        Debug.Log(
+            $"<color=yellow>" +
+            $"[ROOM COLLISION REMOVED] " +
+            $"Structure: {structure.id}" +
+            $"</color>"
+        );
+    }
+
+
+    // =====================================================
+    // CLEAR ALL ROOM COLLISION
+    // =====================================================
+
+    private void ClearAllRoomCollision()
+    {
+        if (roomCollisionTilemap == null)
+            return;
+
+        roomCollisionTilemap.ClearAllTiles();
+
+        roomCollisionTilemap.RefreshAllTiles();
     }
 
 
@@ -733,8 +1036,32 @@ public class BaseTilePlacementManager : MonoBehaviour
             return false;
         }
 
+
+        // =================================================
+        // FIND AFFECTED ROOMS BEFORE REMOVAL
+        // =================================================
+
         HashSet<BuildingStructure> affectedRooms =
             FindNearbyFloorStructures(cell);
+
+
+        // =================================================
+        // IF REMOVING FROM AN ENCLOSED ROOM STRUCTURE,
+        // REMOVE ITS COLLISION FIRST
+        // =================================================
+
+        if (
+            originalStructure != null &&
+            originalStructure.itemType != null &&
+            originalStructure.itemType.category ==
+            TileCategory.Floor &&
+            originalStructure.isEnclosedRoom
+        )
+        {
+            RemoveRoomCollision(
+                originalStructure
+            );
+        }
 
 
         // =================================================
@@ -763,6 +1090,19 @@ public class BaseTilePlacementManager : MonoBehaviour
             InventoryManager.Instance.AddItem(
                 originalStructure.itemType,
                 1
+            );
+        }
+
+
+        // =================================================
+        // REMOVE COLLISION TILE
+        // =================================================
+
+        if (roomCollisionTilemap != null)
+        {
+            roomCollisionTilemap.SetTile(
+                cell,
+                null
             );
         }
 
@@ -799,8 +1139,15 @@ public class BaseTilePlacementManager : MonoBehaviour
                     room.cells.Count > 0
                 )
                 {
-                    ValidateRoomEnclosure(room);
+                    ValidateRoomEnclosure(
+                        room
+                    );
                 }
+            }
+
+            if (roomCollisionTilemap != null)
+            {
+                roomCollisionTilemap.RefreshAllTiles();
             }
 
             tilemap.RefreshAllTiles();
@@ -834,8 +1181,20 @@ public class BaseTilePlacementManager : MonoBehaviour
                 room.cells.Count > 0
             )
             {
-                ValidateRoomEnclosure(room);
+                ValidateRoomEnclosure(
+                    room
+                );
             }
+        }
+
+
+        // =================================================
+        // REFRESH
+        // =================================================
+
+        if (roomCollisionTilemap != null)
+        {
+            roomCollisionTilemap.RefreshAllTiles();
         }
 
         tilemap.RefreshAllTiles();
@@ -910,6 +1269,21 @@ public class BaseTilePlacementManager : MonoBehaviour
     private void RebuildAndSplitStructure(
         BuildingStructure originalStructure)
     {
+        // =================================================
+        // REMOVE COLLISION FROM OLD STRUCTURE
+        // =================================================
+
+        if (
+            originalStructure != null &&
+            originalStructure.isEnclosedRoom
+        )
+        {
+            RemoveRoomCollision(
+                originalStructure
+            );
+        }
+
+
         HashSet<Vector3Int> unvisited =
             new HashSet<Vector3Int>(
                 originalStructure.cells
@@ -941,6 +1315,7 @@ public class BaseTilePlacementManager : MonoBehaviour
             }
 
             queue.Enqueue(start);
+
             unvisited.Remove(start);
 
 
@@ -1047,6 +1422,63 @@ public class BaseTilePlacementManager : MonoBehaviour
             "<color=cyan>" +
             "======================================" +
             "</color>"
+        );
+    }
+
+
+    // =====================================================
+    // DEBUG ROOM COLLISION
+    // =====================================================
+
+    [ContextMenu("Clear Room Collision")]
+    public void DebugClearRoomCollision()
+    {
+        ClearAllRoomCollision();
+
+        Debug.Log(
+            "[ROOM COLLISION] All room collision tiles cleared."
+        );
+    }
+
+
+    // =====================================================
+    // DEBUG REBUILD COLLISION
+    // =====================================================
+
+    [ContextMenu("Rebuild All Room Collision")]
+    public void DebugRebuildAllRoomCollision()
+    {
+        ClearAllRoomCollision();
+
+        foreach (BuildingStructure structure in structures)
+        {
+            if (
+                structure == null ||
+                structure.itemType == null
+            )
+            {
+                continue;
+            }
+
+            if (
+                structure.itemType.category ==
+                TileCategory.Floor &&
+                structure.isEnclosedRoom
+            )
+            {
+                BuildRoomCollision(
+                    structure
+                );
+            }
+        }
+
+        if (roomCollisionTilemap != null)
+        {
+            roomCollisionTilemap.RefreshAllTiles();
+        }
+
+        Debug.Log(
+            "[ROOM COLLISION] Rebuilt collision for all enclosed rooms."
         );
     }
 }
