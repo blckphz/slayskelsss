@@ -3,124 +3,40 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
-// =========================================================
-// BUILDING STRUCTURE
-// =========================================================
-
 [Serializable]
 public class BuildingStructure
 {
     public string id = Guid.NewGuid().ToString();
-
     public buildSO itemType;
-
-    public HashSet<Vector3Int> cells =
-        new HashSet<Vector3Int>();
-
+    public HashSet<Vector3Int> cells = new HashSet<Vector3Int>();
     public bool isEnclosedRoom;
-
     public int totalWallCount;
     public int totalDoorCount;
 
-    public Action<BuildingStructure, bool>
-        OnEnclosureStatusChanged;
-
-
-    // =====================================================
-    // SET ENCLOSURE STATUS
-    // =====================================================
+    public Action<BuildingStructure, bool> OnEnclosureStatusChanged;
 
     public void SetEnclosureStatus(bool newStatus)
     {
-        if (isEnclosedRoom == newStatus)
-            return;
-
+        if (isEnclosedRoom == newStatus) return;
         isEnclosedRoom = newStatus;
 
         if (isEnclosedRoom)
         {
-            Debug.Log(
-                $"<color=green>" +
-                $"[ROOM CREATED]" +
-                $"</color> | " +
-                $"Structure: {id} | " +
-                $"Item: {(itemType != null ? itemType.name : "NULL")} | " +
-                $"Floors: {cells.Count} | " +
-                $"Walls: {totalWallCount} | " +
-                $"Doors: {totalDoorCount}"
-            );
-        }
-        else
-        {
-            Debug.Log(
-                $"<color=red>" +
-                $"[ROOM OPENED]" +
-                $"</color> | " +
-                $"Structure: {id} | " +
-                $"Item: {(itemType != null ? itemType.name : "NULL")}"
-            );
+            Debug.Log($"[ROOM CREATED] Structure: {id} | Item: {(itemType != null ? itemType.name : "NULL")} | Floors: {cells.Count} | Walls: {totalWallCount} | Doors: {totalDoorCount}");
         }
 
-        OnEnclosureStatusChanged?.Invoke(
-            this,
-            isEnclosedRoom
-        );
+        OnEnclosureStatusChanged?.Invoke(this, isEnclosedRoom);
     }
 }
-
-
-// =========================================================
-// BASE TILE PLACEMENT MANAGER
-// =========================================================
 
 public class BaseTilePlacementManager : MonoBehaviour
 {
     public static BaseTilePlacementManager Instance;
 
-
-    // =====================================================
-    // TILEMAP REFERENCES
-    // =====================================================
-
-    [Header("Room Collision")]
-
-    [Tooltip(
-        "The normal Tilemap containing your placed floor, wall and door tiles."
-    )]
-    public Tilemap sourceTilemap;
-
-    [Tooltip(
-        "Dedicated Tilemap used only for room collision."
-    )]
-    public Tilemap roomCollisionTilemap;
-
-
-    // =====================================================
-    // STRUCTURES
-    // =====================================================
-
     [Header("Active Structures")]
-    public List<BuildingStructure> structures =
-        new List<BuildingStructure>();
+    public List<BuildingStructure> structures = new List<BuildingStructure>();
 
-
-    // =====================================================
-    // CELL LOOKUP
-    // =====================================================
-
-    private readonly Dictionary<
-        Vector3Int,
-        BuildingStructure
-    > cellToStructure =
-        new Dictionary<
-            Vector3Int,
-            BuildingStructure
-        >();
-
-
-    // =====================================================
-    // DIRECTIONS
-    // =====================================================
+    private readonly Dictionary<Vector3Int, BuildingStructure> cellToStructure = new Dictionary<Vector3Int, BuildingStructure>();
 
     private static readonly Vector3Int[] AdjacentDirections =
     {
@@ -130,11 +46,6 @@ public class BaseTilePlacementManager : MonoBehaviour
         new Vector3Int(0, -1, 0)
     };
 
-
-    // =====================================================
-    // AWAKE
-    // =====================================================
-
     private void Awake()
     {
         if (Instance != null && Instance != this)
@@ -142,1343 +53,255 @@ public class BaseTilePlacementManager : MonoBehaviour
             Destroy(gameObject);
             return;
         }
-
         Instance = this;
     }
 
-
-    // =====================================================
-    // REGISTER
-    // =====================================================
-
-    public void Register(
-        buildSO item,
-        List<Vector3Int> newCells)
+    public void Register(buildSO item, List<Vector3Int> newCells)
     {
-        if (item == null)
+        if (item == null || newCells == null || newCells.Count == 0) return;
+
+        HashSet<BuildingStructure> neighborStructures = new HashSet<BuildingStructure>();
+
+        foreach (var cell in newCells)
         {
-            Debug.LogWarning(
-                "[ROOM SYSTEM] Register called with NULL item."
-            );
-
-            return;
-        }
-
-        if (newCells == null || newCells.Count == 0)
-        {
-            Debug.LogWarning(
-                "[ROOM SYSTEM] Register called with no cells."
-            );
-
-            return;
-        }
-
-
-        // =================================================
-        // FIND NEIGHBOUR STRUCTURES
-        // =================================================
-
-        HashSet<BuildingStructure> neighborStructures =
-            new HashSet<BuildingStructure>();
-
-        foreach (Vector3Int cell in newCells)
-        {
-            foreach (Vector3Int direction in AdjacentDirections)
+            foreach (var dir in AdjacentDirections)
             {
-                Vector3Int neighborCell =
-                    cell + direction;
-
-                if (!cellToStructure.TryGetValue(
-                    neighborCell,
-                    out BuildingStructure neighbor))
-                {
-                    continue;
-                }
-
-                if (
-                    neighbor != null &&
-                    neighbor.itemType == item
-                )
+                if (cellToStructure.TryGetValue(cell + dir, out var neighbor) && neighbor != null && neighbor.itemType == item)
                 {
                     neighborStructures.Add(neighbor);
                 }
             }
         }
 
-
-        // =================================================
-        // CREATE OR MERGE
-        // =================================================
-
         BuildingStructure targetStructure;
 
         if (neighborStructures.Count == 0)
         {
-            targetStructure = new BuildingStructure
-            {
-                itemType = item
-            };
-
+            targetStructure = new BuildingStructure { itemType = item };
             structures.Add(targetStructure);
         }
         else
         {
-            using (
-                HashSet<BuildingStructure>.Enumerator
-                enumerator =
-                neighborStructures.GetEnumerator()
-            )
-            {
-                enumerator.MoveNext();
-                targetStructure = enumerator.Current;
-            }
+            var enumerator = neighborStructures.GetEnumerator();
+            enumerator.MoveNext();
+            targetStructure = enumerator.Current;
 
-            foreach (BuildingStructure other in neighborStructures)
+            foreach (var other in neighborStructures)
             {
-                if (
-                    other == null ||
-                    other == targetStructure
-                )
-                {
-                    continue;
-                }
+                if (other == null || other == targetStructure) continue;
 
-                foreach (Vector3Int cell in other.cells)
+                foreach (var cell in other.cells)
                 {
                     targetStructure.cells.Add(cell);
-
-                    cellToStructure[cell] =
-                        targetStructure;
+                    cellToStructure[cell] = targetStructure;
                 }
-
                 structures.Remove(other);
             }
         }
 
-
-        // =================================================
-        // ADD CELLS
-        // =================================================
-
-        foreach (Vector3Int cell in newCells)
+        foreach (var cell in newCells)
         {
             targetStructure.cells.Add(cell);
-
-            cellToStructure[cell] =
-                targetStructure;
+            cellToStructure[cell] = targetStructure;
         }
-
-
-        // =================================================
-        // ROOM VALIDATION
-        // =================================================
 
         if (item.category == TileCategory.Floor)
         {
-            ValidateRoomEnclosure(
-                targetStructure
-            );
+            RoomCompletionCheckerManager.Instance?.ValidateRoomEnclosure(targetStructure, cellToStructure);
         }
-        else if (
-            item.category == TileCategory.Wall ||
-            item.category == TileCategory.Door
-        )
+        else if (item.category == TileCategory.Wall || item.category == TileCategory.Door)
         {
-            ValidateNearbyFloorStructures(
-                newCells
-            );
+            RoomCompletionCheckerManager.Instance?.ValidateNearbyFloorStructures(newCells, cellToStructure);
         }
-
-
-        // =================================================
-        // UPDATE WALL VISUALS
-        // =================================================
 
         UpdateWallVisuals(newCells);
     }
 
-
-    // =====================================================
-    // UPDATE WALL VISUALS
-    // =====================================================
-
-    private void UpdateWallVisuals(
-        List<Vector3Int> changedCells)
+    private void UpdateWallVisuals(List<Vector3Int> changedCells)
     {
-        if (
-            wallManager.Instance == null ||
-            changedCells == null
-        )
-        {
-            return;
-        }
+        if (wallManager.Instance == null || changedCells == null) return;
 
-        foreach (Vector3Int cell in changedCells)
+        foreach (var cell in changedCells)
         {
-            wallManager.Instance.UpdateWallsAround(
-                new Vector2Int(
-                    cell.x,
-                    cell.y
-                )
-            );
+            wallManager.Instance.UpdateWallsAround(new Vector2Int(cell.x, cell.y));
         }
     }
 
-
-    // =====================================================
-    // RESTORE
-    // =====================================================
-
-    public void RestoreSavedStructures(
-        List<BuildingStructureSaveData> savedStructures,
-        ItemDatabase database)
+    public void RestoreSavedStructures(List<BuildingStructureSaveData> savedStructures, ItemDatabase database)
     {
-        if (database == null)
-        {
-            Debug.LogError(
-                "[ROOM SYSTEM] Cannot restore structures. Database is NULL."
-            );
-
-            return;
-        }
+        if (database == null) return;
 
         structures.Clear();
         cellToStructure.Clear();
+        RoomCompletionCheckerManager.Instance?.ClearAllRoomCollision();
 
-        ClearAllRoomCollision();
+        if (savedStructures == null || savedStructures.Count == 0) return;
 
-
-        if (
-            savedStructures == null ||
-            savedStructures.Count == 0
-        )
+        foreach (var saved in savedStructures)
         {
-            Debug.Log(
-                "[ROOM SYSTEM] No saved structures to restore."
-            );
+            if (saved == null) continue;
 
-            return;
-        }
+            if (database.GetItemByID(saved.itemID) is not buildSO build) continue;
 
-        int restoredCount = 0;
-
-        foreach (
-            BuildingStructureSaveData saved
-            in savedStructures
-        )
-        {
-            if (saved == null)
-                continue;
-
-            ItemData item =
-                database.GetItemByID(
-                    saved.itemID
-                );
-
-            if (
-                item == null ||
-                item is not buildSO build
-            )
+            var structure = new BuildingStructure
             {
-                Debug.LogWarning(
-                    "[ROOM SYSTEM] Could not restore structure item ID: " +
-                    saved.itemID
-                );
+                itemType = build,
+                isEnclosedRoom = saved.isEnclosedRoom,
+                totalWallCount = saved.totalWallCount,
+                totalDoorCount = saved.totalDoorCount
+            };
 
-                continue;
-            }
-
-            BuildingStructure structure =
-                new BuildingStructure
-                {
-                    itemType = build
-                };
-
-            if (!string.IsNullOrEmpty(saved.id))
-            {
-                structure.id = saved.id;
-            }
+            if (!string.IsNullOrEmpty(saved.id)) structure.id = saved.id;
 
             if (saved.cells != null)
             {
-                foreach (Vector3Int cell in saved.cells)
+                foreach (var cell in saved.cells)
                 {
                     structure.cells.Add(cell);
-
-                    cellToStructure[cell] =
-                        structure;
+                    cellToStructure[cell] = structure;
                 }
             }
-
-            structure.isEnclosedRoom =
-                saved.isEnclosedRoom;
-
-            structure.totalWallCount =
-                saved.totalWallCount;
-
-            structure.totalDoorCount =
-                saved.totalDoorCount;
 
             structures.Add(structure);
-
-            restoredCount++;
         }
 
-
-        // =================================================
-        // REVALIDATE FLOORS
-        // =================================================
-
-        foreach (BuildingStructure structure in structures)
+        foreach (var structure in structures)
         {
-            if (
-                structure == null ||
-                structure.itemType == null ||
-                structure.cells == null ||
-                structure.cells.Count == 0
-            )
-            {
-                continue;
-            }
+            if (structure?.itemType == null || structure.cells.Count == 0) continue;
 
-            if (
-                structure.itemType.category ==
-                TileCategory.Floor
-            )
+            if (structure.itemType.category == TileCategory.Floor)
             {
-                ValidateRoomEnclosure(
-                    structure
-                );
+                RoomCompletionCheckerManager.Instance?.ValidateRoomEnclosure(structure, cellToStructure);
             }
         }
 
-
-        // =================================================
-        // REBUILD COLLISION
-        // =================================================
-
-        foreach (BuildingStructure structure in structures)
+        foreach (var structure in structures)
         {
-            if (
-                structure == null ||
-                structure.itemType == null
-            )
+            if (structure?.itemType == null) continue;
+
+            if (structure.itemType.category == TileCategory.Floor && structure.isEnclosedRoom)
             {
-                continue;
+                RoomCompletionCheckerManager.Instance?.BuildRoomCollision(structure, cellToStructure);
             }
-
-            if (
-                structure.itemType.category ==
-                TileCategory.Floor &&
-                structure.isEnclosedRoom
-            )
-            {
-                BuildRoomCollision(
-                    structure
-                );
-            }
-        }
-
-
-        Debug.Log(
-            $"<color=green>" +
-            $"[ROOM SYSTEM] RESTORED STRUCTURES: " +
-            $"{restoredCount}" +
-            $"</color>"
-        );
-    }
-
-
-    // =====================================================
-    // VALIDATE NEARBY FLOORS
-    // =====================================================
-
-    private void ValidateNearbyFloorStructures(
-        List<Vector3Int> changedCells)
-    {
-        if (
-            changedCells == null ||
-            changedCells.Count == 0
-        )
-        {
-            return;
-        }
-
-        HashSet<BuildingStructure> floorStructures =
-            new HashSet<BuildingStructure>();
-
-        foreach (Vector3Int cell in changedCells)
-        {
-            foreach (Vector3Int direction in AdjacentDirections)
-            {
-                Vector3Int neighborCell =
-                    cell + direction;
-
-                if (
-                    !cellToStructure.TryGetValue(
-                        neighborCell,
-                        out BuildingStructure structure
-                    )
-                )
-                {
-                    continue;
-                }
-
-                if (
-                    structure != null &&
-                    structure.itemType != null &&
-                    structure.itemType.category ==
-                    TileCategory.Floor
-                )
-                {
-                    floorStructures.Add(structure);
-                }
-            }
-        }
-
-        foreach (
-            BuildingStructure floorStructure
-            in floorStructures
-        )
-        {
-            ValidateRoomEnclosure(
-                floorStructure
-            );
         }
     }
 
-
-    // =====================================================
-    // ROOM ENCLOSURE
-    // =====================================================
-
-    public bool ValidateRoomEnclosure(
-        BuildingStructure structure)
+    public bool RemovePlacement(Tilemap tilemap, Vector3Int cell)
     {
-        if (
-            structure == null ||
-            structure.cells == null ||
-            structure.cells.Count == 0
-        )
+        if (tilemap == null || !cellToStructure.TryGetValue(cell, out var originalStructure)) return false;
+
+        var affectedRooms = FindNearbyFloorStructures(cell);
+
+        if (originalStructure?.itemType?.category == TileCategory.Floor && originalStructure.isEnclosedRoom)
         {
-            return false;
+            RoomCompletionCheckerManager.Instance?.RemoveRoomCollision(originalStructure, cellToStructure);
         }
 
-        if (
-            structure.itemType == null ||
-            structure.itemType.category !=
-            TileCategory.Floor
-        )
-        {
-            return false;
-        }
-
-        structure.totalWallCount = 0;
-        structure.totalDoorCount = 0;
-
-        int minX = int.MaxValue;
-        int maxX = int.MinValue;
-
-        int minY = int.MaxValue;
-        int maxY = int.MinValue;
-
-
-        // =================================================
-        // CALCULATE BOUNDS
-        // =================================================
-
-        foreach (Vector3Int cell in structure.cells)
-        {
-            if (cell.x < minX)
-                minX = cell.x;
-
-            if (cell.x > maxX)
-                maxX = cell.x;
-
-            if (cell.y < minY)
-                minY = cell.y;
-
-            if (cell.y > maxY)
-                maxY = cell.y;
-        }
-
-
-        // =================================================
-        // CHECK BOTTOM
-        // =================================================
-
-        bool bottomClosed =
-            CheckBottomBoundary(
-                structure,
-                minX,
-                maxX,
-                minY
-            );
-
-
-        // =================================================
-        // CHECK TOP
-        // =================================================
-
-        bool topClosed =
-            CheckTopBoundary(
-                structure,
-                minX,
-                maxX,
-                maxY
-            );
-
-
-        bool enclosed =
-            bottomClosed &&
-            topClosed;
-
-
-        // =================================================
-        // UPDATE STATUS
-        // =================================================
-
-        structure.SetEnclosureStatus(
-            enclosed
-        );
-
-
-        // =================================================
-        // UPDATE COLLISION
-        // =================================================
-
-        if (enclosed)
-        {
-            BuildRoomCollision(
-                structure
-            );
-        }
-        else
-        {
-            RemoveRoomCollision(
-                structure
-            );
-        }
-
-
-        return enclosed;
-    }
-
-
-    // =====================================================
-    // BOTTOM
-    // =====================================================
-
-    private bool CheckBottomBoundary(
-        BuildingStructure structure,
-        int minX,
-        int maxX,
-        int minY)
-    {
-        bool closed = true;
-
-        for (int x = minX; x <= maxX; x++)
-        {
-            Vector3Int floorCell =
-                new Vector3Int(
-                    x,
-                    minY,
-                    0
-                );
-
-            if (!structure.cells.Contains(floorCell))
-                continue;
-
-            if (
-                !CheckBoundaryCell(
-                    structure,
-                    floorCell
-                )
-            )
-            {
-                closed = false;
-            }
-        }
-
-        return closed;
-    }
-
-
-    // =====================================================
-    // TOP
-    // =====================================================
-
-    private bool CheckTopBoundary(
-        BuildingStructure structure,
-        int minX,
-        int maxX,
-        int maxY)
-    {
-        bool closed = true;
-
-        for (int x = minX; x <= maxX; x++)
-        {
-            // IMPORTANT:
-            // The upper wall is ONE TILE ABOVE
-            // the top floor row.
-
-            Vector3Int wallCell =
-                new Vector3Int(
-                    x,
-                    maxY + 1,
-                    0
-                );
-
-            if (
-                !CheckBoundaryCell(
-                    structure,
-                    wallCell
-                )
-            )
-            {
-                closed = false;
-            }
-        }
-
-        return closed;
-    }
-
-
-    // =====================================================
-    // CHECK BOUNDARY
-    // =====================================================
-
-    private bool CheckBoundaryCell(
-        BuildingStructure floorStructure,
-        Vector3Int boundaryCell)
-    {
-        if (
-            !cellToStructure.TryGetValue(
-                boundaryCell,
-                out BuildingStructure boundary
-            )
-        )
-        {
-            return false;
-        }
-
-        if (
-            boundary == null ||
-            boundary.itemType == null
-        )
-        {
-            return false;
-        }
-
-        TileCategory category =
-            boundary.itemType.category;
-
-        if (category == TileCategory.Wall)
-        {
-            floorStructure.totalWallCount++;
-
-            return true;
-        }
-
-        if (category == TileCategory.Door)
-        {
-            floorStructure.totalDoorCount++;
-
-            return true;
-        }
-
-        return false;
-    }
-
-
-    // =====================================================
-    // BUILD ROOM COLLISION
-    // =====================================================
-
-    private void BuildRoomCollision(
-        BuildingStructure structure)
-    {
-        if (
-            structure == null ||
-            !structure.isEnclosedRoom
-        )
-        {
-            return;
-        }
-
-        if (roomCollisionTilemap == null)
-        {
-            Debug.LogWarning(
-                "[ROOM COLLISION] Room Collision Tilemap is not assigned."
-            );
-
-            return;
-        }
-
-        if (sourceTilemap == null)
-        {
-            Debug.LogWarning(
-                "[ROOM COLLISION] Source Tilemap is not assigned."
-            );
-
-            return;
-        }
-
-
-        // =================================================
-        // FLOOR COLLISION
-        // =================================================
-
-        foreach (Vector3Int floorCell in structure.cells)
-        {
-            TileBase floorTile =
-                sourceTilemap.GetTile(
-                    floorCell
-                );
-
-            if (floorTile != null)
-            {
-                roomCollisionTilemap.SetTile(
-                    floorCell,
-                    floorTile
-                );
-            }
-
-
-            // =================================================
-            // CHECK SURROUNDING WALLS / DOORS
-            // =================================================
-
-            foreach (
-                Vector3Int direction
-                in AdjacentDirections
-            )
-            {
-                Vector3Int boundaryCell =
-                    floorCell + direction;
-
-                if (
-                    !cellToStructure.TryGetValue(
-                        boundaryCell,
-                        out BuildingStructure boundaryStructure
-                    )
-                )
-                {
-                    continue;
-                }
-
-                if (
-                    boundaryStructure == null ||
-                    boundaryStructure.itemType == null
-                )
-                {
-                    continue;
-                }
-
-                TileCategory category =
-                    boundaryStructure.itemType.category;
-
-                if (
-                    category != TileCategory.Wall &&
-                    category != TileCategory.Door
-                )
-                {
-                    continue;
-                }
-
-                TileBase boundaryTile =
-                    sourceTilemap.GetTile(
-                        boundaryCell
-                    );
-
-                if (boundaryTile != null)
-                {
-                    roomCollisionTilemap.SetTile(
-                        boundaryCell,
-                        boundaryTile
-                    );
-                }
-            }
-        }
-
-
-        roomCollisionTilemap.RefreshAllTiles();
-
-
-        Debug.Log(
-            $"<color=cyan>" +
-            $"[ROOM COLLISION CREATED] " +
-            $"Structure: {structure.id} | " +
-            $"Collision Floors: {structure.cells.Count}" +
-            $"</color>"
-        );
-    }
-
-
-    // =====================================================
-    // REMOVE ROOM COLLISION
-    // =====================================================
-
-    private void RemoveRoomCollision(
-        BuildingStructure structure)
-    {
-        if (
-            structure == null ||
-            roomCollisionTilemap == null
-        )
-        {
-            return;
-        }
-
-
-        // =================================================
-        // REMOVE FLOOR COLLISION
-        // =================================================
-
-        foreach (Vector3Int floorCell in structure.cells)
-        {
-            roomCollisionTilemap.SetTile(
-                floorCell,
-                null
-            );
-
-
-            // =================================================
-            // REMOVE ADJACENT WALL / DOOR COLLISION
-            // =================================================
-
-            foreach (
-                Vector3Int direction
-                in AdjacentDirections
-            )
-            {
-                Vector3Int boundaryCell =
-                    floorCell + direction;
-
-                if (
-                    !cellToStructure.TryGetValue(
-                        boundaryCell,
-                        out BuildingStructure boundary
-                    )
-                )
-                {
-                    continue;
-                }
-
-                if (
-                    boundary == null ||
-                    boundary.itemType == null
-                )
-                {
-                    continue;
-                }
-
-                TileCategory category =
-                    boundary.itemType.category;
-
-                if (
-                    category == TileCategory.Wall ||
-                    category == TileCategory.Door
-                )
-                {
-                    roomCollisionTilemap.SetTile(
-                        boundaryCell,
-                        null
-                    );
-                }
-            }
-        }
-
-
-        roomCollisionTilemap.RefreshAllTiles();
-
-
-        Debug.Log(
-            $"<color=yellow>" +
-            $"[ROOM COLLISION REMOVED] " +
-            $"Structure: {structure.id}" +
-            $"</color>"
-        );
-    }
-
-
-    // =====================================================
-    // CLEAR ALL ROOM COLLISION
-    // =====================================================
-
-    private void ClearAllRoomCollision()
-    {
-        if (roomCollisionTilemap == null)
-            return;
-
-        roomCollisionTilemap.ClearAllTiles();
-
-        roomCollisionTilemap.RefreshAllTiles();
-    }
-
-
-    // =====================================================
-    // REMOVE PLACEMENT
-    // =====================================================
-
-    public bool RemovePlacement(
-        Tilemap tilemap,
-        Vector3Int cell)
-    {
-        if (
-            tilemap == null ||
-            !cellToStructure.TryGetValue(
-                cell,
-                out BuildingStructure originalStructure
-            )
-        )
-        {
-            return false;
-        }
-
-
-        // =================================================
-        // FIND AFFECTED ROOMS BEFORE REMOVAL
-        // =================================================
-
-        HashSet<BuildingStructure> affectedRooms =
-            FindNearbyFloorStructures(cell);
-
-
-        // =================================================
-        // IF REMOVING FROM AN ENCLOSED ROOM STRUCTURE,
-        // REMOVE ITS COLLISION FIRST
-        // =================================================
-
-        if (
-            originalStructure != null &&
-            originalStructure.itemType != null &&
-            originalStructure.itemType.category ==
-            TileCategory.Floor &&
-            originalStructure.isEnclosedRoom
-        )
-        {
-            RemoveRoomCollision(
-                originalStructure
-            );
-        }
-
-
-        // =================================================
-        // REMOVE TILE
-        // =================================================
-
-        tilemap.SetTile(
-            cell,
-            null
-        );
-
+        tilemap.SetTile(cell, null);
         cellToStructure.Remove(cell);
-
         originalStructure.cells.Remove(cell);
 
-
-        // =================================================
-        // RETURN ITEM
-        // =================================================
-
-        if (
-            originalStructure.itemType != null &&
-            InventoryManager.Instance != null
-        )
+        if (originalStructure.itemType != null && InventoryManager.Instance != null)
         {
-            InventoryManager.Instance.AddItem(
-                originalStructure.itemType,
-                1
-            );
+            InventoryManager.Instance.AddItem(originalStructure.itemType, 1);
         }
 
+        if (RoomCompletionCheckerManager.Instance?.roomCollisionTilemap != null)
+            RoomCompletionCheckerManager.Instance.roomCollisionTilemap.SetTile(cell, null);
 
-        // =================================================
-        // REMOVE COLLISION TILE
-        // =================================================
-
-        if (roomCollisionTilemap != null)
-        {
-            roomCollisionTilemap.SetTile(
-                cell,
-                null
-            );
-        }
-
-
-        // =================================================
-        // UPDATE WALL VISUALS
-        // =================================================
-
-        UpdateWallVisuals(
-            new List<Vector3Int>
-            {
-                cell
-            }
-        );
-
-
-        // =================================================
-        // STRUCTURE EMPTY
-        // =================================================
+        UpdateWallVisuals(new List<Vector3Int> { cell });
 
         if (originalStructure.cells.Count == 0)
         {
-            structures.Remove(
-                originalStructure
-            );
-
-            foreach (
-                BuildingStructure room
-                in affectedRooms
-            )
-            {
-                if (
-                    room != null &&
-                    room.cells.Count > 0
-                )
-                {
-                    ValidateRoomEnclosure(
-                        room
-                    );
-                }
-            }
-
-            if (roomCollisionTilemap != null)
-            {
-                roomCollisionTilemap.RefreshAllTiles();
-            }
-
-            tilemap.RefreshAllTiles();
-
-            SaveWorldAfterChange();
-
+            structures.Remove(originalStructure);
+            CleanupAfterRemoval(affectedRooms, tilemap);
             return true;
         }
 
-
-        // =================================================
-        // SPLIT STRUCTURE
-        // =================================================
-
-        RebuildAndSplitStructure(
-            originalStructure
-        );
-
-
-        // =================================================
-        // REVALIDATE AFFECTED ROOMS
-        // =================================================
-
-        foreach (
-            BuildingStructure room
-            in affectedRooms
-        )
-        {
-            if (
-                room != null &&
-                room.cells.Count > 0
-            )
-            {
-                ValidateRoomEnclosure(
-                    room
-                );
-            }
-        }
-
-
-        // =================================================
-        // REFRESH
-        // =================================================
-
-        if (roomCollisionTilemap != null)
-        {
-            roomCollisionTilemap.RefreshAllTiles();
-        }
-
-        tilemap.RefreshAllTiles();
-
-        SaveWorldAfterChange();
-
+        RebuildAndSplitStructure(originalStructure);
+        CleanupAfterRemoval(affectedRooms, tilemap);
         return true;
     }
 
+    private void CleanupAfterRemoval(HashSet<BuildingStructure> affectedRooms, Tilemap tilemap)
+    {
+        foreach (var room in affectedRooms)
+        {
+            if (room != null && room.cells.Count > 0)
+            {
+                RoomCompletionCheckerManager.Instance?.ValidateRoomEnclosure(room, cellToStructure);
+            }
+        }
 
-    // =====================================================
-    // SAVE
-    // =====================================================
+        RoomCompletionCheckerManager.Instance?.roomCollisionTilemap?.RefreshAllTiles();
+        tilemap.RefreshAllTiles();
+        SaveWorldAfterChange();
+    }
 
     private void SaveWorldAfterChange()
     {
-        if (
-            BuildingSaveManager.Instance != null
-        )
+        if (BuildingSaveManager.Instance != null)
         {
-            BuildingSaveManager.Instance
-                .SaveAfterChange();
+            BuildingSaveManager.Instance.SaveAfterChange();
         }
     }
 
-
-    // =====================================================
-    // FIND NEARBY FLOORS
-    // =====================================================
-
-    private HashSet<BuildingStructure>
-        FindNearbyFloorStructures(
-            Vector3Int cell)
+    private HashSet<BuildingStructure> FindNearbyFloorStructures(Vector3Int cell)
     {
-        HashSet<BuildingStructure> result =
-            new HashSet<BuildingStructure>();
-
-        foreach (Vector3Int direction in AdjacentDirections)
+        var result = new HashSet<BuildingStructure>();
+        foreach (var dir in AdjacentDirections)
         {
-            Vector3Int neighborCell =
-                cell + direction;
-
-            if (
-                !cellToStructure.TryGetValue(
-                    neighborCell,
-                    out BuildingStructure structure
-                )
-            )
-            {
-                continue;
-            }
-
-            if (
-                structure != null &&
-                structure.itemType != null &&
-                structure.itemType.category ==
-                TileCategory.Floor
-            )
+            if (cellToStructure.TryGetValue(cell + dir, out var structure) && structure?.itemType?.category == TileCategory.Floor)
             {
                 result.Add(structure);
             }
         }
-
         return result;
     }
 
-
-    // =====================================================
-    // SPLIT
-    // =====================================================
-
-    private void RebuildAndSplitStructure(
-        BuildingStructure originalStructure)
+    private void RebuildAndSplitStructure(BuildingStructure originalStructure)
     {
-        // =================================================
-        // REMOVE COLLISION FROM OLD STRUCTURE
-        // =================================================
-
-        if (
-            originalStructure != null &&
-            originalStructure.isEnclosedRoom
-        )
+        if (originalStructure?.isEnclosedRoom == true)
         {
-            RemoveRoomCollision(
-                originalStructure
-            );
+            RoomCompletionCheckerManager.Instance?.RemoveRoomCollision(originalStructure, cellToStructure);
         }
 
-
-        HashSet<Vector3Int> unvisited =
-            new HashSet<Vector3Int>(
-                originalStructure.cells
-            );
-
-        structures.Remove(
-            originalStructure
-        );
-
+        var unvisited = new HashSet<Vector3Int>(originalStructure.cells);
+        structures.Remove(originalStructure);
 
         while (unvisited.Count > 0)
         {
-            BuildingStructure newStructure =
-                new BuildingStructure
-                {
-                    itemType =
-                        originalStructure.itemType
-                };
-
-            Queue<Vector3Int> queue =
-                new Queue<Vector3Int>();
+            var newStructure = new BuildingStructure { itemType = originalStructure.itemType };
+            var queue = new Queue<Vector3Int>();
 
             Vector3Int start = default;
-
-            foreach (Vector3Int first in unvisited)
+            foreach (var first in unvisited)
             {
                 start = first;
                 break;
             }
 
             queue.Enqueue(start);
-
             unvisited.Remove(start);
-
-
-            // =================================================
-            // FLOOD FILL
-            // =================================================
 
             while (queue.Count > 0)
             {
-                Vector3Int current =
-                    queue.Dequeue();
+                var current = queue.Dequeue();
+                newStructure.cells.Add(current);
+                cellToStructure[current] = newStructure;
 
-                newStructure.cells.Add(
-                    current
-                );
-
-                cellToStructure[current] =
-                    newStructure;
-
-
-                foreach (
-                    Vector3Int direction
-                    in AdjacentDirections
-                )
+                foreach (var dir in AdjacentDirections)
                 {
-                    Vector3Int neighbor =
-                        current + direction;
-
-                    if (!unvisited.Contains(neighbor))
-                        continue;
+                    var neighbor = current + dir;
+                    if (!unvisited.Contains(neighbor)) continue;
 
                     unvisited.Remove(neighbor);
-
                     queue.Enqueue(neighbor);
                 }
             }
 
-
-            structures.Add(
-                newStructure
-            );
-
-
-            // =================================================
-            // REVALIDATE
-            // =================================================
-
-            ValidateRoomEnclosure(
-                newStructure
-            );
+            structures.Add(newStructure);
+            RoomCompletionCheckerManager.Instance?.ValidateRoomEnclosure(newStructure, cellToStructure);
         }
-    }
-
-
-    // =====================================================
-    // DEBUG
-    // =====================================================
-
-    [ContextMenu("Debug Room Structures")]
-    public void DebugRoomStructures()
-    {
-        Debug.Log(
-            "<color=cyan>" +
-            "========== ROOM STRUCTURES ==========" +
-            "</color>"
-        );
-
-        foreach (
-            BuildingStructure structure
-            in structures
-        )
-        {
-            if (
-                structure == null ||
-                structure.itemType == null
-            )
-            {
-                continue;
-            }
-
-            Debug.Log(
-                $"[STRUCTURE] | " +
-                $"ID: {structure.id} | " +
-                $"Item: {structure.itemType.name} | " +
-                $"Category: {structure.itemType.category} | " +
-                $"Cells: {structure.cells.Count} | " +
-                $"Room: {structure.isEnclosedRoom} | " +
-                $"Walls: {structure.totalWallCount} | " +
-                $"Doors: {structure.totalDoorCount}"
-            );
-
-            foreach (
-                Vector3Int cell
-                in structure.cells
-            )
-            {
-                Debug.Log(
-                    $"    Cell: {cell}"
-                );
-            }
-        }
-
-        Debug.Log(
-            "<color=cyan>" +
-            "======================================" +
-            "</color>"
-        );
-    }
-
-
-    // =====================================================
-    // DEBUG ROOM COLLISION
-    // =====================================================
-
-    [ContextMenu("Clear Room Collision")]
-    public void DebugClearRoomCollision()
-    {
-        ClearAllRoomCollision();
-
-        Debug.Log(
-            "[ROOM COLLISION] All room collision tiles cleared."
-        );
-    }
-
-
-    // =====================================================
-    // DEBUG REBUILD COLLISION
-    // =====================================================
-
-    [ContextMenu("Rebuild All Room Collision")]
-    public void DebugRebuildAllRoomCollision()
-    {
-        ClearAllRoomCollision();
-
-        foreach (BuildingStructure structure in structures)
-        {
-            if (
-                structure == null ||
-                structure.itemType == null
-            )
-            {
-                continue;
-            }
-
-            if (
-                structure.itemType.category ==
-                TileCategory.Floor &&
-                structure.isEnclosedRoom
-            )
-            {
-                BuildRoomCollision(
-                    structure
-                );
-            }
-        }
-
-        if (roomCollisionTilemap != null)
-        {
-            roomCollisionTilemap.RefreshAllTiles();
-        }
-
-        Debug.Log(
-            "[ROOM COLLISION] Rebuilt collision for all enclosed rooms."
-        );
     }
 }
