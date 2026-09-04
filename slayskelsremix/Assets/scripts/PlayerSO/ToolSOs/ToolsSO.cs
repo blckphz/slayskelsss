@@ -1,10 +1,15 @@
 ﻿using UnityEngine;
 
-[CreateAssetMenu(fileName = "NewToolAbility", menuName = "Abilities/Tools/BaseTool")]
+[CreateAssetMenu(
+    fileName = "NewToolAbility",
+    menuName = "Abilities/Tools/BaseTool"
+)]
 public class ToolsSO : offensivemelee, IItemDescriptionProvider
 {
     [Header("Tool Configuration")]
-    [Tooltip("The main tool identity classification used by harvesting targets.")]
+    [Tooltip(
+        "The main tool identity classification used by harvesting targets."
+    )]
     public ToolType toolType;
 
 
@@ -12,11 +17,11 @@ public class ToolsSO : offensivemelee, IItemDescriptionProvider
     public int bonusDamage = 0;
 
 
-    // =====================================================
+    // =========================================================
     // DESCRIPTION
-    // =====================================================
+    // =========================================================
 
-    public virtual string GetDetailedDescription()
+    public override string GetDetailedDescription()
     {
         return $"<color=#FF6B6B>Damage:</color> {damage}\n" +
                $"<color=#A2E8DD>Swing Rate:</color> {fireRate}s\n" +
@@ -27,12 +32,13 @@ public class ToolsSO : offensivemelee, IItemDescriptionProvider
                "• Swing: Used to harvest resources and deal melee damage.";
     }
 
-    // =====================================================
-    // OPTIONAL EXECUTE HOOK (if your system uses it)
-    // =====================================================
 
-    public virtual bool Execute(Transform caster, Transform targetAnchor, bool isHolding)
+    // =========================================================
+    // BONUS DAMAGE
+    // =========================================================
+
+    public override float GetBonusDamage()
     {
-        return true;
+        return bonusDamage;
     }
 }
