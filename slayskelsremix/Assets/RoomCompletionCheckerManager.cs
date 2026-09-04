@@ -242,7 +242,7 @@ public class RoomCompletionCheckerManager : MonoBehaviour
 
 
         // =====================================================
-        // COLLISION
+        // ROOM COLLISION
         // =====================================================
 
         if (enclosed)
@@ -266,7 +266,7 @@ public class RoomCompletionCheckerManager : MonoBehaviour
 
 
     // =========================================================
-    // CHECK BOTTOM
+    // CHECK BOTTOM BOUNDARY
     // =========================================================
 
     private bool CheckBottomBoundary(
@@ -313,7 +313,7 @@ public class RoomCompletionCheckerManager : MonoBehaviour
 
 
     // =========================================================
-    // CHECK TOP
+    // CHECK TOP BOUNDARY
     // =========================================================
 
     private bool CheckTopBoundary(
@@ -380,6 +380,10 @@ public class RoomCompletionCheckerManager : MonoBehaviour
             boundary.itemType.category;
 
 
+        // =====================================================
+        // WALL CLOSES ROOM
+        // =====================================================
+
         if (category == TileCategory.Wall)
         {
             floorStructure.totalWallCount++;
@@ -387,6 +391,12 @@ public class RoomCompletionCheckerManager : MonoBehaviour
             return true;
         }
 
+
+        // =====================================================
+        // DOOR ALSO CLOSES ROOM
+        //
+        // But door does NOT receive collision.
+        // =====================================================
 
         if (category == TileCategory.Door)
         {
@@ -403,13 +413,12 @@ public class RoomCompletionCheckerManager : MonoBehaviour
     // =========================================================
     // BUILD ROOM COLLISION
     //
-    // IMPORTANT:
+    // COLLISION IS CREATED ONLY ON:
     //
-    // Only OUTER floor tiles receive collision.
+    // 1. Outer floor tiles
+    // 2. Wall tiles
     //
-    // Interior floor tiles are NOT added.
-    //
-    // Walls and doors around the outer floor are also added.
+    // DOORS ARE ALWAYS OPEN.
     // =========================================================
 
     public void BuildRoomCollision(
@@ -429,14 +438,14 @@ public class RoomCompletionCheckerManager : MonoBehaviour
 
 
         int outerFloorCount = 0;
-        int boundaryCount = 0;
+        int wallCount = 0;
+        int doorCount = 0;
 
 
         // =====================================================
-        // FIRST REMOVE OLD COLLISION
+        // REMOVE OLD COLLISION FIRST
         //
-        // This prevents old perimeter tiles from remaining
-        // after the room changes shape.
+        // This prevents stale collision when a room changes.
         // =====================================================
 
         RemoveRoomCollision(
@@ -447,7 +456,7 @@ public class RoomCompletionCheckerManager : MonoBehaviour
 
 
         // =====================================================
-        // BUILD NEW COLLISION
+        // CHECK EACH FLOOR
         // =====================================================
 
         foreach (var floorCell in structure.cells)
@@ -456,7 +465,7 @@ public class RoomCompletionCheckerManager : MonoBehaviour
 
 
             // =================================================
-            // CHECK WHETHER THIS FLOOR IS ON THE OUTER EDGE
+            // FIND OUTER FLOOR
             // =================================================
 
             foreach (var dir in AdjacentDirections)
@@ -473,7 +482,12 @@ public class RoomCompletionCheckerManager : MonoBehaviour
             }
 
 
-            // Interior floor.
+            // =================================================
+            // INTERIOR FLOOR
+            //
+            // NO COLLISION
+            // =================================================
+
             if (!isOuterFloor)
                 continue;
 
@@ -500,7 +514,7 @@ public class RoomCompletionCheckerManager : MonoBehaviour
 
 
             // =================================================
-            // WALL / DOOR COLLISION
+            // CHECK BOUNDARY AROUND OUTER FLOOR
             // =================================================
 
             foreach (var dir in AdjacentDirections)
@@ -525,28 +539,50 @@ public class RoomCompletionCheckerManager : MonoBehaviour
                     boundaryStructure.itemType.category;
 
 
-                if (
-                    category != TileCategory.Wall &&
-                    category != TileCategory.Door)
+                // =================================================
+                // DOOR = OPENING
+                //
+                // NEVER PLACE COLLISION HERE.
+                // =================================================
+
+                if (category == TileCategory.Door)
                 {
+                    doorCount++;
+
+                    // Explicitly remove any old collision
+                    // that might have belonged to a wall
+                    // before the door was placed.
+                    roomCollisionTilemap.SetTile(
+                        boundaryCell,
+                        null
+                    );
+
                     continue;
                 }
 
 
-                TileBase boundaryTile =
+                // =================================================
+                // ONLY WALLS GET COLLISION
+                // =================================================
+
+                if (category != TileCategory.Wall)
+                    continue;
+
+
+                TileBase wallTile =
                     sourceTilemap.GetTile(
                         boundaryCell
                     );
 
 
-                if (boundaryTile != null)
+                if (wallTile != null)
                 {
                     roomCollisionTilemap.SetTile(
                         boundaryCell,
-                        boundaryTile
+                        wallTile
                     );
 
-                    boundaryCount++;
+                    wallCount++;
                 }
             }
         }
@@ -555,12 +591,18 @@ public class RoomCompletionCheckerManager : MonoBehaviour
         roomCollisionTilemap.RefreshAllTiles();
 
 
+        int interiorFloorCount =
+            structure.cells.Count -
+            outerFloorCount;
+
+
         DebugLog(
             $"COLLISION BUILT | " +
             $"Room: {structure.id} | " +
             $"Outer Floors: {outerFloorCount} | " +
-            $"Walls/Doors: {boundaryCount} | " +
-            $"Interior Floors: {structure.cells.Count - outerFloorCount}"
+            $"Interior Floors: {interiorFloorCount} | " +
+            $"Walls: {wallCount} | " +
+            $"Doors skipped: {doorCount}"
         );
     }
 
@@ -615,7 +657,7 @@ public class RoomCompletionCheckerManager : MonoBehaviour
 
 
             // =================================================
-            // NEIGHBOURING WALL / DOOR CELLS
+            // WALL / DOOR CELLS
             // =================================================
 
             foreach (var dir in AdjacentDirections)
@@ -651,6 +693,10 @@ public class RoomCompletionCheckerManager : MonoBehaviour
             }
         }
 
+
+        // =====================================================
+        // REMOVE
+        // =====================================================
 
         foreach (var cell in cellsToRemove)
         {
